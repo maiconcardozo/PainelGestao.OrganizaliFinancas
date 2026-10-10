@@ -22,4 +22,4 @@ Escopo v0.1 para revisão, preparado antes do desenvolvimento. Organização bas
 15. [Referências consultadas](architecture/references.md)
 16. [Contexto](agent/context.md), [instruções](agent/instructions.md) e [checklist](agent/checklist.md)
 
-O [README da raiz](../README.md) resume o produto, a stack e o estado real do repositório. Não há código implementado nesta entrega.
+O [README da raiz](../README.md) resume o produto, a stack e o estado real do repositório. M1.1 implementado; consulte as [evidências](testing/m1-1-foundation.md) e a [decisão Minimal API + frontend](architecture/decisions/ADR-0002-minimal-api-frontend-swagger.md).

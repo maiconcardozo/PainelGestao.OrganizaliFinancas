@@ -1,6 +1,6 @@
 # Marcos de início do desenvolvimento
 
-Data: 10/10/2026. Estado: tarefas organizadas; desenvolvimento ainda não iniciado.
+Data: 10/10/2026. Estado: M1.1 concluído; demais etapas não iniciadas. Evidências em [M1.1](../testing/m1-1-foundation.md).
 
 Este detalhamento desdobra M1–M3 do [plano geral](implementation.md), preservando seus identificadores e dependências. O primeiro objetivo demonstrável é entrar em uma casa isolada, navegar com permissões e manter seus cadastros. Indicadores financeiros reais entram após receitas, despesas e cartões.
 
@@ -29,7 +29,7 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ## 2. Quadro de execução inicial
 
-Todos os itens abaixo estão **não iniciados**. Uma tarefa fica concluída somente com sua evidência de aceite.
+**M1.1 concluído**; demais itens não iniciados. Uma tarefa fica concluída somente com sua evidência de aceite.
 
 | Etapa | Entrega demonstrável | Dependência | Aceite principal |
 |---|---|---|---|
@@ -50,12 +50,12 @@ Todos os itens abaixo estão **não iniciados**. Uma tarefa fica concluída some
 
 ### M1.1 — Solução e convenções
 
-- [ ] Ler as referências completas relevantes e registrar revisão/pacotes utilizados.
-- [ ] Criar solution com Api, Application, Domain, Infrastructure e Shared, mais o projeto de testes, conforme RevendaPRO.
-- [ ] Centralizar versões e build conforme os arquivos reais de referência; habilitar nullable/analyzers.
-- [ ] Validar restore do Foundation.Base autorizado, sem expor credenciais de feed.
-- [ ] Criar apenas pastas utilizadas; não gerar todos os módulos financeiros vazios.
-- [ ] Aplicar testes de dependência equivalentes aos do RevendaPRO.
+- [x] Ler as referências completas relevantes e registrar revisão/pacotes utilizados.
+- [x] Criar solution com Api, Application, Domain, Infrastructure e Shared, mais o projeto de testes, conforme RevendaPRO.
+- [x] Centralizar versões e build conforme os arquivos reais de referência; habilitar nullable/analyzers.
+- [x] Validar restore do Foundation.Base autorizado, sem expor credenciais de feed.
+- [x] Criar apenas pastas utilizadas; não gerar todos os módulos financeiros vazios.
+- [x] Aplicar testes de dependência equivalentes aos do RevendaPRO.
 
 **Saída:** solução compilando e referências entre projetos corretas. **Evidência:** comandos executados, versões e resultado dos testes. Se restore/compatibilidade falhar, diagnosticar e perguntar antes de substituir versão ou biblioteca.
 
@@ -73,7 +73,7 @@ Todos os itens abaixo estão **não iniciados**. Uma tarefa fica concluída some
 ### M1.3 — Base da API
 
 - [ ] Preparar DI, opções tipadas e validação de configuração seguindo a referência.
-- [ ] Aplicar controllers finos com IMediator, ValidationBehavior e tratamento centralizado de erros.
+- [ ] Aplicar endpoints Minimal API finos com IMediator, ValidationBehavior e tratamento centralizado de erros.
 - [ ] Usar SuccessDetails/ProblemDetails e documentar respostas em OpenAPI.
 - [ ] Preparar correlação, logs sem dados sensíveis, health live/ready e configuração local segura.
 - [ ] Conferir resposta de erro e cancelamento de requisição com casos técnicos, sem financeiro fictício.

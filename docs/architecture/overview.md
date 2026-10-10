@@ -4,7 +4,7 @@ Plano técnico, sem implementação. Referência principal confirmada: RevendaPR
 
 ## Estrutura
 
-Monólito modular com API ASP.NET Core e frontend Next.js, conforme referência. Um banco MariaDB compartilhado com isolamento por `IdTenant`. Tenant representa exatamente uma casa/assinatura. Contextos: Access, Households, Catalogs, Income, Accounts, Expenses, Cards, Budgets, Alerts, Reports e Subscriptions.
+Monólito modular com ASP.NET Core Minimal API e frontend Next.js separado. Minimal API foi definida explicitamente pelo usuário no [ADR-0002](decisions/ADR-0002-minimal-api-frontend-swagger.md); camadas e persistência seguem RevendaPRO. Um banco MariaDB compartilhado com isolamento por `IdTenant`. Tenant representa exatamente uma casa/assinatura. Contextos: Access, Households, Catalogs, Income, Accounts, Expenses, Cards, Budgets, Alerts, Reports e Subscriptions.
 
 ```mermaid
 flowchart LR

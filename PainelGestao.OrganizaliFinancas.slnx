@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="src/PainelGestao.OrganizaliFinancas.Shared/PainelGestao.OrganizaliFinancas.Shared.csproj" />
+  <Project Path="src/PainelGestao.OrganizaliFinancas.Domain/PainelGestao.OrganizaliFinancas.Domain.csproj" />
+  <Project Path="src/PainelGestao.OrganizaliFinancas.Application/PainelGestao.OrganizaliFinancas.Application.csproj" />
+  <Project Path="src/PainelGestao.OrganizaliFinancas.Infrastructure/PainelGestao.OrganizaliFinancas.Infrastructure.csproj" />
+  <Project Path="src/PainelGestao.OrganizaliFinancas.Api/PainelGestao.OrganizaliFinancas.Api.csproj" />
+  <Project Path="tests/PainelGestao.OrganizaliFinancas.Tests/PainelGestao.OrganizaliFinancas.Tests.csproj" />
+</Solution>

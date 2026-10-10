@@ -39,4 +39,4 @@ Adotar envelope do RevendaPRO `SuccessDetails<T>(status, title, detail, instance
 | 429 | Limite de requisições, com Retry-After |
 | 500 | Falha inesperada, mensagem genérica e correlação |
 
-OpenAPI documenta payloads, permissões, erros e exemplos. Middleware centraliza exceções. Controllers recebem command/query e IMediator; metadados de autor e tenant são resolvidos do contexto seguro. DTOs expõem Code, nunca Id interno. Downloads têm Content-Type/Disposition e não usam envelope JSON.
+OpenAPI documenta payloads, permissões, erros e exemplos. Middleware centraliza exceções. Endpoints Minimal API recebem command/query e encaminham ao IMediator; metadados de autor e tenant são resolvidos do contexto seguro. DTOs expõem Code, nunca Id interno. Downloads têm Content-Type/Disposition e não usam envelope JSON.

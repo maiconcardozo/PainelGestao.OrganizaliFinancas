@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../PainelGestao.OrganizaliFinancas.Application/PainelGestao.OrganizaliFinancas.Application.csproj" />
+    <ProjectReference Include="../PainelGestao.OrganizaliFinancas.Infrastructure/PainelGestao.OrganizaliFinancas.Infrastructure.csproj" />
+    <ProjectReference Include="../PainelGestao.OrganizaliFinancas.Shared/PainelGestao.OrganizaliFinancas.Shared.csproj" />
+  </ItemGroup>
+</Project>

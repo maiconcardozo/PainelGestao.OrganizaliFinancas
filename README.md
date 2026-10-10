@@ -1,13 +1,13 @@
 # 🏡 Organizali Finanças — Gestão financeira da casa
 
 <!-- Estado do projeto -->
-[![Estado](https://img.shields.io/badge/Estado-Planejamento-blue.svg)](docs/plans/implementation.md)
+[![Estado](https://img.shields.io/badge/Estado-M1.1%20concluido-blue.svg)](docs/testing/m1-1-foundation.md)
 [![Arquitetura](https://img.shields.io/badge/Arquitetura-Clean%20Architecture%20%2B%20DDD-6A3FA0.svg)](docs/architecture/overview.md)
 [![Referência](https://img.shields.io/badge/Padr%C3%A3o-RevendaPRO-34495E.svg)](docs/architecture/decisions/ADR-0001-revenda-pro.md)
 
 <!-- Stack definida para implementação -->
-[![.NET](https://img.shields.io/badge/.NET-10%20%7C%20planejado-512BD4.svg?logo=dotnet)](docs/architecture/overview.md)
-[![C#](https://img.shields.io/badge/C%23-planejado-239120.svg)](docs/architecture/overview.md)
+[![.NET](https://img.shields.io/badge/.NET-10-512BD4.svg?logo=dotnet)](docs/architecture/overview.md)
+[![C#](https://img.shields.io/badge/C%23-implementado-239120.svg)](docs/architecture/overview.md)
 [![EF Core](https://img.shields.io/badge/EF%20Core-10%20%7C%20schema%20planejado-blue.svg?logo=nuget)](docs/architecture/overview.md)
 [![JWT](https://img.shields.io/badge/JWT-planejado-green.svg?logo=jsonwebtokens)](docs/architecture/overview.md)
 [![Next.js](https://img.shields.io/badge/Next.js-16%20%7C%20planejado-000000.svg?logo=nextdotjs)](docs/architecture/overview.md)
@@ -26,7 +26,7 @@ O **Organizali Finanças** é um projeto de SaaS web para quem coordena as finan
 
 A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQRS com MediatR** e **Foundation.Base**. Cada assinatura atende uma casa, com dados compartilhados entre os integrantes e permissões para controlar as alterações.
 
-> **Estado atual:** escopo e documentação preparados para revisão. O piloto terá liberação manual. A implementação da aplicação ainda não começou; a stack e as funcionalidades abaixo estão planejadas.
+> **Estado atual:** M1.1 concluído: cinco camadas, Foundation.Base, build Release sem avisos e 18 testes aprovados localmente em 10/10/2026. Host preparado para Minimal API. Persistência, endpoints, Swagger, frontend e funcionalidades abaixo seguem planejados. Piloto com liberação manual.
 
 ### ✨ Funcionalidades principais
 
@@ -47,7 +47,7 @@ A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQR
 
 **Stack definida a partir dos arquivos do RevendaPRO.** As versões completas e a validação técnica prevista estão no [guia de arquitetura](docs/architecture/overview.md).
 
-- **C# / .NET 10 / ASP.NET Core** — backend e API REST com controllers.
+- **C# / .NET 10 / ASP.NET Core** — backend em Minimal API, separado do frontend Next.js.
 - **MediatR / FluentValidation** — commands, queries, handlers e validação de entrada.
 - **Foundation.Base** — entidades, UUID v7, auditoria e base de persistência; uso autorizado.
 - **Dapper / MariaDB 11.8** — leitura e escrita com SQL parametrizado.
@@ -64,7 +64,7 @@ A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQR
 
 A estrutura de implementação seguirá as camadas e convenções do **RevendaPRO**, conforme a [decisão arquitetural](docs/architecture/decisions/ADR-0001-revenda-pro.md).
 
-**Árvore planejada:** `src/`, `frontend/` e `tests/` serão criados no marco M1. A documentação em `docs/` já existe.
+**Árvore alvo:** as cinco camadas em `src/`, o projeto em `tests/` e `docs/` já existem. Subpastas funcionais e `frontend/` serão acrescentados nos respectivos marcos. A árvore abaixo mostra a organização completa prevista. [Estrutura efetivamente criada no M1.1](docs/testing/m1-1-foundation.md).
 
 ```text
 PainelGestao.OrganizaliFinancas/
@@ -100,13 +100,12 @@ PainelGestao.OrganizaliFinancas/
 │   │   └── Configuration/         # Composição da infraestrutura
 │   │
 │   ├── PainelGestao.OrganizaliFinancas.Api/
-│   │   ├── Controllers/           # Entrada HTTP com IMediator
+│   │   ├── Configuration/         # Composição e registro de endpoints Minimal API
 │   │   ├── Contracts/             # Respostas padronizadas
 │   │   ├── Middleware/            # Erros e correlação
 │   │   ├── Authorization/         # Permissões
 │   │   ├── Security/              # Contexto autenticado
-│   │   ├── Background/            # Gatilhos para rotinas
-│   │   └── Configuration/         # Configuração da API
+│   │   └── Background/            # Gatilhos de rotinas da aplicação
 │   │
 │   └── PainelGestao.OrganizaliFinancas.Shared/
 │       ├── Common/                # Recursos transversais mínimos
@@ -140,7 +139,15 @@ PainelGestao.OrganizaliFinancas/
 
 **[Marcos iniciais M1.1–M3.4](docs/plans/development-milestones.md)** — tarefas de fundação, acesso e cadastros, com referências do RevendaPRO e aceite por entrega.
 
-A execução local será documentada no M1, após a criação e validação da solução.
+**Base backend — comandos validados com SDK .NET 10.0.401:**
+
+```powershell
+dotnet restore PainelGestao.OrganizaliFinancas.slnx
+dotnet build PainelGestao.OrganizaliFinancas.slnx --no-restore -c Release
+dotnet test PainelGestao.OrganizaliFinancas.slnx --no-build --no-restore -c Release
+```
+
+O restore requer acesso ao Foundation.Base 3.2.0-rc.5. Nenhuma credencial de feed é versionada. [Evidências e limites do M1.1](docs/testing/m1-1-foundation.md).
 
 ## 🐳 Docker
 
@@ -166,7 +173,7 @@ Os arquivos de container e os comandos de execução ainda serão implementados.
 - **[Respostas HTTP](docs/api/responses.md)** — `SuccessDetails<T>`, `ProblemDetails` e códigos de retorno.
 - **[Segurança e isolamento](docs/requirements/non-functional.md)** — sessão, permissões e proteção de dados.
 
-Swagger/OpenAPI será disponibilizado com a API.
+Swagger/OpenAPI seguirá o estilo Windows dark da skill `swagger-global`, adaptado ao Organizali. Backend Minimal API e frontend Next.js permanecem separados, conforme [ADR-0002](docs/architecture/decisions/ADR-0002-minimal-api-frontend-swagger.md).
 
 ## 📬 Coleção Postman
 
@@ -204,7 +211,7 @@ O pipeline ainda não foi criado.
 - **[Plano de testes](docs/testing/test-patterns.md)** — cenários, ferramentas e resultados esperados.
 - **[Regras financeiras](docs/domain/financial-rules.md)** — exemplos para validar cálculos.
 
-A entrega atual foi conferida quanto aos links e à estrutura documental. Testes de aplicação e cobertura serão registrados quando houver implementação.
+**18 testes técnicos aprovados localmente:** dependências entre camadas, referências dos projetos, Foundation, ausência de controllers e validação. Não representam os 32 cenários funcionais nem medição de cobertura. [Execução do M1.1](docs/testing/m1-1-foundation.md).
 
 ## 📊 Estado do projeto
 
@@ -215,7 +222,9 @@ A entrega atual foi conferida quanto aos links e à estrutura documental. Testes
 | Dashboard e jornadas | Especificados |
 | Modelo de dados e API | Contratos propostos |
 | Plano de implementação e testes | Documentado |
-| Backend, frontend e banco | Desenvolvimento ainda não iniciado |
+| M1.1 — solução backend | Concluído; build e 18 testes aprovados |
+| Persistência, endpoints e Swagger | Próximas etapas M1.2/M1.3 |
+| Frontend Next.js | Próxima etapa M1.4 |
 | Piloto | Liberação manual definida; execução futura |
 
 ## 📋 Documentação por público
