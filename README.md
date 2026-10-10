@@ -232,6 +232,7 @@ O pipeline ainda não foi criado.
 | M2.2 — autenticação | [JWT, cookies, renovação e revogação testados](docs/testing/m2-2-authentication.md); transporte externo de recuperação pendente |
 | M2.3 — permissões | [Perfis, convites, integrantes e revogação implementados e testados](docs/testing/m2-3-members.md) |
 | M2.4 — interface | [Login, shell e Minha conta](docs/testing/m2-4-web-access.md), menu por permissões e integrantes implementados; revisão visual pendente |
+| M3.1 — moradores e configurações | [Cadastro sem login, fuso, BRL e português implementados e testados](docs/testing/m3-1-households.md) |
 
 ## 📋 Documentação por público
 

@@ -53,6 +53,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
             await PilotPersistenceAssertions.VerifyAsync(provider);
             await AuthenticationAssertions.VerifyAsync(provider, database.GetConnectionString());
             await MemberAssertions.VerifyAsync(provider, database.GetConnectionString());
+            await HouseholdAssertions.VerifyAsync(provider, database.GetConnectionString());
         }
 
         private static async Task ApplyMigrationsConcurrently(ServiceProvider provider)

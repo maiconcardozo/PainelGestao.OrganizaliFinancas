@@ -22,3 +22,5 @@ M2.2 implementado e validado: 29 testes .NET com MariaDB descartável e teste HT
 M2.4 parcialmente entregue: login, shell responsivo, Minha conta, renovação explícita e logout; build/lint/teste HTTP aprovados. Ver testing/m2-4-web-access.md. D15 confirmado no registro. M2.3 depende da resposta D21 (matriz enviada); não presumir poderes nem marcar M2.4/M3 concluídos. Não houve push. Próximo passo é aplicar matriz confirmada e continuar M2.3/M3; M6 também aguarda corte D13, e operação externa aguarda D16/D17.
 
 D21 aprovada na continuação após a matriz apresentada. M2.3 implementado: Role/UserRole por casa, titulares/editor/leitor, convites manuais de 48h, menu servidor, bloqueio/revogação e proteção concorrente do último titular. 29 testes .NET e testes Next aprovados. Ver testing/m2-3-members.md. M2.4 integrado com permissões; visual ainda pendente. Próximo M3.1. Sem push.
+
+M3.1 implementado e testado: moradores sem login, inativação, configurações pt-BR/BRL/fuso IANA/data inicial, controle de versão e autoria. 29 testes .NET em banco descartável, build/lint/teste HTTP web aprovados. Ver testing/m3-1-households.md. Próximo M3.2; sem push.

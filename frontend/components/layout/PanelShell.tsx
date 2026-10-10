@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { House, LogOut, Menu, UserRound, Users, type LucideIcon } from "lucide-react";
+import { House, LogOut, Menu, UserRound, Users, Settings, type LucideIcon } from "lucide-react";
 import type { Session } from "@/lib/session";
 
 /** RevendaPRO shell structure: sidebar, current screen, identity and content. */
@@ -13,7 +13,7 @@ export function PanelShell({ session, children }: { session: Session; children: 
   const [menuOpen, setMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const icons: Record<string, LucideIcon> = { House, UserRound, Users };
+  const icons: Record<string, LucideIcon> = { House, UserRound, Users, Settings };
   const items = session.menu.map(item => ({ ...item, Icon: icons[item.icon] ?? House }));
   async function signOut() {
     setBusy(true); setError("");

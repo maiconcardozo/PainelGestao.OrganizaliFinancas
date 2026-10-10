@@ -133,10 +133,10 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ### M3.1 — Pessoas e configuração
 
-- [ ] Separar pessoa/morador do usuário que acessa o sistema.
-- [ ] Cadastrar, editar e inativar moradores preservando histórico.
-- [ ] Configurar preferências conforme D19: português e America/Sao_Paulo inicial, configurável por casa.
-- [ ] Entregar cadastro com autorização e autoria obtida da sessão.
+- [x] Separar pessoa/morador do usuário que acessa o sistema.
+- [x] Cadastrar, editar e inativar moradores preservando histórico.
+- [x] Configurar preferências conforme D19: português e America/Sao_Paulo inicial, configurável por casa.
+- [x] Entregar cadastro com autorização e autoria obtida da sessão.
 
 ### M3.2 — Catálogos
 

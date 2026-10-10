@@ -21,6 +21,7 @@ app.UseAuthorization();
 app.MapHealthEndpoints();
 app.MapAuthenticationEndpoints();
 app.MapMemberEndpoints();
+app.MapHouseholdEndpoints();
 
 app.Run();
 

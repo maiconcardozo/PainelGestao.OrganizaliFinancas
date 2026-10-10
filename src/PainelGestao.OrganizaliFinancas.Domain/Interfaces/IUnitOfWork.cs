@@ -10,5 +10,6 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces
         IPilotRepository PilotRepository { get; }
         IAuthenticationRepository AuthenticationRepository { get; }
         IMemberRepository MemberRepository { get; }
+        IHouseholdRepository HouseholdRepository { get; }
     }
 }

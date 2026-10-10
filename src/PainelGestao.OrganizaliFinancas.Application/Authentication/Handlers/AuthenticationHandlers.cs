@@ -64,6 +64,11 @@ namespace PainelGestao.OrganizaliFinancas.Application.Authentication.Handlers
                 new("my-account", "Minha conta", "/my-account", "UserRound")
             };
             if (permissions.Contains("members.manage")) menu.Add(new("members.manage", "Integrantes", "/members", "Users"));
+            if (permissions.Contains("household.read"))
+            {
+                menu.Add(new("people", "Moradores", "/people", "Users"));
+                menu.Add(new("household-settings", "Configurações da casa", "/household-settings", "Settings"));
+            }
             return new(user.Code, user.Name, user.Email, roles, permissions, menu.ToArray());
         }
     }

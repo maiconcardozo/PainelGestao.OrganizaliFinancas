@@ -77,6 +77,7 @@ button:disabled { opacity: .65; cursor: wait; }
 .member-row { display: grid; grid-template-columns: minmax(150px,1fr) minmax(140px,1fr) auto auto; align-items: center; gap: 1.25rem; background: white; border: 1px solid var(--border); border-radius: .5rem; padding: 1.25rem; }
 .member-row p, .invitation-list p { color: var(--text-secondary); font-size: .9rem; margin: .3rem 0; overflow-wrap: anywhere; }
 .member-row .checkbox-label { display: flex; align-items: center; gap: .5rem; font-size: .9rem; }
+.member-row input:not([type="checkbox"]) { border: 1px solid var(--border); border-radius: .3rem; min-height: 44px; width: 100%; padding: .65rem; font: inherit; }
 .checkbox-label input { width: 18px; height: 18px; }
 .invitation-list { list-style: none; padding: 0; }
 .invitation-list li { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border); }

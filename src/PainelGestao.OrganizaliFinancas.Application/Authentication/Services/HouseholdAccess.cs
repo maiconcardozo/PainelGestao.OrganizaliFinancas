@@ -12,7 +12,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Authentication.Services
         public static string[] Permissions(IEnumerable<string> roles)
         {
             var keys = roles.ToHashSet(StringComparer.Ordinal);
-            if (keys.Contains("owner")) return ["household.read", "finance.write", "payments.settle", "payments.reverse", "budgets.write", "members.manage"];
+            if (keys.Contains("owner")) return ["household.read", "household.manage", "finance.write", "payments.settle", "payments.reverse", "budgets.write", "members.manage"];
             if (keys.Contains("editor")) return ["household.read", "finance.write", "payments.settle", "budgets.write"];
             if (keys.Contains("reader")) return ["household.read"];
             return [];
