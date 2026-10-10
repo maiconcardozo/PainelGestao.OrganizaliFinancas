@@ -16,7 +16,8 @@ test("cookies, origin protection, token isolation and expired-access logout", { 
     response.setHeader("Content-Type", "application/json");
     if (request.url === "/api/auth/me") {
       if (request.headers.authorization !== `Bearer ${access}`) { response.writeHead(401); response.end("{}"); return; }
-      response.end(JSON.stringify({ data: { userCode: "00000000-0000-0000-0000-000000000001", name: "Morador de teste", email: "test@example.test" } }));
+      response.end(JSON.stringify({ data: { userCode: "00000000-0000-0000-0000-000000000001", name: "Morador de teste", email: "test@example.test",
+        roles: ["reader"], permissions: ["household.read"], menu: [{ key: "household", name: "Minha casa", route: "/household", icon: "House" }, { key: "my-account", name: "Minha conta", route: "/my-account", icon: "UserRound" }] } }));
       return;
     }
     response.end(JSON.stringify({ data: { tokens: {
@@ -80,6 +81,12 @@ test("cookies, origin protection, token isolation and expired-access logout", { 
     assert.ok(accountHtml.includes("test@example.test"));
     assert.ok(!accountHtml.includes(access));
     assert.ok(!accountHtml.includes(refresh));
+    const forbiddenPage = await fetch(origin + "/members", { redirect: "manual", headers: { Cookie: `organizali_access=${access}` } });
+    assert.equal(forbiddenPage.status, 307);
+    assert.equal(forbiddenPage.headers.get("location"), "/no-permission");
+    assert.ok(!calls.some(call => call.path === "/api/members"));
+    const deniedInvite = await post("/api/auth/accept-invitation", { headers: { Origin: "https://foreign.example" }, body: { token: "secret", password: "password-long-enough" } });
+    assert.equal(deniedInvite.status, 403);
     const blocked = await post("/api/backend/Auth/refresh", { headers: { Cookie: `organizali_access=${access}` } });
     assert.equal(blocked.status, 404);
     const mutation = await post("/api/backend/people", { headers: { Origin: "https://foreign.example" } });

@@ -20,6 +20,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthEndpoints();
 app.MapAuthenticationEndpoints();
+app.MapMemberEndpoints();
 
 app.Run();
 

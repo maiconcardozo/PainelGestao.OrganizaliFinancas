@@ -11,7 +11,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
         ISqlConnectionFactory connectionFactory,
         Func<IDapperUnitOfWork, ITenantRepository> tenantRepositoryFactory,
         Func<IDapperUnitOfWork, IPilotRepository> pilotRepositoryFactory,
-        Func<IDapperUnitOfWork, IAuthenticationRepository> authenticationRepositoryFactory)
+        Func<IDapperUnitOfWork, IAuthenticationRepository> authenticationRepositoryFactory,
+        Func<IDapperUnitOfWork, IMemberRepository> memberRepositoryFactory)
         : DapperUnitOfWork(connectionFactory), IUnitOfWork
     {
         private ITenantRepository? _tenantRepository;
@@ -20,5 +21,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
         public IPilotRepository PilotRepository => _pilotRepository ??= pilotRepositoryFactory(this);
         private IAuthenticationRepository? _authenticationRepository;
         public IAuthenticationRepository AuthenticationRepository => _authenticationRepository ??= authenticationRepositoryFactory(this);
+        private IMemberRepository? _memberRepository;
+        public IMemberRepository MemberRepository => _memberRepository ??= memberRepositoryFactory(this);
     }
 }

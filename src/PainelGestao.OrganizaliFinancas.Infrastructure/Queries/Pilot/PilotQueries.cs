@@ -17,6 +17,11 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Pilot
 
     internal static class PilotSql
     {
+        public const string LockOwner = """
+            SELECT u.Code FROM Tenant t JOIN Subscription s ON s.IdTenant=t.Id
+            JOIN User u ON u.Id=s.IdOwnerUser AND u.IdTenant=t.Id
+            WHERE t.Code=@HouseholdCode FOR UPDATE
+            """;
         public const string InsertTenant = """
             INSERT INTO Tenant (Code, Name, IsActive, DtCreated, CreatedBy)
             VALUES (@HouseholdCode, @HouseholdName, 1, UTC_TIMESTAMP(6), @Actor)

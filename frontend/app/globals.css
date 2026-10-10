@@ -66,6 +66,21 @@ button:disabled { opacity: .65; cursor: wait; }
 .account-details dd { margin: .25rem 0 1.5rem; }
 .account-details dd:last-child { margin-bottom: 0; }
 .panel-mobile-header { display: none; }
+.data-form { background: var(--surface); border: 1px solid var(--border); padding: 1.5rem; border-radius: .5rem; margin: 1.5rem 0; display: grid; gap: 1rem; }
+.data-form h2 { font-size: 1.75rem; margin: 0; }
+.data-form label, .member-row label { display: grid; gap: .4rem; font-weight: 600; }
+.data-form input, .data-form select, .data-form textarea, .member-row select { padding: .65rem; min-height: 44px; border: 1px solid var(--border); border-radius: .3rem; width: 100%; background: var(--surface); color: var(--ink); font: inherit; }
+.data-form textarea { min-height: 5rem; overflow-wrap: anywhere; }
+.secondary-button { padding: .6rem 1rem; min-height: 44px; border: 1px solid var(--border); border-radius: .3rem; background: var(--surface); color: var(--ink); cursor: pointer; font: inherit; }
+.secondary-button:hover { border-color: var(--signal); }
+.member-list { display: grid; gap: .8rem; }
+.member-row { display: grid; grid-template-columns: minmax(150px,1fr) minmax(140px,1fr) auto auto; align-items: center; gap: 1.25rem; background: white; border: 1px solid var(--border); border-radius: .5rem; padding: 1.25rem; }
+.member-row p, .invitation-list p { color: var(--text-secondary); font-size: .9rem; margin: .3rem 0; overflow-wrap: anywhere; }
+.member-row .checkbox-label { display: flex; align-items: center; gap: .5rem; font-size: .9rem; }
+.checkbox-label input { width: 18px; height: 18px; }
+.invitation-list { list-style: none; padding: 0; }
+.invitation-list li { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+@media (max-width: 1100px) { .member-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 760px) {
   .welcome { grid-template-columns: 1fr; }
   .welcome-brand { gap: 2.5rem; }
@@ -79,4 +94,6 @@ button:disabled { opacity: .65; cursor: wait; }
   .panel-header { padding: 1rem; min-height: 0; }
   .page-content { padding: 1rem; }
   .empty-state { padding: 1.25rem; }
+  .member-row { grid-template-columns: 1fr; }
+  .invitation-list li { align-items: stretch; flex-direction: column; }
 }

@@ -11,6 +11,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
     {
         Task<PilotRecord?> FindAsync(Guid key, CancellationToken cancellationToken);
         Task<PilotRecord> ProvisionAsync(NewPilot pilot, CancellationToken cancellationToken);
+        Task InitializeAccessAsync(Guid householdCode, string actor, CancellationToken cancellationToken);
         Task ChangeStatusAsync(Guid householdCode, SubscriptionStatus status, string reason, string actor, CancellationToken cancellationToken);
     }
 }

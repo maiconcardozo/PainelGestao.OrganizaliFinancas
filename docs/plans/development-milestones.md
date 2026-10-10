@@ -1,6 +1,6 @@
 # Marcos de início do desenvolvimento
 
-Data: 10/10/2026. M2.1/M2.2 implementados e testados; M2.3 aguarda matriz; M2.4 parcialmente entregue (testing/m2-4-web-access.md). Estado da fundação: M1.1 concluído; M1.2 concluído com validação em banco descartável; M1.3 concluído tecnicamente (revisão visual pendente); M1.4 concluído tecnicamente (revisão visual pendente). Evidências em [M1.1](../testing/m1-1-foundation.md) e [M1.2](../testing/m1-2-persistence.md).
+Data: 10/10/2026. M2.1/M2.2 implementados e testados; M2.3 implementado e testado; M2.4 parcialmente entregue (testing/m2-4-web-access.md). Estado da fundação: M1.1 concluído; M1.2 concluído com validação em banco descartável; M1.3 concluído tecnicamente (revisão visual pendente); M1.4 concluído tecnicamente (revisão visual pendente). Evidências em [M1.1](../testing/m1-1-foundation.md) e [M1.2](../testing/m1-2-persistence.md).
 
 Este detalhamento desdobra M1–M3 do [plano geral](implementation.md), preservando seus identificadores e dependências. O primeiro objetivo demonstrável é entrar em uma casa isolada, navegar com permissões e manter seus cadastros. Indicadores financeiros reais entram após receitas, despesas e cartões.
 
@@ -113,10 +113,10 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ### M2.3 — Perfis e integrantes
 
-- [ ] Revisar com o usuário a matriz de consulta, cadastro, liquidação, estorno, exportação e administração antes do seed.
-- [ ] Implementar perfis/permissões, convite e revogação seguindo os mecanismos da referência.
-- [ ] Entregar menu filtrado do servidor; aplicar a mesma autorização em rota e API.
-- [ ] Impedir exclusão do último titular e atribuição indevida de permissões de plataforma.
+- [x] Revisar com o usuário a matriz de consulta, cadastro, liquidação, estorno, exportação e administração antes do seed.
+- [x] Implementar perfis/permissões, convite e revogação seguindo os mecanismos da referência.
+- [x] Entregar menu filtrado do servidor; aplicar a mesma autorização em rota e API.
+- [x] Impedir exclusão do último titular e atribuição indevida de permissões de plataforma.
 
 **Aceite:** leitor consulta, editor altera somente o permitido, integrante revogado perde acesso. Não criar privacidade por lançamento: dados compartilhados já foram confirmados.
 
@@ -176,7 +176,7 @@ M9/M10 permanecem no plano geral: complementos e comercialização posterior. O 
 | Decisão | Momento | Tratamento |
 |---|---|---|
 | Login pertence a uma casa | M2.1 | D20 confirmado; aplicar User : TenantEntity do RevendaPRO |
-| Matriz final de perfis | M2.3 | Apresentar operações/perfis concretos antes do seed |
+| Matriz final de perfis | M2.3 | D21 aprovada e implementada; ver testing/m2-3-members.md |
 | Identidade visual D15 | M2.4 | Confirmado: seguir RevendaPRO, marca Organizali e português |
 | Idioma/fuso D19 | M3.1 | Confirmado: português e America/Sao_Paulo configurável |
 | Fechamento de cartão D13 | M6 | Confirmar regra do dia de corte |

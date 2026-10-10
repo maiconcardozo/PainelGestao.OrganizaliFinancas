@@ -52,6 +52,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
             await VerifyConcurrentDuplicateCode(provider);
             await PilotPersistenceAssertions.VerifyAsync(provider);
             await AuthenticationAssertions.VerifyAsync(provider, database.GetConnectionString());
+            await MemberAssertions.VerifyAsync(provider, database.GetConnectionString());
         }
 
         private static async Task ApplyMigrationsConcurrently(ServiceProvider provider)

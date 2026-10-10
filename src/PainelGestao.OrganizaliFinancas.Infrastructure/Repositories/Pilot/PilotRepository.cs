@@ -5,6 +5,7 @@ using PainelGestao.OrganizaliFinancas.Domain.Entities;
 using PainelGestao.OrganizaliFinancas.Domain.Enums;
 using PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories;
 using PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Pilot;
+using PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Members;
 using PainelGestao.OrganizaliFinancas.Shared.Exceptions;
 
 namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Pilot
@@ -26,6 +27,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Pilot
             work.AddPendingWrite(PilotSql.InsertSubscription, pilot);
             work.AddPendingWrite(PilotSql.InsertInitialEvent,
                 new { EventCode = Guid.CreateVersion7(), pilot.SubscriptionCode, pilot.Actor });
+            SeedAccess(pilot.HouseholdCode, pilot.UserCode, pilot.Actor);
             try { await work.CommitAsync(cancellationToken); }
             catch (MySqlException exception) when (exception.Number == 1062)
             {
@@ -34,6 +36,27 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Pilot
                 throw new ConflictException("Já existe um usuário com esse e-mail.");
             }
             return (await FindAsync(pilot.Key, cancellationToken))!;
+        }
+
+        private void SeedAccess(Guid householdCode, Guid userCode, string actor)
+        {
+            foreach (var (key, name) in new[] { ("owner", "Titular"), ("editor", "Editor"), ("reader", "Leitor") })
+                work.AddPendingWrite(MemberSql.SeedRole, new { RoleCode = Guid.CreateVersion7(), RoleKey = key,
+                    RoleName = name, HouseholdCode = householdCode, Actor = actor });
+            work.AddPendingWrite(MemberSql.SeedOwner, new { LinkCode = Guid.CreateVersion7(), HouseholdCode = householdCode, UserCode = userCode, Actor = actor });
+        }
+
+        public Task InitializeAccessAsync(Guid householdCode, string actor, CancellationToken cancellationToken)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(actor);
+            return work.ExecuteInTransactionAsync(async () =>
+            {
+                var owner = await work.ExecuteReadAsync((connection, transaction) => connection.QuerySingleOrDefaultAsync<Guid>(
+                    new CommandDefinition(PilotSql.LockOwner, new { HouseholdCode = householdCode }, transaction, cancellationToken: cancellationToken)), cancellationToken);
+                if (owner == Guid.Empty) throw new NotFoundException("Casa não encontrada.");
+                SeedAccess(householdCode, owner, actor);
+                return true;
+            }, cancellationToken);
         }
 
         public async Task ChangeStatusAsync(Guid householdCode, SubscriptionStatus status,

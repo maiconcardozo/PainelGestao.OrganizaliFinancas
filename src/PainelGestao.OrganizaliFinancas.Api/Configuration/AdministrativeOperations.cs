@@ -27,6 +27,11 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                         config["Email"] ?? "", config["Password"] ?? "", config["Actor"] ?? ""));
                     Console.WriteLine(JsonSerializer.Serialize(new { result.HouseholdCode, result.UserCode, result.SubscriptionCode, result.Status }));
                     break;
+                case "InitializeAccess":
+                    await scope.ServiceProvider.GetRequiredService<Domain.Interfaces.IUnitOfWork>().PilotRepository.InitializeAccessAsync(
+                        Guid.Parse(config["HouseholdCode"] ?? ""), config["Actor"] ?? "", CancellationToken.None);
+                    Console.WriteLine("Perfis iniciais conferidos; vínculos existentes preservados.");
+                    break;
                 case "ChangeSubscriptionStatus":
                     await mediator.Send(new ChangeSubscriptionStatusCommand(
                         Guid.Parse(config["HouseholdCode"] ?? ""),

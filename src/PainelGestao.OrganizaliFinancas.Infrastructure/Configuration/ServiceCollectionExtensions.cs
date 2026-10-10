@@ -34,6 +34,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Configuration
             services.AddScoped<IDapperUnitOfWork>(provider => provider.GetRequiredService<OrganizaliFinancasUnitOfWork>());
             services.AddScoped<Func<IDapperUnitOfWork, ITenantRepository>>(_ => unitOfWork => new TenantRepository(unitOfWork));
             services.AddScoped<SchemaMigrator>();
+            services.AddScoped<Func<IDapperUnitOfWork, IMemberRepository>>(_ => work => new Repositories.Members.MemberRepository(work));
             services.AddScoped<Func<IDapperUnitOfWork, Domain.Interfaces.Repositories.IAuthenticationRepository>>(
                 _ => work => new Repositories.Authentication.AuthenticationRepository(work));
             services.Configure<Shared.Settings.JwtSettings>(configuration.GetSection(Shared.Settings.JwtSettings.SectionName));

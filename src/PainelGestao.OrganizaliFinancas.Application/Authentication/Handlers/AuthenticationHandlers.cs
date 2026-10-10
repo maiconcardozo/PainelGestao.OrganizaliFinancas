@@ -56,7 +56,15 @@ namespace PainelGestao.OrganizaliFinancas.Application.Authentication.Handlers
         {
             var user = await work.AuthenticationRepository.FindAuthorizedAsync(request.UserCode, request.IdTenant, request.Version, cancellationToken)
                 ?? throw new UnauthenticatedException("Sessão expirada.");
-            return new(user.Code, user.Name, user.Email);
+            var roles = await work.MemberRepository.GetRoleKeysAsync(user.IdTenant, user.Id, cancellationToken);
+            var permissions = Services.HouseholdAccess.Permissions(roles);
+            var menu = new List<SessionMenuItemDto>
+            {
+                new("household", "Minha casa", "/household", "House"),
+                new("my-account", "Minha conta", "/my-account", "UserRound")
+            };
+            if (permissions.Contains("members.manage")) menu.Add(new("members.manage", "Integrantes", "/members", "Users"));
+            return new(user.Code, user.Name, user.Email, roles, permissions, menu.ToArray());
         }
     }
     public class RequestRecoveryHandler(IUnitOfWork work, ITokenService tokens, IRecoveryDelivery delivery)

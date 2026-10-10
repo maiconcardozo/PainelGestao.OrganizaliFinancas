@@ -1,5 +1,7 @@
 # M2.4 — Interface de acesso (parte independente entregue)
 
+**Atualização:** D21 aprovada e M2.3 implementado. Menu filtrado, guarda de rota, tela de integrantes e aceite de convite estão integrados; ver [evidências M2.3](m2-3-members.md). A pendência de matriz descrita no registro original abaixo foi resolvida. Revisão visual continua pendente.
+
 M2.4 ainda não está completo: menu por permissões, integrantes e jornada de cadastros dependem de M2.3. A matriz de operações foi enviada ao usuário e aguarda resposta; não houve seed de perfis.
 
 ## Implementado
