@@ -29,7 +29,7 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ## 2. Quadro de execução inicial
 
-**M1.1 concluído**; M1.2 concluído; M1.3/M1.4 concluídos tecnicamente e demais itens não iniciados. Uma tarefa fica concluída somente com sua evidência de aceite. Criar um commit por marco concluído; push apenas ao final.
+**M1.1 concluído**; M1.2 concluído; M1.3/M1.4 concluídos tecnicamente ; M2.1/M2.2 implementados e testados (ver testing/m2-2-authentication.md). Demais itens não concluídos. Uma tarefa fica concluída somente com sua evidência de aceite. Criar um commit por marco concluído; push apenas ao final.
 
 | Etapa | Entrega demonstrável | Dependência | Aceite principal |
 |---|---|---|---|
@@ -94,20 +94,20 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ### M2.1 — Casa e piloto manual
 
-- [ ] Aplicar D20 confirmado: User : TenantEntity; cada login pertence a uma casa no piloto e a casa pode ter vários usuários.
-- [ ] Criar cadastro de casa/assinatura 1:1 e titular, usando as abstrações existentes.
-- [ ] Implementar ativação manual, estados e histórico de alteração.
-- [ ] Tratar provisionamento repetido sem duplicar a casa ou o titular.
-- [ ] Validar duas casas e impedir referências de uma casa à outra.
+- [x] Aplicar D20 confirmado: User : TenantEntity; cada login pertence a uma casa no piloto e a casa pode ter vários usuários.
+- [x] Criar cadastro de casa/assinatura 1:1 e titular, usando as abstrações existentes.
+- [x] Implementar ativação manual, estados e histórico de alteração.
+- [x] Tratar provisionamento repetido sem duplicar a casa ou o titular.
+- [x] Validar duas casas e impedir referências de uma casa à outra.
 
 **Aceite:** operador provisiona; titular só alcança sua casa. Operador de plataforma não ganha acesso automático às movimentações domésticas. Política detalhada de suspensão é definida antes de usuários externos.
 
 ### M2.2 — Login e sessão
 
-- [ ] Implementar autenticação/hash/token conforme RevendaPRO e Foundation.
-- [ ] Aplicar cookies protegidos, proxy servidor e proteção de mutações.
-- [ ] Verificar logout, expiração, refresh, bloqueio e revogação.
-- [ ] Preparar recuperação com transporte falso; provedor real só após escolha em D16.
+- [x] Implementar autenticação/hash/token conforme RevendaPRO e Foundation.
+- [x] Aplicar cookies protegidos, proxy servidor e proteção de mutações.
+- [x] Verificar logout, expiração, refresh, bloqueio e revogação.
+- [x] Preparar recuperação com transporte falso; provedor real só após escolha em D16.
 
 **Aceite:** autenticar, renovar e encerrar sessão; token não fica acessível ao JavaScript da página. Testes não enviam mensagens reais.
 

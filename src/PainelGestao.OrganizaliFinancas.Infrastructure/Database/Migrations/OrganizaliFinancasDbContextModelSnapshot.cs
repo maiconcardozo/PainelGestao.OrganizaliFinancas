@@ -19,6 +19,162 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                 .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.PasswordRecovery", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<Guid>("Code")
+                        .HasColumnType("char(36)")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(14);
+
+                    b.Property<DateTime>("DtCreated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(9);
+
+                    b.Property<DateTime?>("DtDeleted")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(13);
+
+                    b.Property<DateTime?>("DtUpdated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(11);
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(6);
+
+                    b.Property<int>("IdUser")
+                        .HasColumnType("int")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnOrder(8);
+
+                    b.Property<int>("SessionVersion")
+                        .HasColumnType("int")
+                        .HasColumnOrder(4);
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(12);
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(7);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IdUser");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("PasswordRecovery", (string)null);
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<Guid>("Code")
+                        .HasColumnType("char(36)")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(14);
+
+                    b.Property<DateTime>("DtCreated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(9);
+
+                    b.Property<DateTime?>("DtDeleted")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(13);
+
+                    b.Property<DateTime?>("DtUpdated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(11);
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(6);
+
+                    b.Property<int>("IdUser")
+                        .HasColumnType("int")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnOrder(8);
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(7);
+
+                    b.Property<int>("SessionVersion")
+                        .HasColumnType("int")
+                        .HasColumnOrder(4);
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(12);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IdUser");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("RefreshToken", (string)null);
+                });
+
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.Subscription", b =>
                 {
                     b.Property<int>("Id")
@@ -308,6 +464,24 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .IsUnique();
 
                     b.ToTable("User", (string)null);
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.PasswordRecovery", b =>
+                {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("IdUser")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("IdUser")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.Subscription", b =>

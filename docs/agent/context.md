@@ -16,3 +16,5 @@ Arquivos de entrega em C:/Codex/Upload; documentação de desenvolvimento també
 
 
 Continuação autorizada pelo usuário para todos os marcos, mantendo commits por marco e push ao final. M2.1 implementado: provisionamento administrativo, assinatura e histórico; 29 testes aprovados incluindo migration incremental e isolamento por FK. M2.2 é o próximo. Perguntas sobre matriz de permissões e corte de cartão enviadas; sem resposta ainda, não fazer seed nem presumir decisão. Visual RevendaPRO para Organizali confirmado (D15).
+
+M2.2 implementado e validado: 29 testes .NET com MariaDB descartável e teste HTTP do Next aprovados. JWT, refresh, revogação e recuperação simulada; documentação em testing/m2-2-authentication.md. APP_ORIGIN exata protege mutações web atrás de proxy. Matriz de perfis ainda sem resposta; avançar apenas nas partes independentes da interface, sem declarar M2.3/M2.4 completos.

@@ -8,12 +8,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApiDocumentation();
+if (string.IsNullOrEmpty(builder.Configuration["Operation"]))
+    builder.Services.AddApiSecurity(builder.Configuration);
 
 var app = builder.Build();
 if (await app.RunAdministrativeOperationAsync()) return;
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseApiDocumentation();
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapHealthEndpoints();
+app.MapAuthenticationEndpoints();
 
 app.Run();
 

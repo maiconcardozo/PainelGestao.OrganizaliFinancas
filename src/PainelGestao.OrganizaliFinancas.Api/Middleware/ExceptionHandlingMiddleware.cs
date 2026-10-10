@@ -19,6 +19,8 @@ namespace PainelGestao.OrganizaliFinancas.Api.Middleware
                 InputValidationException => 400,
                 ConflictException => 409,
                 NotFoundException => 404,
+                UnauthenticatedException => 401,
+                ServiceUnavailableException => 503,
                     BadHttpRequestException request => request.StatusCode,
                     _ => 500
                 };
@@ -28,8 +30,10 @@ namespace PainelGestao.OrganizaliFinancas.Api.Middleware
                 var problem = new ProblemDetails
                 {
                     Status = status,
-                    Title = status == 500 ? "Falha inesperada" : "Dados inválidos",
-                    Detail = status == 500 ? "Falha inesperada. Tente novamente." : "Os dados informados são inválidos.",
+                Title = status switch { 500 => "Falha inesperada", 401 => "Autenticação necessária", 503 => "Indisponível", 409 => "Conflito", 404 => "Não encontrado", _ => "Dados inválidos" },
+                Detail = status == 500 ? "Falha inesperada. Tente novamente." :
+                    exception is UnauthenticatedException or ServiceUnavailableException or ConflictException or NotFoundException
+                        ? exception.Message : "Os dados informados são inválidos.",
                     Instance = context.Request.Path
                 };
                 problem.Extensions["traceId"] = context.TraceIdentifier;

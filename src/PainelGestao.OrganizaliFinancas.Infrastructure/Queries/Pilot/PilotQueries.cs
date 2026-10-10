@@ -47,6 +47,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Pilot
                 DtUpdated = @DtUpdated, UpdatedBy = @UpdatedBy
             WHERE Id = @Id AND IdTenant = @IdTenant AND IsActive = 1
             """;
+        public const string RevokeHouseholdSessions = """
+            UPDATE User SET SessionVersion=SessionVersion+1, DtUpdated=UTC_TIMESTAMP(6), UpdatedBy=@Actor
+            WHERE IdTenant=@IdTenant AND IsActive=1
+            """;
         public const string InsertEvent = """
             INSERT INTO SubscriptionEvent (Code, IdTenant, IdSubscription, Status, Reason, IsActive, DtCreated, CreatedBy)
             VALUES (@Code, @IdTenant, @IdSubscription, @Status, @Reason, 1, UTC_TIMESTAMP(6), @Actor)

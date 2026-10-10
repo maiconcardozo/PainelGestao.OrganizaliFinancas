@@ -10,12 +10,15 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
     public class OrganizaliFinancasUnitOfWork(
         ISqlConnectionFactory connectionFactory,
         Func<IDapperUnitOfWork, ITenantRepository> tenantRepositoryFactory,
-        Func<IDapperUnitOfWork, IPilotRepository> pilotRepositoryFactory)
+        Func<IDapperUnitOfWork, IPilotRepository> pilotRepositoryFactory,
+        Func<IDapperUnitOfWork, IAuthenticationRepository> authenticationRepositoryFactory)
         : DapperUnitOfWork(connectionFactory), IUnitOfWork
     {
         private ITenantRepository? _tenantRepository;
         public ITenantRepository TenantRepository => _tenantRepository ??= tenantRepositoryFactory(this);
         private IPilotRepository? _pilotRepository;
         public IPilotRepository PilotRepository => _pilotRepository ??= pilotRepositoryFactory(this);
+        private IAuthenticationRepository? _authenticationRepository;
+        public IAuthenticationRepository AuthenticationRepository => _authenticationRepository ??= authenticationRepositoryFactory(this);
     }
 }

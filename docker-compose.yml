@@ -20,6 +20,7 @@ services:
       dockerfile: src/PainelGestao.OrganizaliFinancas.Api/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      Jwt__Key: ${ORGANIZALI_JWT_KEY:?Defina ORGANIZALI_JWT_KEY com pelo menos 32 caracteres}
       OrganizaliFinancas__ConnectionString: Server=database;Database=organizali;User=organizali;Password=${ORGANIZALI_DB_PASSWORD};Connection Timeout=3
     ports:
       - "127.0.0.1:5189:8080"
@@ -30,6 +31,8 @@ services:
     build: ./frontend
     environment:
       INTERNAL_API_URL: http://api:8080
+      APP_ORIGIN: http://localhost:3110
+      COOKIE_SECURE: "false"
     ports:
       - "127.0.0.1:3110:3100"
     depends_on:

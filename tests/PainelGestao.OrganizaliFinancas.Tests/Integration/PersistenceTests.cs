@@ -30,7 +30,8 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
             var configuration = new ConfigurationBuilder().AddInMemoryCollection(
                 new Dictionary<string, string?>
                 {
-                    ["OrganizaliFinancas:ConnectionString"] = database.GetConnectionString()
+                    ["OrganizaliFinancas:ConnectionString"] = database.GetConnectionString(),
+                    ["Jwt:Key"] = "Synthetic-integration-signing-key-at-least-32-chars"
                 }).Build();
             var services = new ServiceCollection();
             services.AddLogging();
@@ -50,6 +51,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
             await VerifyGeneratedIdInSingleCommit(provider);
             await VerifyConcurrentDuplicateCode(provider);
             await PilotPersistenceAssertions.VerifyAsync(provider);
+            await AuthenticationAssertions.VerifyAsync(provider, database.GetConnectionString());
         }
 
         private static async Task ApplyMigrationsConcurrently(ServiceProvider provider)

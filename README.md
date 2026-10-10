@@ -9,7 +9,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10-512BD4.svg?logo=dotnet)](docs/architecture/overview.md)
 [![C#](https://img.shields.io/badge/C%23-implementado-239120.svg)](docs/architecture/overview.md)
 [![EF Core](https://img.shields.io/badge/EF%20Core-10%20%7C%20schema-blue.svg?logo=nuget)](docs/architecture/overview.md)
-[![JWT](https://img.shields.io/badge/JWT-planejado-green.svg?logo=jsonwebtokens)](docs/architecture/overview.md)
+[![JWT](https://img.shields.io/badge/JWT-implementado-green.svg?logo=jsonwebtokens)](docs/testing/m2-2-authentication.md)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.3-000000.svg?logo=nextdotjs)](docs/architecture/overview.md)
 [![React](https://img.shields.io/badge/React-19.2.8-149ECA.svg?logo=react)](docs/architecture/overview.md)
 [![MariaDB](https://img.shields.io/badge/MariaDB-11.8-003545.svg?logo=mariadb)](docs/architecture/overview.md)
@@ -228,7 +228,8 @@ O pipeline ainda não foi criado.
 | M1.2 — persistência | Concluído; [22 testes aprovados, incluindo banco descartável](docs/testing/m1-2-persistence.md) |
 | M1.3 — endpoints e Swagger | [Implementado e testado](docs/testing/m1-3-api.md); revisão visual pendente |
 | M1.4 — base Next.js e Docker | [Build, lint e comunicação aprovados](docs/testing/m1-4-web.md) |
-| M2.1 — piloto | [Provisionamento e histórico implementados](docs/testing/m2-1-pilot.md); login em M2.2 |
+| M2.1 — piloto | [Provisionamento e histórico implementados](docs/testing/m2-1-pilot.md) |
+| M2.2 — autenticação | [JWT, cookies, renovação e revogação testados](docs/testing/m2-2-authentication.md); transporte externo de recuperação pendente |
 
 ## 📋 Documentação por público
 

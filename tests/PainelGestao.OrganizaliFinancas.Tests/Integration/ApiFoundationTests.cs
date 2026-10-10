@@ -65,7 +65,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
             using var client = factory.CreateClient();
             var json = JsonDocument.Parse(await client.GetStringAsync("/swagger/v1/swagger.json"));
             var paths = json.RootElement.GetProperty("paths");
-            paths.EnumerateObject().Select(path => path.Name).Should().BeEquivalentTo("/health/live", "/health/ready");
+            paths.EnumerateObject().Select(path => path.Name).Should().Contain(["/health/live", "/health/ready", "/api/auth/login", "/api/auth/me"]);
             paths.GetProperty("/health/ready").GetProperty("get").GetProperty("responses")
                 .TryGetProperty("503", out _).Should().BeTrue();
             foreach (var path in new[] { "/swagger/index.html", "/swagger-ui/organizali-docs.css",
@@ -83,6 +83,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
             protected override void ConfigureWebHost(IWebHostBuilder builder)
             {
                 builder.UseEnvironment("Development");
+                builder.UseSetting("Jwt:Key", "Synthetic-api-foundation-signing-key-for-tests-only");
                 builder.UseSetting("OrganizaliFinancas:ConnectionString", "server=127.0.0.1;port=1;database=unused;user=unused");
                 builder.ConfigureServices(services =>
                 {

@@ -49,6 +49,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Pilot
                 if (subscription.Status == status) return false;
                 subscription.ChangeStatus(status, actor);
                 work.AddPendingWrite(PilotSql.UpdateStatus, subscription);
+                if (status != SubscriptionStatus.Active)
+                    work.AddPendingWrite(PilotSql.RevokeHouseholdSessions, new { subscription.IdTenant, Actor = actor });
                 work.AddPendingWrite(PilotSql.InsertEvent, new
                 {
                     Code = Guid.CreateVersion7(), subscription.IdTenant, IdSubscription = subscription.Id,
