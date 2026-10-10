@@ -1,4 +1,6 @@
-# M2.4 — Interface de acesso (parte independente entregue)
+# M2.4 — Interface de acesso
+
+**Conclusão no M3.4:** matriz D21 aplicada, jornada integrada e revisão desktop/mobile aprovadas. [Evidências atuais](m3-4-integrated.md). O texto abaixo preserva o registro da entrega inicial parcial; pendências de matriz e navegador foram resolvidas.
 
 **Atualização:** D21 aprovada e M2.3 implementado. Menu filtrado, guarda de rota, tela de integrantes e aceite de convite estão integrados; ver [evidências M2.3](m2-3-members.md). A pendência de matriz descrita no registro original abaixo foi resolvida. Revisão visual continua pendente.
 

@@ -1,6 +1,6 @@
 # Plano de implementação
 
-Plano antes do código. Marcos com dependências e aceite; desenvolvimento autorizado após revisão, com M1.1 concluído em 10/10/2026. P0 é o piloto completo, incluindo dashboard moderno, orçamento, alertas e rateio.
+Plano preparado antes do código; desenvolvimento autorizado. Fundação, acesso e cadastros implementados até M3.4 em 10/10/2026. [Estado completo](../status/PROJECT_STATUS.md). P0 é o piloto completo, incluindo dashboard moderno, orçamento, alertas e rateio.
 
 **Execução inicial detalhada:** [M1.1 a M3.4 — tarefas, referências e aceite](development-milestones.md). Esse documento desdobra os marcos abaixo sem mudar a arquitetura aprovada.
 
@@ -33,11 +33,13 @@ M7 pode receber desenho/protótipo documental desde M0, mas indicadores oficiais
 5. Preparar frontend nas versões fixadas, sessão/proxy e tokens de design após revisão visual.
 6. Definir ambientes locais isolados, placeholders de configuração, Compose e comandos comprovados no README.
 
-Solução, restore, build e testes de arquitetura concluídos no M1.1. Persistência e frontend pendentes; ver [evidências](../testing/m1-1-foundation.md).
+Solução, persistência e frontend implementados e validados em M1.1–M1.4; [entregas](../deliveries/README.md).
 
 ## Entregáveis por marco
 
 Código e migrations revisáveis, documentação atualizada, exemplos de uso, testes do risco do marco, evidências de validação e pendências explícitas. Commit/push autorizados no repositório particular; deploy não solicitado. Não criar chamados corporativos ou inventar identificadores para este projeto particular.
+
+Cada marco exige documento em `docs/deliveries/` com regras de negócio, funcionalidades, validação e pendências. Atualizar o quadro consolidado; copiar a entrega para `C:/Codex/Upload`. Commit por etapa; push acumulado somente ao final.
 
 ## Estimativa inicial de esforço
 

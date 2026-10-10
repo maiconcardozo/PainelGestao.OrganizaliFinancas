@@ -26,9 +26,11 @@ O **Organizali Finanças** é um projeto de SaaS web para quem coordena as finan
 
 A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQRS com MediatR** e **Foundation.Base**. Cada assinatura atende uma casa, com dados compartilhados entre os integrantes e permissões para controlar as alterações.
 
-> **Estado atual:** M1.1–M1.4 implementados: cinco camadas, persistência base, Minimal API e Swagger. 29 testes aprovados, incluindo MariaDB descartável autorizado. Revisão visual do Swagger pendente por indisponibilidade do navegador. Base Next.js disponível; login e funcionalidades financeiras abaixo seguem planejados. Piloto com liberação manual.
+> **Estado atual:** fundação, acesso, permissões e cadastros implementados até M3.4. 38 testes .NET aprovados com banco descartável e jornada integrada no Chrome. Recuperação externa e núcleo financeiro pendentes. [Estado completo](docs/status/PROJECT_STATUS.md) · [Entregas e regras por marco](docs/deliveries/README.md).
 
 ### ✨ Funcionalidades principais
+
+Escopo do produto: os recursos financeiros abaixo estão planejados para M4–M10; o quadro de estado distingue o que já foi implementado.
 
 - 📊 **Dashboard da casa** — saldo atual, previsto e realizado, vencimentos e ações pendentes.
 - 💸 **Fluxo de caixa** — entradas, saídas e projeção diária e mensal, com alerta de saldo negativo.
@@ -213,9 +215,12 @@ O pipeline ainda não foi criado.
 - **[Plano de testes](docs/testing/test-patterns.md)** — cenários, ferramentas e resultados esperados.
 - **[Regras financeiras](docs/domain/financial-rules.md)** — exemplos para validar cálculos.
 
-**29 testes técnicos aprovados localmente:** dependências entre camadas, referências dos projetos, Foundation, ausência de controllers e validação. Não representam os 32 cenários funcionais nem medição de cobertura. [Execução do M1.1](docs/testing/m1-1-foundation.md).
+**38 testes .NET aprovados**, além dos testes HTTP do Next e jornada integrada no Chrome. Não representam os cenários financeiros futuros nem medição de cobertura. [Evidências M3.4](docs/testing/m3-4-integrated.md).
 
 ## 📊 Estado do projeto
+
+- **[Implementado e trabalho restante](docs/status/PROJECT_STATUS.md)** — M0–M10, requisitos e decisões pendentes.
+- **[Entregas por marco](docs/deliveries/README.md)** — funcionalidades, regras de negócio, evidências e limitações.
 
 | Etapa | Estado |
 |---|---|
@@ -226,15 +231,17 @@ O pipeline ainda não foi criado.
 | Plano de implementação e testes | Documentado |
 | M1.1 — solução backend | Concluído; build e 18 testes aprovados |
 | M1.2 — persistência | Concluído; [22 testes aprovados, incluindo banco descartável](docs/testing/m1-2-persistence.md) |
-| M1.3 — endpoints e Swagger | [Implementado e testado](docs/testing/m1-3-api.md); revisão visual pendente |
+| M1.3 — endpoints e Swagger | [Implementado e testado](docs/testing/m1-3-api.md); revisão visual concluída no M3.4 |
 | M1.4 — base Next.js e Docker | [Build, lint e comunicação aprovados](docs/testing/m1-4-web.md) |
 | M2.1 — piloto | [Provisionamento e histórico implementados](docs/testing/m2-1-pilot.md) |
 | M2.2 — autenticação | [JWT, cookies, renovação e revogação testados](docs/testing/m2-2-authentication.md); transporte externo de recuperação pendente |
 | M2.3 — permissões | [Perfis, convites, integrantes e revogação implementados e testados](docs/testing/m2-3-members.md) |
-| M2.4 — interface | [Login, shell e Minha conta](docs/testing/m2-4-web-access.md), menu por permissões e integrantes implementados; revisão visual pendente |
+| M2.4 — interface | [Login, shell e Minha conta](docs/testing/m2-4-web-access.md), menu por permissões e integrantes implementados; revisão visual concluída no M3.4 |
 | M3.1 — moradores e configurações | [Cadastro sem login, fuso, BRL e português implementados e testados](docs/testing/m3-1-households.md) |
 | M3.2 — catálogos | [Categorias, tipos de renda, credores e formas de pagamento implementados e testados](docs/testing/m3-2-catalogs.md) |
 | M3.3 — parametrização | [Tipos de despesa e formulários tipados/versionados implementados e testados](docs/testing/m3-3-expense-types.md) |
+| M3.4 — jornada integrada | [Navegador, Next, API e MariaDB](docs/testing/m3-4-integrated.md) |
+| M4–M10 | [Trabalho restante](docs/status/PROJECT_STATUS.md) |
 
 ## 📋 Documentação por público
 
@@ -290,6 +297,8 @@ docs/
 ├── api/                           # Endpoints e respostas planejados
 ├── plans/                         # Marcos de implementação
 ├── testing/                       # Cenários de aceite
+├── deliveries/                    # Entregas e regras por marco
+├── status/                        # Implementado e trabalho restante
 ├── operations/                    # Ambientes, publicação e recuperação
 └── agent/                         # Contexto, instruções e checklist
 ```

@@ -76,7 +76,7 @@ body {
 
 .swagger-ui .topbar-wrapper .link::after {
     color: var(--global-white);
-    content: "Global API Docs";
+    content: "Organizali API Docs";
     display: block;
     font-family: sans-serif;
     font-size: 18px;
@@ -88,7 +88,8 @@ body {
     padding: 0 24px;
 }
 
-.global-docs-hero {
+.swagger-ui .global-docs-hero {
+    font-family: "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
     background: var(--global-surface);
     border: 1px solid var(--global-line);
     border-radius: 8px;
@@ -144,7 +145,8 @@ body {
     max-width: 760px;
 }
 
-.global-docs-hero p {
+.swagger-ui .global-docs-hero p {
+    font-family: "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
     color: rgba(255, 255, 255, 0.86);
     font-size: 18px;
     line-height: 1.55;
@@ -180,7 +182,8 @@ body {
     background: rgba(255, 255, 255, 0.08);
 }
 
-.global-docs-cards {
+.swagger-ui .global-docs-cards {
+    font-family: "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
     display: grid;
     gap: 14px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -607,7 +610,7 @@ html:is([data-global-theme="light"], [data-theme="light"], [data-color-mode="lig
 }
 
 @media (max-width: 900px) {
-    .global-docs-cards {
+    .swagger-ui .global-docs-cards {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -621,7 +624,7 @@ html:is([data-global-theme="light"], [data-theme="light"], [data-color-mode="lig
         padding: 0 14px;
     }
 
-    .global-docs-hero {
+    .swagger-ui .global-docs-hero {
         margin-top: 18px;
         padding: 34px 22px;
     }
@@ -634,7 +637,7 @@ html:is([data-global-theme="light"], [data-theme="light"], [data-color-mode="lig
         font-size: 16px;
     }
 
-    .global-docs-cards {
+    .swagger-ui .global-docs-cards {
         grid-template-columns: 1fr;
     }
 }
@@ -687,7 +690,7 @@ html:is([data-global-theme="light"], [data-theme="light"], [data-color-mode="lig
 .swagger-ui .opblock.opblock-patch,
 .swagger-ui .opblock.opblock-options,
 .swagger-ui .opblock.opblock-head {
-    background: var(--global-surface);
+    background: var(--global-surface) !important;
     border-color: var(--global-line);
 }
 .swagger-ui .opblock .opblock-summary-method { color: #101010; text-shadow: none; }

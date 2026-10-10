@@ -2,6 +2,8 @@
 
 Escopo v0.1 para revisão, preparado antes do desenvolvimento. Organização base de documentação segue Arquitetura.Global: `agent`, `architecture`, `api`, `database`, `testing`; `plans` e `operations` também existem no RevendaPRO. `product`, `requirements` e `domain` contêm os documentos específicos do produto doméstico, sem alterar camadas de código.
 
+**Acompanhamento:** [estado completo](status/PROJECT_STATUS.md) · [entregas e regras por marco](deliveries/README.md).
+
 ## Ordem de leitura
 
 1. [Escopo completo](product/scope.md)
@@ -22,6 +24,6 @@ Escopo v0.1 para revisão, preparado antes do desenvolvimento. Organização bas
 15. [Referências consultadas](architecture/references.md)
 16. [Contexto](agent/context.md), [instruções](agent/instructions.md) e [checklist](agent/checklist.md)
 
-O [README da raiz](../README.md) resume o produto, a stack e o estado real do repositório. M1.1 implementado; consulte as [evidências](testing/m1-1-foundation.md) e a [decisão Minimal API + frontend](architecture/decisions/ADR-0002-minimal-api-frontend-swagger.md).
+O [README da raiz](../README.md) resume o produto, a stack e o estado real do repositório. Fundação, acesso e cadastros implementados até M3.4; consulte a [jornada integrada](testing/m3-4-integrated.md) e a [decisão Minimal API + frontend](architecture/decisions/ADR-0002-minimal-api-frontend-swagger.md).
 
 Evidências seguintes: [M1.2 — persistência](testing/m1-2-persistence.md), [M1.3 — API](testing/m1-3-api.md), [M1.4 — frontend](testing/m1-4-web.md).

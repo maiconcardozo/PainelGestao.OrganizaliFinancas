@@ -10,7 +10,7 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
             {
                 Title = "Organizali Finanças",
                 Version = "v1",
-                Description = "Base técnica em desenvolvimento. Acesso, cadastros e operações financeiras entram nos próximos marcos."
+                Description = "Acesso, integrantes, moradores, catálogos e tipos de despesa disponíveis. Dados isolados por casa e permissões verificadas no servidor. Operações financeiras previstas a partir do M4."
             }));
             return services;
         }
@@ -24,9 +24,9 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "Organizali Finanças v1");
                 options.DocumentTitle = "Organizali Finanças — API";
+                options.HeadContent = "<meta name=\"theme-color\" content=\"#202020\">";
                 options.InjectStylesheet("/swagger-ui/organizali-docs.css");
                 options.InjectJavascript("/swagger-ui/organizali-docs.js");
-                options.HeadContent = "<meta name=\"theme-color\" content=\"#202020\">";
             });
             return app;
         }

@@ -1,5 +1,13 @@
 # Contexto para continuidade
 
+## Estado vigente — 10/10/2026
+
+M3.4 concluído: jornada Chrome/Next/API/MariaDB aprovada, revisão desktop/mobile e correção do tema Swagger. Próximo M4: contas e rendas; ainda não há operações financeiras. D21 resolvida; D13/D14/D16/D17 abertas. Cada marco exige documento com regras de negócio e atualização de status. [Estado completo](../status/PROJECT_STATUS.md) · [Entregas](../deliveries/README.md). Commit por etapa; sem push intermediário.
+
+## Histórico de execução
+
+Os registros abaixo preservam o estado de cada momento; pendências superadas não substituem o estado vigente acima.
+
 Desenvolvimento autorizado pelo usuário após os marcos. Iniciar por M1.1. Backend em Minimal API e frontend Next.js separado; Swagger conforme swagger-global, com identidade Organizali. A decisão substitui controllers sem alterar as demais camadas; ver ADR-0002.
 
 Início organizado em M1.1–M3.4 em plans/development-milestones.md. D19/D20 confirmados: português, America/Sao_Paulo configurável por casa; cada login pertence a uma casa no piloto. Modelo de usuário segue User : TenantEntity do RevendaPRO, sem identidade global/múltiplos vínculos.

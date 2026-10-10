@@ -8,20 +8,21 @@
 - [x] Escopo, RF/RNF, regras, modelo, arquitetura e contratos propostos documentados.
 - [x] Dashboard, orçamento, fluxo de caixa, alertas e rateio incluídos.
 - [x] Plano, testes, operação e pendências definidos.
-- [ ] Escopo revisado pelo usuário e dúvidas remanescentes resolvidas para a etapa inicial.
-- [ ] Desenvolvimento solicitado após revisão.
+- [x] Escopo revisado pelo usuário e decisões necessárias a M1–M3 confirmadas; dúvidas futuras no registro de decisões.
+- [x] Desenvolvimento solicitado após revisão.
 
-## Gates futuros de implementação
+## Gates de implementação — situação até M3.4
 
-- [ ] Stack e Foundation restauram em ambiente independente; versões fixadas.
-- [ ] Provider/migration MariaDB validado em vazio e atualização.
-- [ ] Domínio protegido e dependências testadas.
-- [ ] Queries com isolamento/atividade e FK da casa validada.
+- [x] Stack e Foundation restauram em ambiente independente; versões fixadas.
+- [x] Provider/migration MariaDB validado em vazio e atualização.
+- [x] Domínio protegido e dependências testadas.
+- [x] Queries dos módulos atuais com isolamento/atividade e FK da casa validadas.
 - [ ] Recebimentos, pagamentos, rateios, cartão e projeções reconciliados.
-- [ ] Concorrência, idempotência e rollback comprovados.
-- [ ] Permissões testadas por endpoint/perfil/casa.
-- [ ] Interface moderna revisada com dados representativos em celular/desktop.
+- [x] Concorrência, idempotência e rollback dos módulos atuais comprovados; repetir nos módulos financeiros.
+- [x] Permissões dos módulos atuais testadas por endpoint/perfil/casa.
+- [x] Interface de acesso/cadastros revisada em desktop e viewport estreito; dashboard ainda pendente.
 - [ ] Orçamentos/alertas rastreáveis e sem duplicidade.
 - [ ] Backup restaurado e operação/retenção definidas.
-- [ ] Build/lint/testes aplicáveis aprovados; docs atualizadas.
+- [x] Build/lint/testes aplicáveis a M1–M3 aprovados; docs atualizadas.
+- [x] Documentos de entrega por marco com regras de negócio e quadro do trabalho restante.
 - [ ] Piloto autorizado e liberado manualmente.

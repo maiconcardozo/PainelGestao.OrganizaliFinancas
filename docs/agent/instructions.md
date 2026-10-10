@@ -14,4 +14,6 @@
 12. Entregas devem incluir o que mudou, evidência de validação e pendências reais. Arquivos destinados ao usuário em C:/Codex/Upload.
 13. Ao criar ou revisar README, aplicar a skill `readme-projetos` e o modelo Authentication fornecido pelo usuário: título com ícone, badges, funcionalidades destacadas, árvore comentada, seções temáticas e navegação por público. Adaptar fatos e links ao estado real do Organizali; manter a arquitetura RevendaPRO. A aparência do README não é definida apenas pelo checklist genérico do Arquitetura.Global.
 
+14. Cada marco exige documento em docs/deliveries com regras de negócio, funcionalidades, validação e pendências. Atualizar docs/status/PROJECT_STATUS.md e copiar a entrega para C:/Codex/Upload.
+
 Instrução mais recente: um commit por marco concluído e push somente ao final. Não fazer push a cada etapa. Deploy não solicitado. Não inventar par Azure/Redmine para satisfazer convenção corporativa.

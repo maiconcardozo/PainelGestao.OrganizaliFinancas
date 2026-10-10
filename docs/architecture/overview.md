@@ -1,6 +1,6 @@
 # Arquitetura e tecnologias
 
-Plano técnico, sem implementação. Referência principal confirmada: RevendaPRO. Projeto particular, com Foundation.Base autorizado pelo usuário; resta verificar restauração no ambiente independente.
+Referência principal: RevendaPRO. Foundation.Base autorizado e restore/build validados. Fundação, acesso e cadastros implementados; módulos financeiros abaixo ainda previstos. [Estado atual](../status/PROJECT_STATUS.md).
 
 ## Estrutura
 

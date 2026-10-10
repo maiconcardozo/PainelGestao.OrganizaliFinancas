@@ -132,9 +132,9 @@
             '</div>' +
             '<div class="global-docs-kicker">Guia de integracao</div>' +
             '<h1>Organizali Finanças — API</h1>' +
-            '<p>Documentação técnica do sistema financeiro da casa. Nesta etapa estão disponíveis as verificações de disponibilidade.</p>' +
+            '<p>Acesso à casa, integrantes, moradores, catálogos e tipos de despesa parametrizados. Operações financeiras serão entregues nos próximos marcos.</p>' +
             '<div class="global-docs-actions">' +
-            '  <a href="#" class="global-docs-button primary">Ver operacoes</a>' +
+            '  <a href="#api-operations" class="global-docs-button primary">Ver operações</a>' +
             '  <a href="/swagger/v1/swagger.json" class="global-docs-button secondary">OpenAPI v1</a>' +
             '  <a href="?theme=light" class="global-docs-button secondary">Tema claro</a><a href="?theme=dark" class="global-docs-button secondary">Tema escuro</a>' +
             '</div>';
@@ -145,9 +145,10 @@
             '<article><strong>API em execução</strong><span>Use /health/live para verificar o processo.</span></article>' +
             '<article><strong>Persistência</strong><span>/health/ready verifica conexão e tabela base.</span></article>' +
             '<article><strong>Correlação</strong><span>Consulte X-Correlation-ID ao investigar uma resposta.</span></article>' +
-            '<article><strong>Próximos marcos</strong><span>Login e finanças ainda estão em desenvolvimento.</span></article>';
-        swaggerUi.insertBefore(hero, info);
-        swaggerUi.insertBefore(cards, info);
+            '<article><strong>Acesso protegido</strong><span>As operações respeitam a casa e as permissões da sessão.</span></article>';
+        info.parentNode.insertBefore(hero, info);
+        info.parentNode.insertBefore(cards, info);
+        info.id = "api-operations";
     }
 
     if (document.readyState === "loading") {

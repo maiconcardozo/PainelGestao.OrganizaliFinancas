@@ -1,6 +1,6 @@
 # Marcos de início do desenvolvimento
 
-Data: 10/10/2026. M2.1/M2.2 implementados e testados; M2.3 implementado e testado; M2.4 parcialmente entregue (testing/m2-4-web-access.md). Estado da fundação: M1.1 concluído; M1.2 concluído com validação em banco descartável; M1.3 concluído tecnicamente (revisão visual pendente); M1.4 concluído tecnicamente (revisão visual pendente). Evidências em [M1.1](../testing/m1-1-foundation.md) e [M1.2](../testing/m1-2-persistence.md).
+Data: 10/10/2026. Fundação, acesso e cadastros implementados até M3.4. Jornada integrada desktop/mobile e Swagger revisados. Recuperação externa e núcleo financeiro pendentes. [Estado completo](../status/PROJECT_STATUS.md) · [Entregas](../deliveries/README.md).
 
 Este detalhamento desdobra M1–M3 do [plano geral](implementation.md), preservando seus identificadores e dependências. O primeiro objetivo demonstrável é entrar em uma casa isolada, navegar com permissões e manter seus cadastros. Indicadores financeiros reais entram após receitas, despesas e cartões.
 
@@ -29,7 +29,7 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ## 2. Quadro de execução inicial
 
-**M1.1 concluído**; M1.2 concluído; M1.3/M1.4 concluídos tecnicamente ; M2.1/M2.2 implementados e testados (ver testing/m2-2-authentication.md). Demais itens não concluídos. Uma tarefa fica concluída somente com sua evidência de aceite. Criar um commit por marco concluído; push apenas ao final.
+**M1–M3 implementados no escopo documentado.** Consulte as entregas para limitações, incluindo recuperação externa. Um commit por etapa; push somente ao final.
 
 | Etapa | Entrega demonstrável | Dependência | Aceite principal |
 |---|---|---|---|
