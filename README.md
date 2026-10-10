@@ -234,6 +234,7 @@ O pipeline ainda não foi criado.
 | M2.4 — interface | [Login, shell e Minha conta](docs/testing/m2-4-web-access.md), menu por permissões e integrantes implementados; revisão visual pendente |
 | M3.1 — moradores e configurações | [Cadastro sem login, fuso, BRL e português implementados e testados](docs/testing/m3-1-households.md) |
 | M3.2 — catálogos | [Categorias, tipos de renda, credores e formas de pagamento implementados e testados](docs/testing/m3-2-catalogs.md) |
+| M3.3 — parametrização | [Tipos de despesa e formulários tipados/versionados implementados e testados](docs/testing/m3-3-expense-types.md) |
 
 ## 📋 Documentação por público
 

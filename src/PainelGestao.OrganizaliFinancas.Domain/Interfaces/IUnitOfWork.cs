@@ -12,5 +12,6 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces
         IMemberRepository MemberRepository { get; }
         IHouseholdRepository HouseholdRepository { get; }
         ICatalogRepository CatalogRepository { get; }
+        IExpenseTypeRepository ExpenseTypeRepository { get; }
     }
 }

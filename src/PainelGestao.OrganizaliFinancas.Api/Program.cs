@@ -23,6 +23,7 @@ app.MapAuthenticationEndpoints();
 app.MapMemberEndpoints();
 app.MapHouseholdEndpoints();
 app.MapCatalogEndpoints();
+app.MapExpenseTypeEndpoints();
 
 app.Run();
 

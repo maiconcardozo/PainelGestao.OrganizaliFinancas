@@ -72,6 +72,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             actor.Should().Be(session.UserCode.ToString());
             (await database.QuerySingleAsync<int>("SELECT COUNT(*) FROM User WHERE Name='Morador sem e-mail'")).Should().Be(0);
             await CatalogAssertions.VerifyAsync(owner, other, reader, connection);
+            await ExpenseTypeAssertions.VerifyAsync(owner, other, reader);
         }
         private static async Task Login(HttpClient client, string email)
         {

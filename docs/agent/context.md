@@ -26,3 +26,5 @@ D21 aprovada na continuação após a matriz apresentada. M2.3 implementado: Rol
 M3.1 implementado e testado: moradores sem login, inativação, configurações pt-BR/BRL/fuso IANA/data inicial, controle de versão e autoria. 29 testes .NET em banco descartável, build/lint/teste HTTP web aprovados. Ver testing/m3-1-households.md. Próximo M3.2; sem push.
 
 M3.2 implementado: Category/IncomeType/Creditor/PaymentMethod em tabelas próprias, hierarquia por casa e versões imutáveis CatalogRevision. 29 testes .NET com novas asserções, build/lint/teste HTTP Next aprovados. Ver testing/m3-2-catalogs.md. Próximo M3.3 (tipos de despesa/campos parametrizados). Sem push.
+
+M3.3 implementado: ExpenseType/ExpenseTypeVersion, definições de campos tipados serializadas por versão imutável, formulário dinâmico e validação API. 38 testes .NET, build/lint/teste HTTP aprovados; ver testing/m3-3-expense-types.md. Próximo M3.4 revisão integrada: Chrome/Edge executáveis locais detectados, tentar teste headless isolado para validar visual e jornada real sem depender do conector CUA indisponível. Sem push.

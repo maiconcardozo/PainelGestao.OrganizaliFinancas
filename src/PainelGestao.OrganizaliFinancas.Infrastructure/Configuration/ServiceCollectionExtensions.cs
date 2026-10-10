@@ -34,6 +34,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Configuration
             services.AddScoped<IDapperUnitOfWork>(provider => provider.GetRequiredService<OrganizaliFinancasUnitOfWork>());
             services.AddScoped<Func<IDapperUnitOfWork, ITenantRepository>>(_ => unitOfWork => new TenantRepository(unitOfWork));
             services.AddScoped<SchemaMigrator>();
+            services.AddScoped<Func<IDapperUnitOfWork, IExpenseTypeRepository>>(_ => work => new Repositories.ExpenseTypes.ExpenseTypeRepository(work));
             services.AddScoped<Func<IDapperUnitOfWork, ICatalogRepository>>(_ => work => new Repositories.Catalogs.CatalogRepository(work));
             services.AddScoped<Func<IDapperUnitOfWork, IHouseholdRepository>>(_ => work => new Repositories.Households.HouseholdRepository(work));
             services.AddScoped<Func<IDapperUnitOfWork, IMemberRepository>>(_ => work => new Repositories.Members.MemberRepository(work));

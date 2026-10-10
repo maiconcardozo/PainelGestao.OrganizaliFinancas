@@ -146,10 +146,10 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ### M3.3 — Parametrização
 
-- [ ] Criar tipos de despesa/dívida que selecionem os comportamentos previstos no escopo.
-- [ ] Definir campos tipados, validação, obrigatoriedade e versão.
-- [ ] Gerar formulário a partir dessas definições com validação equivalente no servidor.
-- [ ] Demonstrar cadastro de Água/Luz e um tipo novo sem alteração de código.
+- [x] Criar tipos de despesa/dívida que selecionem os comportamentos previstos no escopo.
+- [x] Definir campos tipados, validação, obrigatoriedade e versão.
+- [x] Gerar formulário a partir dessas definições com validação equivalente no servidor.
+- [x] Demonstrar cadastro de Água/Luz e um tipo novo sem alteração de código.
 
 **Limite:** M3 prepara os tipos; recorrência, parcela, liquidação e cartão são implementados em M5/M6. Não declarar esses comportamentos entregues só porque aparecem em um seletor.
 

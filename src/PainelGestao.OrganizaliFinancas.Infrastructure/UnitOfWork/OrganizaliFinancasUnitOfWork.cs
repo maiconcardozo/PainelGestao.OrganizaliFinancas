@@ -14,7 +14,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
         Func<IDapperUnitOfWork, IAuthenticationRepository> authenticationRepositoryFactory,
         Func<IDapperUnitOfWork, IMemberRepository> memberRepositoryFactory,
         Func<IDapperUnitOfWork, IHouseholdRepository> householdRepositoryFactory,
-        Func<IDapperUnitOfWork, ICatalogRepository> catalogRepositoryFactory)
+        Func<IDapperUnitOfWork, ICatalogRepository> catalogRepositoryFactory,
+        Func<IDapperUnitOfWork, IExpenseTypeRepository> expenseTypeRepositoryFactory)
         : DapperUnitOfWork(connectionFactory), IUnitOfWork
     {
         private ITenantRepository? _tenantRepository;
@@ -29,5 +30,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
         public IHouseholdRepository HouseholdRepository => _householdRepository ??= householdRepositoryFactory(this);
         private ICatalogRepository? _catalogRepository;
         public ICatalogRepository CatalogRepository => _catalogRepository ??= catalogRepositoryFactory(this);
+        private IExpenseTypeRepository? _expenseTypeRepository;
+        public IExpenseTypeRepository ExpenseTypeRepository => _expenseTypeRepository ??= expenseTypeRepositoryFactory(this);
     }
 }

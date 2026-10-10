@@ -68,6 +68,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Authentication.Handlers
             {
                 menu.Add(new("people", "Moradores", "/people", "Users"));
                 menu.Add(new("catalogs", "Cadastros financeiros", "/catalogs", "Tags"));
+                menu.Add(new("expense-types", "Tipos de despesa", "/expense-types", "Tags"));
                 menu.Add(new("household-settings", "Configurações da casa", "/household-settings", "Settings"));
             }
             return new(user.Code, user.Name, user.Email, roles, permissions, menu.ToArray());

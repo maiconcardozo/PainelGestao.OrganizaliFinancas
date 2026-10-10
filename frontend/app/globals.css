@@ -84,6 +84,16 @@ button:disabled { opacity: .65; cursor: wait; }
 .catalog-tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.5rem 0; }
 .catalog-tabs a { padding: .6rem 1rem; min-height: 44px; border: 1px solid var(--border); border-radius: .3rem; background: var(--surface); }
 .catalog-tabs a[aria-current] { background: var(--ink); color: white; }
+.field-definitions { display: grid; gap: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+.field-definitions legend { font-weight: 600; padding-right: .75rem; }
+.field-definition { background: var(--paper); border: 1px solid var(--border); padding: 1rem; border-radius: .3rem; display: grid; gap: .8rem; }
+.field-limits { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.field-error { color: #922d2d; font-size: .9rem; }
+.type-list { margin: 1.5rem 0; display: grid; gap: .75rem; }
+.type-list article { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: .5rem; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; }
+.type-list h2 { margin: 0; font-size: 1.6rem; }
+.type-list p { margin: .5rem 0 0; color: var(--text-secondary); }
+.type-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .invitation-list { list-style: none; padding: 0; }
 .invitation-list li { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border); }
 @media (max-width: 1100px) { .member-row { grid-template-columns: 1fr 1fr; } }
