@@ -12,5 +12,6 @@
 10. Na etapa Next.js, ler documentação da versão instalada indicada pelo AGENTS da referência, sem confiar em APIs de versões diferentes.
 11. Testes com dados sintéticos e serviços externos falsos; definir banco efêmero isolado antes de testes de integração com escrita. Nenhum e-mail, WhatsApp, cobrança ou pagamento real em testes.
 12. Entregas devem incluir o que mudou, evidência de validação e pendências reais. Arquivos destinados ao usuário em C:/Codex/Upload.
+13. Ao criar ou revisar README, aplicar a skill `readme-projetos` e o modelo Authentication fornecido pelo usuário: título com ícone, badges, funcionalidades destacadas, árvore comentada, seções temáticas e navegação por público. Adaptar fatos e links ao estado real do Organizali; manter a arquitetura RevendaPRO. A aparência do README não é definida apenas pelo checklist genérico do Arquitetura.Global.
 
 Nenhum commit ou publicação foi solicitado. Não inventar par Azure/Redmine para satisfazer convenção corporativa. Se o usuário pedir trabalho Git que torne essa convenção aplicável, esclarecer sua adaptação ao projeto particular.

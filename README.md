@@ -1,135 +1,309 @@
-# Organizali Finanças
+# 🏡 Organizali Finanças — Gestão financeira da casa
 
-Planejamento de um SaaS web para gestão das finanças da casa: pessoas, renda prevista, recebimentos reais, despesas, dívidas, cartões e orçamento.
+<!-- Estado do projeto -->
+[![Estado](https://img.shields.io/badge/Estado-Planejamento-blue.svg)](docs/plans/implementation.md)
+[![Arquitetura](https://img.shields.io/badge/Arquitetura-Clean%20Architecture%20%2B%20DDD-6A3FA0.svg)](docs/architecture/overview.md)
+[![Referência](https://img.shields.io/badge/Padr%C3%A3o-RevendaPRO-34495E.svg)](docs/architecture/decisions/ADR-0001-revenda-pro.md)
 
-**Estado em 10/10/2026: escopo e documentação para revisão. Nenhuma funcionalidade foi implementada.** Projeto particular, uma casa por assinatura, sem vínculo operacional com a empresa e sem publicação na Wiki. O usuário confirmou o **RevendaPRO como referência técnica principal**.
+<!-- Stack definida para implementação -->
+[![.NET](https://img.shields.io/badge/.NET-10%20%7C%20planejado-512BD4.svg?logo=dotnet)](docs/architecture/overview.md)
+[![C#](https://img.shields.io/badge/C%23-planejado-239120.svg)](docs/architecture/overview.md)
+[![EF Core](https://img.shields.io/badge/EF%20Core-10%20%7C%20schema%20planejado-blue.svg?logo=nuget)](docs/architecture/overview.md)
+[![JWT](https://img.shields.io/badge/JWT-planejado-green.svg?logo=jsonwebtokens)](docs/architecture/overview.md)
+[![Next.js](https://img.shields.io/badge/Next.js-16%20%7C%20planejado-000000.svg?logo=nextdotjs)](docs/architecture/overview.md)
+[![React](https://img.shields.io/badge/React-19%20%7C%20planejado-149ECA.svg?logo=react)](docs/architecture/overview.md)
+[![MariaDB](https://img.shields.io/badge/MariaDB-11.8%20%7C%20planejado-003545.svg?logo=mariadb)](docs/architecture/overview.md)
+[![Dapper](https://img.shields.io/badge/Dapper-SQL%20parametrizado%20%7C%20planejado-0078D4.svg)](docs/architecture/overview.md)
 
-## Sobre
+<!-- Documentação disponível -->
+[![Requisitos funcionais](https://img.shields.io/badge/Requisitos%20funcionais-46-informational.svg)](docs/requirements/functional.md)
+[![Requisitos não funcionais](https://img.shields.io/badge/Requisitos%20n%C3%A3o%20funcionais-22-informational.svg)](docs/requirements/non-functional.md)
+[![Cenários de aceite](https://img.shields.io/badge/Cen%C3%A1rios%20de%20aceite-32%20definidos-informational.svg)](docs/testing/test-patterns.md)
 
-O produto deve responder quanto a casa espera receber, quanto efetivamente recebeu, quanto deve, quando precisa pagar e quanto terá disponível. Pessoas cadastradas podem existir sem conta de acesso. Previsões e movimentações reais são registros distintos e relacionados.
+## 📋 Sobre
 
-Leia primeiro o [escopo completo](docs/product/scope.md), os [requisitos funcionais](docs/requirements/functional.md) e as [decisões pendentes](docs/product/decisions.md). As propostas ainda não aprovadas estão identificadas; não autorizam iniciar desenvolvimento.
+O **Organizali Finanças** é um projeto de SaaS web para quem coordena as finanças de uma casa. Reúne moradores, rendas, contas, dívidas, cartões e orçamento para acompanhar **quanto deveria entrar, quanto realmente entrou, o que precisa ser pago e qual será o saldo nos próximos dias**.
 
-## Funcionalidades planejadas
+A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQRS com MediatR** e **Foundation.Base**. Cada assinatura atende uma casa, com dados compartilhados entre os integrantes e permissões para controlar as alterações.
 
-- Casa, moradores, usuários, convites e permissões.
-- Fontes de renda com vigência e previsão mensal; recebimentos efetivos totais ou parciais.
-- Contas bancárias, dinheiro em carteira, saldos iniciais e transferências.
-- Categorias, tipos de dívida, credores, formas de pagamento e campos adicionais configuráveis.
-- Despesas avulsas, recorrentes e parceladas; pagamentos, descontos, encargos e estornos.
-- Cartões, compras, parcelas, fechamento de fatura, vencimento e pagamento.
-- Visão mensal prevista e realizada, compromissos futuros, orçamento, alertas e relatórios.
-- Administração das assinaturas, auditoria, exportação e operação do SaaS.
+> **Estado atual:** escopo e documentação preparados para revisão. O piloto terá liberação manual. A implementação da aplicação ainda não começou; a stack e as funcionalidades abaixo estão planejadas.
 
-## Tecnologias planejadas
+### ✨ Funcionalidades principais
 
-As versões abaixo são **observadas na referência local**, não pacotes instalados neste repositório. Não houve instalação nem atualização de NuGet. A fixação e a compatibilidade devem ser verificadas no marco técnico inicial.
+- 📊 **Dashboard da casa** — saldo atual, previsto e realizado, vencimentos e ações pendentes.
+- 💸 **Fluxo de caixa** — entradas, saídas e projeção diária e mensal, com alerta de saldo negativo.
+- 👥 **Moradores e rendas** — bruto opcional, líquido esperado e recebimentos reais em BRL.
+- 🏦 **Contas financeiras** — saldos iniciais, extrato, carteira e transferências entre contas.
+- 🧾 **Dívidas parametrizadas** — água, luz, aluguel, compras e outros tipos criados pela casa.
+- 🔁 **Recorrências e parcelas** — contas fixas ou variáveis, compromissos futuros e prévia de vencimentos.
+- 💳 **Cartões e faturas** — compras, parcelas, fechamento e pagamentos sem duplicar despesas.
+- 🤝 **Rateio entre moradores** — divisão por valor ou percentual, separando responsabilidade e pagamento.
+- 🎯 **Orçamento por categoria** — limites, consumo, saldo restante e excesso em reais.
+- 🔔 **Alertas financeiros** — estouro de orçamento, déficit futuro, contas vencidas e renda atrasada.
+- 🛡️ **Permissões e auditoria** — controle de edição, histórico e isolamento entre casas.
+- 📁 **Evolução da V1** — comprovantes, exportações, metas de reserva e simulações.
 
-| Área | Escolha baseada no RevendaPRO |
+## 🛠️ Tecnologias
+
+**Stack definida a partir dos arquivos do RevendaPRO.** As versões completas e a validação técnica prevista estão no [guia de arquitetura](docs/architecture/overview.md).
+
+- **C# / .NET 10 / ASP.NET Core** — backend e API REST com controllers.
+- **MediatR / FluentValidation** — commands, queries, handlers e validação de entrada.
+- **Foundation.Base** — entidades, UUID v7, auditoria e base de persistência; uso autorizado.
+- **Dapper / MariaDB 11.8** — leitura e escrita com SQL parametrizado.
+- **EF Core 10 / MySql.EntityFrameworkCore** — migrations e mapeamento de schema.
+- **Next.js 16 / React 19 / TypeScript 5** — aplicação web e sessão no servidor.
+- **Tailwind CSS 4 / Lucide React** — interface responsiva e ícones.
+- **JWT / cookies HttpOnly** — autenticação e proxy entre frontend e API.
+- **xUnit / Moq / FluentAssertions / NetArchTest** — testes e validação das dependências.
+- **Testcontainers.MariaDb** — integração com banco isolado.
+- **Docker / Docker Compose** — execução e empacotamento planejados.
+- **S3 / ClosedXML / QuestPDF** — anexos e exportação na evolução da V1.
+
+## 🏗️ Estrutura do projeto — DDD e Clean Architecture
+
+A estrutura de implementação seguirá as camadas e convenções do **RevendaPRO**, conforme a [decisão arquitetural](docs/architecture/decisions/ADR-0001-revenda-pro.md).
+
+**Árvore planejada:** `src/`, `frontend/` e `tests/` serão criados no marco M1. A documentação em `docs/` já existe.
+
+```text
+PainelGestao.OrganizaliFinancas/
+├── src/
+│   ├── PainelGestao.OrganizaliFinancas.Domain/
+│   │   ├── Entities/               # Pessoas, rendas, obrigações, faturas e orçamento
+│   │   ├── ValueObjects/           # Valores e invariantes do domínio financeiro
+│   │   ├── Enums/                 # Estados e comportamentos suportados
+│   │   └── Interfaces/
+│   │       ├── Repositories/      # Contratos de persistência
+│   │       ├── Services/          # Contratos usados pelos casos de uso
+│   │       └── IUnitOfWork.cs     # Coordenação transacional
+│   │
+│   ├── PainelGestao.OrganizaliFinancas.Application/
+│   │   ├── Behaviors/             # Validação, logs e transações
+│   │   ├── Configuration/         # Registro de dependências
+│   │   └── {Context}/             # Income, Expenses, Cards, Budgets, Alerts...
+│   │       ├── Commands/          # Operações de escrita
+│   │       ├── Queries/           # Consultas
+│   │       ├── Handlers/          # Orquestração dos casos de uso
+│   │       ├── Validators/        # Validação de entrada
+│   │       └── DTOs/              # Contratos de saída
+│   │
+│   ├── PainelGestao.OrganizaliFinancas.Infrastructure/
+│   │   ├── Data/MySql/            # Conexões
+│   │   ├── Database/              # Contexto de schema e migrations
+│   │   ├── Persistence/Mappings/  # Mapeamento das entidades
+│   │   ├── Queries/               # SQL versionado por contexto
+│   │   ├── Repositories/          # Implementações Dapper
+│   │   ├── UnitOfWork/            # Transações
+│   │   ├── Security/              # Implementações de segurança
+│   │   ├── Services/              # Adaptadores externos
+│   │   └── Configuration/         # Composição da infraestrutura
+│   │
+│   ├── PainelGestao.OrganizaliFinancas.Api/
+│   │   ├── Controllers/           # Entrada HTTP com IMediator
+│   │   ├── Contracts/             # Respostas padronizadas
+│   │   ├── Middleware/            # Erros e correlação
+│   │   ├── Authorization/         # Permissões
+│   │   ├── Security/              # Contexto autenticado
+│   │   ├── Background/            # Gatilhos para rotinas
+│   │   └── Configuration/         # Configuração da API
+│   │
+│   └── PainelGestao.OrganizaliFinancas.Shared/
+│       ├── Common/                # Recursos transversais mínimos
+│       ├── Constants/             # Constantes
+│       ├── Exceptions/            # Exceções transversais
+│       └── Settings/              # Configurações tipadas
+│
+├── frontend/                      # Next.js: app, components, lib e public
+├── tests/                         # Unidade, integração e arquitetura
+├── docs/                          # Documentação disponível
+├── .gitignore
+└── README.md
+```
+
+**Princípios da arquitetura:**
+
+- 🧩 **Domínio protegido** — cálculos e invariantes sem dependência de HTTP ou banco.
+- 🔄 **Dependências para dentro** — Application usa contratos; Infrastructure os implementa.
+- 💾 **Persistência explícita** — Dapper no acesso a dados, EF Core para schema.
+- 🔐 **Isolamento por casa** — autorização e contexto de tenant em cada operação.
+- 🧪 **Regras verificáveis** — parcelas, rateios, pagamentos e estornos com cenários de aceite.
+
+## 🚀 Primeiros passos
+
+**Comece pelo produto e siga para o planejamento técnico:**
+
+1. **[Escopo completo](docs/product/scope.md)** — módulos, limites e jornada da família.
+2. **[Decisões do projeto](docs/product/decisions.md)** — escolhas confirmadas e questões abertas.
+3. **[Dashboard e experiência](docs/product/experience.md)** — indicadores, navegação e ações.
+4. **[Plano de implementação](docs/plans/implementation.md)** — marcos, dependências e critérios de entrega.
+
+A execução local será documentada no M1, após a criação e validação da solução.
+
+## 🐳 Docker
+
+**Preparação para execução em containers:**
+
+- **[Plano operacional](docs/operations/plan.md)** — ambientes, configuração, publicação e recuperação.
+- **[Fundação técnica — M1](docs/plans/implementation.md)** — criação e validação de Dockerfiles e Compose.
+
+Os arquivos de container e os comandos de execução ainda serão implementados.
+
+## 📖 Guias de desenvolvimento
+
+- **[Contexto do projeto](docs/agent/context.md)** — decisões e estado atual para continuidade.
+- **[Instruções de desenvolvimento](docs/agent/instructions.md)** — convenções e regras de trabalho.
+- **[Checklist de entrega](docs/agent/checklist.md)** — verificações por etapa.
+- **[Regras financeiras](docs/domain/financial-rules.md)** — cálculos, datas, rateios, faturas e histórico.
+
+## 🌐 Documentação da API
+
+**Contratos planejados para a aplicação:**
+
+- **[Endpoints](docs/api/endpoints.md)** — operações por contexto, filtros e idempotência.
+- **[Respostas HTTP](docs/api/responses.md)** — `SuccessDetails<T>`, `ProblemDetails` e códigos de retorno.
+- **[Segurança e isolamento](docs/requirements/non-functional.md)** — sessão, permissões e proteção de dados.
+
+Swagger/OpenAPI será disponibilizado com a API.
+
+## 📬 Coleção Postman
+
+Ainda não há coleção publicada. Os [contratos planejados](docs/api/endpoints.md) definem as operações que serão documentadas e verificadas durante a implementação da API.
+
+## 🏗️ Arquitetura e design
+
+- **[Visão geral e stack](docs/architecture/overview.md)** — tecnologias, versões de referência e decisões.
+- **[Camadas](docs/architecture/layers.md)** — localização e responsabilidade de cada componente.
+- **[Dependências](docs/architecture/dependencies.md)** — referências permitidas e limites entre camadas.
+- **[ADR-0001 — RevendaPRO](docs/architecture/decisions/ADR-0001-revenda-pro.md)** — padrão adotado.
+- **[Modelo de dados](docs/database/mappings.md)** — entidades, relações e invariantes.
+- **[Experiência do dashboard](docs/product/experience.md)** — interface para coordenar as finanças da casa.
+
+## 🔄 CI/CD
+
+**Gates previstos para o desenvolvimento:** build, lint, testes, validação de dependências e documentação atualizada.
+
+- **[Plano de implementação](docs/plans/implementation.md)** — aceite de cada marco.
+- **[Operação e publicação](docs/operations/plan.md)** — imagens versionadas, migrations, backup e recuperação.
+
+O pipeline ainda não foi criado.
+
+## 📚 Referências
+
+- **[Fontes consultadas](docs/architecture/references.md)** — projetos e documentos que orientam a implementação.
+- **[Requisitos funcionais](docs/requirements/functional.md)** — 46 requisitos com prioridade e critério de aceite.
+- **[Requisitos não funcionais](docs/requirements/non-functional.md)** — 22 requisitos de qualidade e operação.
+- **[Decisões e dúvidas](docs/product/decisions.md)** — registro das definições do produto.
+
+## 🧪 Testes
+
+**32 cenários de aceite definidos** para os fluxos financeiros, isolamento, permissões, concorrência e operação.
+
+- **[Plano de testes](docs/testing/test-patterns.md)** — cenários, ferramentas e resultados esperados.
+- **[Regras financeiras](docs/domain/financial-rules.md)** — exemplos para validar cálculos.
+
+A entrega atual foi conferida quanto aos links e à estrutura documental. Testes de aplicação e cobertura serão registrados quando houver implementação.
+
+## 📊 Estado do projeto
+
+| Etapa | Estado |
 |---|---|
-| Backend | C# / .NET 10 / ASP.NET Core Web API com controllers |
-| Casos de uso | MediatR 14.2.0, FluentValidation 12.1.1 |
-| Banco | MariaDB 11.8 |
-| Leitura e escrita | Dapper 2.1.79, SQL parametrizado em query objects |
-| Schema | EF Core 10.0.5, MySql.EntityFrameworkCore 10.0.1, MySql.Data 9.6.0; somente migrations e mapeamento |
-| Base compartilhada | Foundation.Base 3.2.0-rc.5 na referência; uso autorizado, restore independente a validar |
-| Frontend | Next.js 16.3.3, React 19.2.8, TypeScript 5, Tailwind CSS 4 |
-| Sessão | Cookie HttpOnly no Next.js, proxy para API, JWT e refresh token no backend |
-| Interface | Lucide React; identidade própria do Organizali |
-| Testes | xUnit, Moq, FluentAssertions 7.2.2, NetArchTest e Testcontainers.MariaDb |
-| Entrega futura | Docker / Docker Compose; hospedagem a definir |
-| Anexos e exportação | API S3, ClosedXML e QuestPDF, seguindo referência e validação de licenças |
+| Escopo e requisitos | Documentados para revisão |
+| Arquitetura e tecnologias | Definidas com base no RevendaPRO |
+| Dashboard e jornadas | Especificados |
+| Modelo de dados e API | Contratos propostos |
+| Plano de implementação e testes | Documentado |
+| Backend, frontend e banco | Desenvolvimento ainda não iniciado |
+| Piloto | Liberação manual definida; execução futura |
 
-Detalhes, evidências e diferenças entre as referências: [arquitetura](docs/architecture/overview.md) e [ADR-0001](docs/architecture/decisions/ADR-0001-revenda-pro.md).
+## 📋 Documentação por público
 
-## Estrutura atual
+### Para quem coordena a casa
+
+1. [O que o sistema vai oferecer](docs/product/scope.md)
+2. [Dashboard, fluxo de caixa e alertas](docs/product/experience.md)
+3. [Rendas, despesas, cartões e rateios](docs/domain/financial-rules.md)
+
+### Para desenvolvedores
+
+1. [Instruções do projeto](docs/agent/instructions.md)
+2. [Arquitetura e stack](docs/architecture/overview.md)
+3. [Modelo de dados](docs/database/mappings.md)
+4. [Contratos da API](docs/api/endpoints.md)
+5. [Testes e aceite](docs/testing/test-patterns.md)
+
+### Para operação do SaaS
+
+1. [Ambientes e recuperação](docs/operations/plan.md)
+2. [Requisitos de segurança e disponibilidade](docs/requirements/non-functional.md)
+3. [Marcos e liberação do piloto](docs/plans/implementation.md)
+
+### Para consumidores da API
+
+1. [Operações e payloads](docs/api/endpoints.md)
+2. [Respostas de sucesso e erro](docs/api/responses.md)
+3. [Requisitos de autorização](docs/requirements/non-functional.md)
+
+## 🔍 Links rápidos
+
+| Quero... | Documento |
+|---|---|
+| Revisar o escopo | [Escopo completo](docs/product/scope.md) |
+| Entender o dashboard | [Experiência e indicadores](docs/product/experience.md) |
+| Conferir saldo e projeção | [Regras financeiras](docs/domain/financial-rules.md) |
+| Consultar tecnologias e versões | [Arquitetura](docs/architecture/overview.md) |
+| Ver o que será feito primeiro | [Plano de implementação](docs/plans/implementation.md) |
+| Consultar as decisões | [Registro de decisões](docs/product/decisions.md) |
+| Navegar por todos os documentos | [Índice de documentação](docs/README.md) |
+
+## 📁 Estrutura da documentação
 
 ```text
-README.md
 docs/
-  product/          escopo, telas e decisões pendentes
-  requirements/     requisitos funcionais e não funcionais
-  domain/           regras financeiras e exemplos
-  architecture/     camadas, dependências, decisões e referências
-  database/         modelo conceitual
-  api/              contratos planejados
-  plans/            marcos e critérios de entrega
-  testing/          cenários de aceite
-  operations/       configuração e operação planejadas
-  agent/            contexto e instruções para continuidade
+├── README.md                      # Índice e ordem de leitura
+├── product/                       # Escopo, decisões e experiência
+├── requirements/                  # Requisitos funcionais e não funcionais
+├── domain/                        # Regras financeiras e exemplos
+├── architecture/                  # Stack, camadas, dependências e referências
+│   └── decisions/                 # Decisões arquiteturais
+├── database/                      # Modelo conceitual
+├── api/                           # Endpoints e respostas planejados
+├── plans/                         # Marcos de implementação
+├── testing/                       # Cenários de aceite
+├── operations/                    # Ambientes, publicação e recuperação
+└── agent/                         # Contexto, instruções e checklist
 ```
 
-`src/`, `frontend/`, solution, projetos de teste e Compose serão criados no desenvolvimento, após revisão do escopo. Não existem comandos de execução válidos nesta etapa.
+## 💡 Como usar esta documentação
 
-## Arquitetura planejada
+1. Comece pelo escopo para entender o produto e suas prioridades.
+2. Consulte as decisões antes de implementar uma regra de negócio.
+3. Use os links por público para encontrar os documentos da sua etapa.
+4. Confira os cenários de aceite ao implementar cada funcionalidade.
 
-Monólito modular com frontend separado. Cinco camadas: `Api`, `Application`, `Domain`, `Infrastructure`, `Shared`. Contratos de repositório e Unit of Work no Domain; implementações na Infrastructure. Domain e Application não acessam SQL, HTTP externo ou detalhes de persistência.
+## 🤝 Desenvolvimento e revisão
 
-| Camada | Responsabilidade | Dependências permitidas |
-|---|---|---|
-| Api | Controllers, autenticação, respostas HTTP e composição | Application, Shared; Infrastructure para DI |
-| Application | Casos de uso, commands, queries e validação de entrada | Domain, Shared |
-| Domain | Entidades, regras financeiras e contratos | Abstrações puras de Shared e Foundation.Domain |
-| Infrastructure | Dapper, migrations, arquivos e integrações | Domain, Shared |
-| Shared | Configurações e recursos transversais mínimos | Nenhuma camada do projeto |
+Mudanças devem seguir as [instruções do projeto](docs/agent/instructions.md), atualizar a documentação afetada e preservar os [critérios de aceite](docs/testing/test-patterns.md). Decisões de negócio em aberto devem ser discutidas antes da implementação correspondente.
 
-```text
-Navegador → Next.js / sessão e proxy → API → Application → Domain
-                                         ↓ composição
-                                  Infrastructure → MariaDB / arquivos
-```
+## 📄 Licença
 
-Código, rotas e banco em inglês; interface, mensagens e documentação em português. Identificadores internos `Id`; identificadores públicos `Code` UUID v7; FKs com prefixo `Id`. Ver [camadas](docs/architecture/layers.md) e [dependências](docs/architecture/dependencies.md).
+A licença de distribuição do projeto ainda não foi definida. As condições de uso das dependências serão verificadas na fundação técnica.
 
-## Fluxos principais
+## 👨‍💻 Autor
 
-1. Criar casa → cadastrar moradores → cadastrar contas e saldos iniciais.
-2. Definir fonte de renda → gerar previsão → registrar o recebido → comparar diferença.
-3. Escolher tipo de dívida → cadastrar obrigação/parcelas → registrar pagamento → atualizar saldo.
-4. Cadastrar cartão → registrar compra → compor fatura → pagar fatura sem duplicar despesa.
-5. Consultar mês → revisar vencimentos → acompanhar orçamento e projeção.
+**Maicon Cardozo** — [@maiconcardozo](https://github.com/maiconcardozo)
 
-## API, jobs e integrações
+## 📞 Suporte e sugestões
 
-Contratos propostos em [endpoints](docs/api/endpoints.md) e [respostas](docs/api/responses.md). Sucesso com `SuccessDetails<T>`; erro com `ProblemDetails`; controllers finos com `IMediator`. Recorrências e alertas terão processamento idempotente com controle persistente no MariaDB. Cobrança automática depende da decisão comercial.
+- **[Issues do projeto](https://github.com/maiconcardozo/PainelGestao.OrganizaliFinancas/issues)** — sugestões e problemas na documentação.
+- **[Índice de documentação](docs/README.md)** — acesso aos documentos disponíveis.
+- **[Decisões pendentes](docs/product/decisions.md)** — questões que precisam de definição.
 
-## Autenticação e permissões
+## 📖 Recursos externos
 
-Sessão de navegador em cookie HttpOnly/Secure e proxy no Next.js, conforme RevendaPRO. A API valida usuário, vínculo ativo com a casa e permissão a cada operação. O menu vem filtrado do servidor. Guardas de tela não substituem autorização no endpoint. Detalhes em [requisitos não funcionais](docs/requirements/non-functional.md).
-
-## Cache e serviços externos
-
-Redis não é obrigatório para a primeira versão. Caso necessário por medição, será introduzido por ADR, com chave por ambiente/casa/usuário, TTL, invalidação após commit e fallback para o banco. Não será fonte de saldos nem garantia exclusiva de idempotência.
-
-Serviços de e-mail, arquivos e pagamento serão próprios deste produto. Não há WCF, banco jCobranca, autenticação corporativa ou WhatsApp da empresa no escopo.
-
-## Configuração e variáveis de ambiente
-
-Planejados em [operação](docs/operations/plan.md). SDK, Node, feed de pacotes, variáveis, portas, Dockerfiles e comandos serão confirmados no marco M1 e documentados com evidência de execução. Até lá, **não há aplicação para iniciar**. Exemplos futuros conterão placeholders, sem credenciais.
-
-## Rodando localmente
-
-Nesta etapa, o repositório contém documentação. Comece pelo [índice de docs](docs/README.md). Comandos de restore, build e execução serão acrescentados no M1 após validação na solução real.
-
-## Docker
-
-Docker e Docker Compose estão planejados conforme o RevendaPRO. Os arquivos de containers ainda não existem; sua criação e validação fazem parte do M1.
-
-## Testes
-
-Nesta entrega: revisão documental, rastreabilidade e conferência de links. Não há build ou testes de aplicação executados, pois ainda não há código. O [plano de testes](docs/testing/test-patterns.md) define os cenários financeiros, de isolamento, permissão, concorrência e operação que condicionarão as entregas.
-
-## Documentação complementar
-
-- [Plano de implementação e marcos](docs/plans/implementation.md)
-- [Regras financeiras](docs/domain/financial-rules.md)
-- [Modelo de dados](docs/database/mappings.md)
-- [Telas e experiência](docs/product/experience.md)
-- [Contexto para agentes](docs/agent/context.md)
-- [Instruções para desenvolvimento](docs/agent/instructions.md)
-- [Checklist de entrega](docs/agent/checklist.md)
-- [Fontes consultadas](docs/architecture/references.md)
-
-## Decisões importantes
-
-RevendaPRO é a referência prioritária por decisão do usuário. Regras domésticas são específicas do Organizali. O documento define o escopo proposto completo e suas etapas, sem afirmar que recursos existem. Dúvidas devem ser apresentadas ao usuário antes de implementar a parte dependente. As decisões abertas estão concentradas em um [registro único](docs/product/decisions.md).
+- [Authentication — referência de apresentação deste README](https://github.com/maiconcardozoglobal/Authentication)
+- [.NET e ASP.NET Core](https://learn.microsoft.com/aspnet/core/)
+- [Next.js](https://nextjs.org/docs)
+- [React](https://react.dev/)
+- [Dapper](https://github.com/DapperLib/Dapper)
+- [MariaDB](https://mariadb.com/docs/)

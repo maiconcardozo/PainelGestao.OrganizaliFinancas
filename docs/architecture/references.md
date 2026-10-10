@@ -29,7 +29,11 @@ Projeto alvo: inventário da raiz e status Git; havia apenas .git e .vs, sem REA
 
 Skill de marca cp-comunica foi consultada durante identificação das referências, mas suas regras comerciais/WordPress não se aplicam ao produto particular. Skills de relatório jCobranca, branches Neocob, publicação, anúncios e automações não correspondem ao escopo atual. Skills de arquivos Office/PDF serão usadas se esses formatos forem solicitados; a entrega atual é documentação Markdown de repositório.
 
-## Documentação oficial consultada
+## Referência de apresentação do README
+
+O usuário definiu o README completo do Authentication como padrão visual/documental em 10/10/2026. Conteúdo obtido também pela API autenticada do GitHub em `maiconcardozoglobal/Authentication`, blob `03a6d8f169e92490e3d1f51e22d0db5728afacd3`; o endereço antigo informado, `maiconcardozo/Authentication`, retornou 404. Aplicar título com ícone, badges, árvore comentada e navegação temática/por público. Skill local: `readme-projetos`. Esta referência de apresentação não muda a arquitetura RevendaPRO nem transfere métricas, licença ou funcionalidades do Authentication.
+
+## Documentação oficial consultada na arquitetura
 
 - [Next.js — Authentication](https://nextjs.org/docs/app/guides/authentication): cookies/sessão e autorização.
 - [ASP.NET Core — Policy-based authorization](https://learn.microsoft.com/en-us/aspnet/core/security/authorization/policies?view=aspnetcore-10.0): policies no servidor.
