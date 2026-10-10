@@ -10,7 +10,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
     {
         public Guid Code { get; init; } public DateTime MovementDate { get; init; } public decimal Amount { get; init; }
         public string Kind { get; init; } = string.Empty; public string Description { get; init; } = string.Empty;
-        public Guid? TransferCode { get; init; } public Guid? ReceiptCode { get; init; } public Guid? ReversedMovementCode { get; init; }
+        public Guid? TransferCode { get; init; } public Guid? ReceiptCode { get; init; } public Guid? PaymentCode { get; init; } public Guid? ReversedMovementCode { get; init; }
     }
     public sealed record TransferRecord
     {
@@ -27,8 +27,8 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         Task<bool> HasMovementsAsync(int idTenant, int idAccount, CancellationToken ct);
         Task<decimal> SumBeforeAsync(int idTenant, int idAccount, DateTime date, CancellationToken ct);
         Task<IReadOnlyList<MovementRecord>> ListMovementsAsync(int idTenant, int idAccount, DateTime from, DateTime to, CancellationToken ct);
-        /// <summary>Original (non-compensating) movements of a transfer or receipt.</summary>
-        Task<IReadOnlyList<AccountMovement>> FindOriginalMovementsAsync(int idTenant, int? idTransfer, int? idReceipt, CancellationToken ct);
+        /// <summary>Original (non-compensating) movements of a transfer, receipt or payment.</summary>
+        Task<IReadOnlyList<AccountMovement>> FindOriginalMovementsAsync(int idTenant, int? idTransfer, int? idReceipt, int? idPayment, CancellationToken ct);
         Task<Transfer?> FindTransferAsync(int idTenant, Guid code, CancellationToken ct);
         Task<TransferRecord?> GetTransferAsync(int idTenant, Guid code, CancellationToken ct);
         Task<IReadOnlyList<TransferRecord>> ListTransfersAsync(int idTenant, CancellationToken ct);
@@ -37,7 +37,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         void AddTransfer(Transfer transfer);
         void MarkTransferReversed(Transfer transfer);
         /// <summary>Parents created in the same transaction are resolved by public Code; no intermediate commit.</summary>
-        void AddMovement(AccountMovement movement, Guid? transferCode = null, Guid? receiptCode = null);
+        void AddMovement(AccountMovement movement, Guid? transferCode = null, Guid? receiptCode = null, Guid? paymentCode = null);
     }
     public interface IIdempotencyRepository
     {

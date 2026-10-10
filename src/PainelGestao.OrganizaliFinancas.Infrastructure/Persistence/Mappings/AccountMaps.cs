@@ -53,6 +53,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Persistence.Mappings
                 .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<Receipt>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdReceipt })
                 .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<Payment>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdPayment })
+                .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<AccountMovement>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdReversedMovement })
                 .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
         }

@@ -27,8 +27,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Accounts
             Single<decimal>(AccountSql.SumBefore, new { IdTenant = idTenant, IdAccount = idAccount, Date = date }, ct);
         public Task<IReadOnlyList<MovementRecord>> ListMovementsAsync(int idTenant, int idAccount, DateTime from, DateTime to, CancellationToken ct) =>
             List<MovementRecord>(AccountSql.Movements, new { IdTenant = idTenant, IdAccount = idAccount, From = from, To = to }, ct);
-        public Task<IReadOnlyList<AccountMovement>> FindOriginalMovementsAsync(int idTenant, int? idTransfer, int? idReceipt, CancellationToken ct) =>
-            List<AccountMovement>(AccountSql.OriginalMovements, new { IdTenant = idTenant, IdTransfer = idTransfer, IdReceipt = idReceipt }, ct);
+        public Task<IReadOnlyList<AccountMovement>> FindOriginalMovementsAsync(int idTenant, int? idTransfer, int? idReceipt, int? idPayment, CancellationToken ct) =>
+            List<AccountMovement>(AccountSql.OriginalMovements, new { IdTenant = idTenant, IdTransfer = idTransfer, IdReceipt = idReceipt, IdPayment = idPayment }, ct);
         public Task<Transfer?> FindTransferAsync(int idTenant, Guid code, CancellationToken ct) =>
             Single<Transfer>(AccountSql.FindTransfer, new { IdTenant = idTenant, Code = code }, ct);
         public Task<TransferRecord?> GetTransferAsync(int idTenant, Guid code, CancellationToken ct) =>
@@ -40,12 +40,12 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Accounts
         public void Update(FinancialAccount account) => work.AddPendingWrite(AccountSql.Update, account);
         public void AddTransfer(Transfer transfer) => new DapperRepository<Transfer>(work).Add(transfer);
         public void MarkTransferReversed(Transfer transfer) => work.AddPendingWrite(AccountSql.MarkTransferReversed, transfer);
-        public void AddMovement(AccountMovement movement, Guid? transferCode = null, Guid? receiptCode = null) =>
+        public void AddMovement(AccountMovement movement, Guid? transferCode = null, Guid? receiptCode = null, Guid? paymentCode = null) =>
             work.AddPendingWrite(AccountSql.AddMovement, new
             {
                 movement.Code, movement.IdTenant, movement.IdFinancialAccount, movement.MovementDate, movement.Amount, movement.Kind,
-                movement.Description, movement.IdTransfer, movement.IdReceipt, movement.IdReversedMovement, movement.DtCreated,
-                movement.CreatedBy, TransferCode = transferCode, ReceiptCode = receiptCode
+                movement.Description, movement.IdTransfer, movement.IdReceipt, movement.IdPayment, movement.IdReversedMovement, movement.DtCreated,
+                movement.CreatedBy, TransferCode = transferCode, ReceiptCode = receiptCode, PaymentCode = paymentCode
             });
     }
     public class IdempotencyRepository(IDapperUnitOfWork work) : IIdempotencyRepository

@@ -51,7 +51,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
     /// <summary>Immutable ledger line. Credits are positive and debits negative; corrections are compensating movements.</summary>
     public class AccountMovement : TenantEntity
     {
-        public static readonly string[] Kinds = ["receipt", "transfer_in", "transfer_out", "reversal"];
+        public static readonly string[] Kinds = ["receipt", "transfer_in", "transfer_out", "payment", "reversal"];
         private AccountMovement() { }
         private AccountMovement(int idTenant) : base(idTenant) { }
         public int IdFinancialAccount { get; private set; }
@@ -61,6 +61,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
         public string Description { get; private set; } = string.Empty;
         public int? IdTransfer { get; private set; }
         public int? IdReceipt { get; private set; }
+        public int? IdPayment { get; private set; }
         public int? IdReversedMovement { get; private set; }
         public static AccountMovement Create(FinancialAccount account, DateOnly date, decimal amount, string kind, string description, string actor)
         {
@@ -83,7 +84,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
             {
                 IdFinancialAccount = IdFinancialAccount, MovementDate = date.ToDateTime(TimeOnly.MinValue), Amount = -Amount,
                 Kind = "reversal", Description = description.Length > 200 ? description[..200] : description,
-                IdTransfer = IdTransfer, IdReceipt = IdReceipt, IdReversedMovement = Id
+                IdTransfer = IdTransfer, IdReceipt = IdReceipt, IdPayment = IdPayment, IdReversedMovement = Id
             };
             reversal.SetCreatedBy(actor);
             return reversal;

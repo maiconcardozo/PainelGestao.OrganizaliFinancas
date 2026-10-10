@@ -182,7 +182,33 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     await owner.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
     await navigate(owner, "/accounts"); await waitFor(owner, "!!document.querySelector('.finance-table')");
     await owner.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Ver extrato').click()"); await waitFor(owner, "!!document.querySelector('.statement-totals')");
-    await screenshot(owner, "contas-desktop.png");    const swagger = await page(`${apiUrl}/swagger/index.html`);
+    await screenshot(owner, "contas-desktop.png");
+    // M5: conta avulsa, pagamento parcial, prévia de parcelas, estorno pelo titular e largura mobile.
+    await navigate(editor, "/expenses"); await waitFor(editor, "!!document.querySelector('input[name=description]')");
+    await input(editor, "input[name=description]", "Conta de luz"); await input(editor, "input[name=amount]", "250,00"); await submit(editor, "input[name=amount]");
+    await waitFor(editor, "[...document.querySelectorAll('.expense-row strong')].some(e => e.textContent === 'Conta de luz')");
+    const luz = "[...document.querySelectorAll('.expense-row')].find(r => r.innerText.includes('Conta de luz'))";
+    await editor.evaluate(`${luz}.querySelector('button').click()`); await waitFor(editor, "!!document.querySelector('.nested-form input[name=amount]')");
+    await input(editor, ".nested-form input[name=amount]", "100,00"); await submit(editor, ".nested-form input[name=amount]");
+    await waitFor(editor, `${luz}?.innerText.includes('Paga em parte') && ${luz}.innerText.includes('150,00')`);
+    await editor.evaluate("[...document.querySelectorAll('.segmented button')].find(b => b.textContent === 'Compra parcelada').click()"); await waitFor(editor, "!!document.querySelector('input[name=total]')");
+    await input(editor, "input[name=description]", "Cadeira"); await input(editor, "input[name=total]", "100,00");
+    await editor.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Ver parcelas').click()");
+    await waitFor(editor, "document.querySelector('.data-form caption')?.textContent.includes('3 parcelas') && document.querySelector('.data-form table').innerText.includes('33,34')");
+    await submit(editor, "input[name=total]"); await waitFor(editor, "document.body.innerText.includes('Compra parcelada lançada')");
+    await waitFor(editor, "[...document.querySelectorAll('.expense-row')].some(r => r.innerText.includes('Parcela 1/3'))");
+    assert.equal(await editor.evaluate("[...document.querySelectorAll('button')].some(b => b.textContent === 'Estornar')"), false, "Editor cannot reverse payments");
+    await navigate(owner, "/expenses"); await waitFor(owner, "[...document.querySelectorAll('button')].some(b => b.textContent === 'Estornar')");
+    await owner.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Estornar').click()"); await waitFor(owner, "!!document.querySelector('input[name=reason]')");
+    await input(owner, "input[name=reason]", "Débito em duplicidade"); await submit(owner, "input[name=reason]");
+    await waitFor(owner, `document.body.innerText.includes('Estornado: Débito em duplicidade') && ${luz}.innerText.includes('Em aberto')`);
+    await screenshot(owner, "despesas-desktop.png");
+    await owner.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 800, deviceScaleFactor: 1, mobile: false });
+    await navigate(owner, "/expenses"); await waitFor(owner, "!!document.querySelector('.money-grid')");
+    assert.ok(await owner.evaluate("document.documentElement.scrollWidth <= innerWidth"), "Mobile viewport overflow on /expenses");
+    await screenshot(owner, "despesas-mobile.png");
+    await owner.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+    const swagger = await page(`${apiUrl}/swagger/index.html`);
     await waitFor(swagger, "!!document.querySelector('.swagger-ui .opblock')");
     await writeFile(join(output, "swagger-dom.html"), await swagger.evaluate("document.documentElement.outerHTML"));
     await waitFor(swagger, "!!document.querySelector('.swagger-ui .opblock') && !!document.querySelector('.global-docs-hero')");
@@ -190,7 +216,7 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     await owner.evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Sair de todas')).click()");
     await waitFor(owner, "location.pathname === '/login'");
     await navigate(owner, "/people"); await waitFor(owner, "location.pathname === '/login'");
-    await writeFile(join(output, "result.json"), JSON.stringify({ passed: true, household: "synthetic", browser: "Chrome headless isolated profile", database: "disposable MariaDB", checks: ["login", "HttpOnly", "resident without login", "mobile width", "manual invitation", "editor catalogs", "required custom field", "reader route and API denial", "accounts and transfer total", "income forecast 4000 with 2000+1800 receipts", "owner reversal", "mobile accounts/income", "Swagger", "logout and private route denial"], screenshots: ["moradores-mobile.png", "tipos-desktop.png", "rendas-desktop.png", "rendas-mobile.png", "contas-mobile.png", "contas-desktop.png", "swagger-desktop.png"] }, null, 2));
+    await writeFile(join(output, "result.json"), JSON.stringify({ passed: true, household: "synthetic", browser: "Chrome headless isolated profile", database: "disposable MariaDB", checks: ["login", "HttpOnly", "resident without login", "mobile width", "manual invitation", "editor catalogs", "required custom field", "reader route and API denial", "accounts and transfer total", "income forecast 4000 with 2000+1800 receipts", "owner reversal", "mobile accounts/income", "expense partial payment", "installments 100 in 3", "owner payment reversal", "mobile expenses", "Swagger", "logout and private route denial"], screenshots: ["moradores-mobile.png", "tipos-desktop.png", "rendas-desktop.png", "rendas-mobile.png", "contas-mobile.png", "contas-desktop.png", "despesas-desktop.png", "despesas-mobile.png", "swagger-desktop.png"] }, null, 2));
   } finally {
     for (const socket of sockets) socket.socket.close();
     if (browser) { await browser.send("Browser.close").catch(() => {}); browser.socket.close(); }

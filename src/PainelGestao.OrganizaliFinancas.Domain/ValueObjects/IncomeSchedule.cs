@@ -1,7 +1,7 @@
 using PainelGestao.OrganizaliFinancas.Shared.Exceptions;
 namespace PainelGestao.OrganizaliFinancas.Domain.ValueObjects
 {
-    /// <summary>D22: approved frequencies. Biweekly means every 14 days, not two fixed days in the month.</summary>
+    /// <summary>D22: approved frequencies, shared by income sources and recurring expenses. Biweekly means every 14 days, not two fixed days in the month.</summary>
     public static class IncomeFrequency
     {
         private static readonly Dictionary<string, (int Days, int Months)> Steps = new(StringComparer.Ordinal)
@@ -35,16 +35,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.ValueObjects
             if (ValidFrom.Year < 2000) errors["ValidFrom"] = ["Data inicial inválida."];
             if (errors.Count > 0) throw new InputValidationException(errors);
         }
-        public IEnumerable<DateOnly> Occurrences(DateOnly from, DateOnly to)
-        {
-            var last = EndDate is DateOnly end && end < to ? end : to;
-            for (var index = 0; ; index++)
-            {
-                var date = IncomeFrequency.Nth(Frequency, ValidFrom, index);
-                if (date > last) yield break;
-                if (date >= from) yield return date;
-            }
-        }
+        public IEnumerable<DateOnly> Occurrences(DateOnly from, DateOnly to) => Recurrence.Occurrences(Frequency, ValidFrom, EndDate, from, to);
     }
     public sealed record IncomeTermsVersion(int Version, IncomeTerms Terms);
     public sealed record PlannedOccurrence(DateOnly Date, int Version, decimal? Amount);
@@ -57,47 +48,13 @@ namespace PainelGestao.OrganizaliFinancas.Domain.ValueObjects
 
     public static class IncomeSchedule
     {
-        /// <summary>Generation window: previous 12 months (for receipts registered late) through the D23 horizon.</summary>
-        public static (DateOnly From, DateOnly To) Window(DateOnly today, int horizonMonths)
-        {
-            var month = new DateOnly(today.Year, today.Month, 1);
-            return (month.AddMonths(-12), month.AddMonths(horizonMonths + 1).AddDays(-1));
-        }
+        public static (DateOnly From, DateOnly To) Window(DateOnly today, int horizonMonths) => Recurrence.Window(today, horizonMonths);
 
-        public static IReadOnlyList<PlannedOccurrence> Expected(IReadOnlyList<IncomeTermsVersion> versions, DateOnly from, DateOnly to)
-        {
-            var ordered = versions.OrderBy(x => x.Terms.ValidFrom).ThenBy(x => x.Version).ToArray();
-            var result = new List<PlannedOccurrence>();
-            for (var index = 0; index < ordered.Length; index++)
-            {
-                var current = ordered[index];
-                var segmentEnd = index + 1 < ordered.Length ? ordered[index + 1].Terms.ValidFrom.AddDays(-1) : to;
-                var end = segmentEnd < to ? segmentEnd : to;
-                var start = current.Terms.ValidFrom > from ? current.Terms.ValidFrom : from;
-                if (end < start) continue;
-                result.AddRange(current.Terms.Occurrences(start, end).Select(date => new PlannedOccurrence(date, current.Version, current.Terms.ExpectedNetAmount)));
-            }
-            return result;
-        }
+        public static IReadOnlyList<PlannedOccurrence> Expected(IReadOnlyList<IncomeTermsVersion> versions, DateOnly from, DateOnly to) =>
+            Recurrence.Expected(versions, x => x.Version, x => x.Terms.ValidFrom, (x, start, end) => x.Terms.Occurrences(start, end), x => x.Terms.ExpectedNetAmount, from, to);
 
-        /// <summary>Idempotent reconciliation: running it twice with the same input produces an empty plan the second time.</summary>
-        public static ForecastPlan Plan(IReadOnlyList<ForecastState> existing, IReadOnlyList<PlannedOccurrence> expected, DateOnly from, DateOnly to)
-        {
-            var byDate = existing.ToDictionary(x => x.Date);
-            var inserts = new List<PlannedOccurrence>();
-            var updates = new List<(Guid, PlannedOccurrence)>();
-            foreach (var target in expected)
-            {
-                if (!byDate.TryGetValue(target.Date, out var current)) { inserts.Add(target); continue; }
-                if (current.Locked) continue;
-                if (!current.IsActive || current.SourceVersion != target.Version || current.ExpectedAmount != target.Amount)
-                    updates.Add((current.Code, target));
-            }
-            var dates = expected.Select(x => x.Date).ToHashSet();
-            var cancels = existing.Where(x => x.IsActive && !x.Locked && x.Date >= from && x.Date <= to && !dates.Contains(x.Date))
-                .Select(x => x.Code).ToArray();
-            return new ForecastPlan(inserts, updates, cancels);
-        }
+        public static ForecastPlan Plan(IReadOnlyList<ForecastState> existing, IReadOnlyList<PlannedOccurrence> expected, DateOnly from, DateOnly to) =>
+            Recurrence.Plan(existing, expected, from, to);
     }
 
     /// <summary>D24: calendar year over closed months; in January the previous full year divided by 12.</summary>

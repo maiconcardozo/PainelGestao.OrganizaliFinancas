@@ -11,9 +11,10 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 - Categorias/subcategorias, tipos de renda, credores, formas de pagamento e revisões históricas.
 - Tipos de despesa com campos de texto, decimal, data, booleano e lista, definições versionadas e prévia validada no servidor.
 - Contas com saldo recomposto e extrato; transferências atômicas; fontes de renda fixas ou variáveis com vigência; previsões até o mês atual + 12; recebimentos com ou sem previsão; estornos compensatórios; idempotência; média mensal do ano e comparativo previsto × recebido (M4).
+- Despesas avulsas, recorrentes (fixas ou estimadas, “esta” ou “esta e próximas”) e parceladas com soma exata; pagamentos parciais com juros, multa e desconto separados; cancelamento; estorno de pagamento; rateio por valor ou percentual com acerto sugerido; saldo das contas com as saídas (M5).
 - Base técnica, migrations, Swagger e telas integradas; testes em MariaDB efêmero e navegador isolado.
 
-**Ainda não há despesas, dívida liquidada, cartão, orçamento ou dashboard financeiro.** O saldo atual considera só rendas e transferências; saídas entram no M5. Os seletores de comportamento dos tipos de despesa preparam esses módulos; não executam seus cálculos.
+**Ainda não há cartão, orçamento ou dashboard financeiro.** O saldo atual considera rendas, transferências e pagamentos; compras no cartão entram no M6. O comportamento “cartão” dos tipos de despesa ainda é recusado.
 
 ## Entregas e situação
 
@@ -28,30 +29,29 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 | M3.1–M3.3 | Cadastros e parametrização implementados | [Entregas](../deliveries/README.md) |
 | M3.4 | Revisão integrada | [Evidências](../testing/m3-4-integrated.md) |
 | M4 | Contas e rendas implementadas | [Entrega](../deliveries/M4.md); agendador do horizonte fica para M8 |
-| M5 | A implementar | Obrigações, recorrências, parcelas, pagamentos, encargos, cancelamento e rateio |
+| M5 | Despesas e liquidação implementadas | [Entrega](../deliveries/M5.md); premissas A01–A05 a revisar |
 | M6 | A implementar; regra D13 aberta | Cartões, compras, faturas e pagamento sem duplicidade |
 | M7 | A implementar | Dashboard, fluxo, orçamento, agenda, filtros e alertas |
 | M8 | A implementar; D16/D17 abertas | Segurança operacional, recuperação, homologação e aceite da família piloto |
 | M9 | A implementar | Complementos da V1 |
 | M10 | A implementar; D14 aberta | Comercialização e importação |
 
-## Próximo marco: M5 — despesas e liquidação
+## Próximo marco: M6 — cartões e faturas
 
-Implementar sobre as contas do M4, sem reorganizar as camadas:
+Implementar sobre despesas e pagamentos do M5, sem reorganizar as camadas:
 
-1. Obrigação com tipo de despesa versionado (M3.3), categoria, credor, competência, vencimento, pagador e responsável; valores dos campos adicionais vinculados à versão do tipo.
-2. Recorrência com a mesma geração idempotente das previsões de renda (horizonte D23, chave casa/regra/data) e escolha “esta” ou “esta e próximas”.
-3. Parcelamento com prévia e soma exata (R$ 100 em 3 → 33,33 + 33,33 + 33,34).
-4. Pagamento: saída da conta, alocações, juros/multa/desconto separados, pagamentos parciais, idempotência e bloqueio contra pagar acima do saldo aberto, reaproveitando `AccountMovement` e `IdempotencyRecord`.
-5. Estorno de pagamento (titular), reabrindo o saldo; rateio por valor ou percentual sem criar segunda despesa (D10).
-6. Saldo das contas passa a refletir saídas; interface no padrão das telas de Contas/Rendas.
+1. Cartão com apelido, titular, dia de fechamento, dia de vencimento e limite informado; nunca PAN/CVV.
+2. Compra no cartão (à vista ou parcelada) gera itens nas faturas pelos ciclos; não movimenta conta bancária.
+3. Fatura agregadora (aberta, fechada, paga em parte, paga) com prévia da fatura de destino; alterar fechamento afeta só ciclos futuros.
+4. Pagamento da fatura reduz o caixa uma única vez; pagamento parcial mantém o restante em aberto; estorno de compra reduz a despesa.
+5. Regra do dia de corte (D13): sem resposta, aplicar a premissa registrada e manter a prévia editável.
 
-Aceite: R$ 100 em três parcelas soma R$ 100; dois responsáveis e um pagador sem duplicação; pagamentos concorrentes não quitam em excesso; estorno restaura o saldo aberto e o da conta.
+Aceite: compra de 300 + pagamento de 300 não vira despesa de 600; parcial de 100 em fatura de 300 deixa 200; limite disponível estimado.
+
 ## Trabalho restante por marco
 
 | Marco | Funcionalidades e regras essenciais | Aceite |
 |---|---|---|
-| M5 | Obrigação distingue competência/vencimento/pagador/responsável; campos por versão; recorrência sem duplicar; parcelas com soma exata; pagamentos parciais atômicos; juros/multa/desconto separados; rateio por valor/percentual não gera nova despesa | R$ 100 em três parcelas soma R$ 100; dois responsáveis e um pagador sem duplicação; corrida de pagamentos não quita em excesso |
 | M6 | Cartão sem PAN/CVV; corte/vencimento; compras não reduzem banco; parcelas em faturas; pagamento reduz caixa uma vez; estornos e parcial reconciliados | Compra R$ 300 + pagamento R$ 300 não vira despesa R$ 600; regra de corte confirmada antes do código dependente |
 | M7 | Saldo real/projetado rastreável, fluxo diário/mensal, previsto/realizado, orçamento por categoria, subcategorias sem dupla soma, alertas configuráveis/deduplicados, agenda e filtros | Mostrar origem do total, excesso de orçamento e primeira data de déficit; mesmo total em gráfico/lista; revisão mobile |
 | M8 | Recuperação real após provedor escolhido, configuração de produção, observabilidade, backup/restauração, segurança, limites, concorrência, jornada completa e política de retenção | Restauração ensaiada e família piloto valida jornada; nenhuma liberação antecipada por cadastro funcionar |
@@ -67,8 +67,8 @@ Aceite: R$ 100 em três parcelas soma R$ 100; dois responsáveis e um pagador se
 | RF04–05 | Cadastro/configuração implementados; fuso da casa aplicado às datas financeiras do M4 |
 | RF06–11 | Implementados no M4 (contas, extrato, transferência, fontes, previsões e recebimentos) |
 | RF12–15 | Cadastros/parametrização implementados; integração com lançamento/orçamento depende dos módulos respectivos |
-| RF16–20, RF22, RF41 | M5 pendente |
-| RF21 | Estorno de recebimento e transferência implementado no M4; estorno de pagamento no M5 |
+| RF16–20, RF22, RF41 | Implementados no M5 |
+| RF21 | Estornos de recebimento, transferência (M4) e pagamento (M5) implementados |
 | RF23–25 | M6 pendente |
 | RF26–33 | M7 pendente |
 | RF36 | Autoria e históricos implementados nos módulos atuais; auditoria integral e consulta operacional ainda evoluem com os módulos |

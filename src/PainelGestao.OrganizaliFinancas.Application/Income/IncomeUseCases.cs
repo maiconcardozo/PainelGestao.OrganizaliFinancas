@@ -332,7 +332,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Income
             var actor = user.Code.ToString();
             receipt.Reverse(request.Payload.Reason, actor);
             work.IncomeRepository.MarkReceiptReversed(receipt);
-            foreach (var original in await work.AccountRepository.FindOriginalMovementsAsync(user.IdTenant, null, receipt.Id, ct))
+            foreach (var original in await work.AccountRepository.FindOriginalMovementsAsync(user.IdTenant, null, receipt.Id, null, ct))
                 work.AccountRepository.AddMovement(original.Compensate(date, $"Estorno: {receipt.ReversalReason}", actor));
             Idempotency.Record(work, user.IdTenant, Operation, request.Key, hash, receipt.Code, actor);
             var record = (await work.IncomeRepository.GetReceiptAsync(user.IdTenant, receipt.Code, ct))!;

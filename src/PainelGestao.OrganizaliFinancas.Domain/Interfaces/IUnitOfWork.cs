@@ -16,5 +16,6 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces
         IAccountRepository AccountRepository { get; }
         IIncomeRepository IncomeRepository { get; }
         IIdempotencyRepository IdempotencyRepository { get; }
+        IExpenseRepository ExpenseRepository { get; }
     }
 }

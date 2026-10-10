@@ -172,3 +172,41 @@ button:disabled { opacity: .65; cursor: wait; }
   .stack-table tbody tr > * { border-bottom: 0; padding: .35rem .8rem; }
   .stack-table tbody td:nth-child(3), .stack-table tbody td.row-actions { grid-column: 1 / -1; }
 }
+
+/* M5 — despesas. Situação por cor e texto (nunca só cor); vencida destaca a borda. */
+:root { --overdue: #a33a2b; --overdue-soft: #fbeeec; --paid-soft: #e8f4ed; --partial-soft: #fff4dc; }
+.month-nav { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .75rem; max-width: 34rem; margin: 1rem 0; }
+.month-nav a { display: inline-flex; align-items: center; gap: .35rem; min-height: 44px; padding: .5rem .9rem; border: 1px solid var(--border); border-radius: .3rem; background: var(--surface); color: var(--ink); text-decoration: none; }
+.month-nav a:hover { border-color: var(--signal); }
+.month-nav strong { font-size: 1.1rem; text-align: center; }
+.money-grid { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1rem 1.5rem; }
+.money-grid dt { color: #c8d6e5; font-size: .9rem; }
+.money-grid dd { margin: .15rem 0 0; font-family: var(--font-display), "Segoe UI", sans-serif; font-size: clamp(1.4rem, 2.6vw, 2rem); font-variant-numeric: tabular-nums; }
+.money-grid .alert-figure { color: #ffb4a8; }
+.segmented { display: flex; flex-wrap: wrap; gap: .4rem; }
+.segmented button { min-height: 44px; padding: .55rem 1rem; border: 1px solid var(--border); border-radius: .3rem; background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
+.segmented button[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: white; }
+.expense-list { list-style: none; padding: 0; margin: 1rem 0 2rem; display: grid; gap: .75rem; }
+.expense-row { padding: 1rem 1.1rem; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: .5rem; display: grid; gap: .5rem; }
+.expense-row.status-paid { border-left-color: var(--gain); }
+.expense-row.status-partial { border-left-color: var(--pending); }
+.expense-row.status-cancelled { opacity: .62; }
+.expense-row.is-overdue { border-left-color: var(--overdue); }
+.expense-main { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem; }
+.expense-main > div { min-width: 0; overflow-wrap: anywhere; }
+.status-line { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: 0; }
+.status-tag { padding: .1rem .5rem; border-radius: .25rem; font-size: .8rem; font-weight: 600; background: var(--paper); color: var(--text-secondary); }
+.status-tag.paid { background: var(--paid-soft); color: var(--gain); }
+.status-tag.partial { background: var(--partial-soft); color: var(--pending); }
+.status-tag.overdue { background: var(--overdue-soft); color: var(--overdue); }
+.status-tag.estimate { border: 1px dashed var(--pending); background: none; color: var(--pending); }
+.nested-form { margin: .5rem 0 0; background: var(--paper); }
+.nested-form h3 { margin: 0; }
+@media (max-width: 640px) {
+  .month-nav .nav-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .money-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .money-grid dd { font-size: 1.3rem; }
+}
+.expense-detail { display: grid; gap: .75rem; border-top: 1px solid var(--border); padding-top: .75rem; }
+.expense-detail h3 { font-size: 1rem; }
+.expense-detail .entry-list { margin: 0; }

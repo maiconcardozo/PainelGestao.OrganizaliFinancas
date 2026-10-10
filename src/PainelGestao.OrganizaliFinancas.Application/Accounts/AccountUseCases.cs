@@ -13,7 +13,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Accounts
     public sealed record AccountDto(Guid Code, string Name, bool IsActive, int Version, DateOnly OpeningDate, string OpeningBalance, string Balance, bool HasMovements);
     public sealed record AccountsOverviewDto(DateOnly AsOf, string Total, IReadOnlyList<AccountDto> Accounts);
     public sealed record StatementLineDto(Guid Code, DateOnly Date, string Amount, string Kind, string Description, string Balance,
-        Guid? TransferCode, Guid? ReceiptCode, Guid? ReversedMovementCode);
+        Guid? TransferCode, Guid? ReceiptCode, Guid? PaymentCode, Guid? ReversedMovementCode);
     public sealed record StatementDto(Guid AccountCode, string AccountName, DateOnly From, DateOnly To, string OpeningBalance, string Credits,
         string Debits, string ClosingBalance, IReadOnlyList<StatementLineDto> Lines);
     public sealed record TransferPayload(Guid SourceAccountCode, Guid TargetAccountCode, DateOnly TransferDate, string Amount, string? Description);
@@ -118,7 +118,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Accounts
             {
                 running += x.Amount;
                 return new StatementLineDto(x.Code, DateOnly.FromDateTime(x.MovementDate), Money.Format(x.Amount), x.Kind, x.Description,
-                    Money.Format(running), x.TransferCode, x.ReceiptCode, x.ReversedMovementCode);
+                    Money.Format(running), x.TransferCode, x.ReceiptCode, x.PaymentCode, x.ReversedMovementCode);
             }).ToArray();
             return new StatementDto(account.Code, account.Name, from, to, Money.Format(before),
                 Money.Format(movements.Where(x => x.Amount > 0).Sum(x => x.Amount)), Money.Format(movements.Where(x => x.Amount < 0).Sum(x => x.Amount)),
@@ -179,7 +179,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Accounts
             var actor = user.Code.ToString();
             transfer.Reverse(request.Payload.Reason, actor);
             work.AccountRepository.MarkTransferReversed(transfer);
-            foreach (var original in await work.AccountRepository.FindOriginalMovementsAsync(user.IdTenant, transfer.Id, null, ct))
+            foreach (var original in await work.AccountRepository.FindOriginalMovementsAsync(user.IdTenant, transfer.Id, null, null, ct))
                 work.AccountRepository.AddMovement(original.Compensate(date, $"Estorno: {transfer.ReversalReason}", actor));
             Idempotency.Record(work, user.IdTenant, Operation, request.Key, hash, transfer.Code, actor);
             var record = (await work.AccountRepository.GetTransferAsync(user.IdTenant, transfer.Code, ct))!;

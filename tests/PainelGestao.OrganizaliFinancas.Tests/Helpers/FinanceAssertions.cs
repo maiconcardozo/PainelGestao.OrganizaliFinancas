@@ -115,26 +115,26 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             (await client.GetFromJsonAsync<SuccessDetails<ForecastDto[]>>($"/api/income-forecasts?from={month:yyyy-MM-dd}&to={month:yyyy-MM-dd}"))!.Data;
         private static async Task<ForecastDto> CurrentForecast(HttpClient client, Guid source, DateOnly month) =>
             (await Forecasts(client, month)).Single(x => x.SourceCode == source);
-        private static async Task<string> Total(HttpClient client) =>
+        internal static async Task<string> Total(HttpClient client) =>
             (await client.GetFromJsonAsync<SuccessDetails<AccountsOverviewDto>>("/api/accounts"))!.Data.Total;
-        private static async Task<T> Create<T>(HttpClient client, string path, object payload)
+        internal static async Task<T> Create<T>(HttpClient client, string path, object payload)
         {
             var response = await client.PostAsJsonAsync(path, payload);
             response.StatusCode.Should().Be(HttpStatusCode.Created, await response.Content.ReadAsStringAsync());
             return (await response.Content.ReadFromJsonAsync<SuccessDetails<T>>())!.Data;
         }
-        private static async Task<HttpResponseMessage> Send(HttpClient client, string path, object payload, Guid? key)
+        internal static async Task<HttpResponseMessage> Send(HttpClient client, string path, object payload, Guid? key)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = JsonContent.Create(payload) };
             if (key is Guid value) request.Headers.Add("Idempotency-Key", value.ToString());
             return await client.SendAsync(request);
         }
-        private static async Task PostStatus(HttpClient client, string path, object payload, Guid? key, HttpStatusCode expected)
+        internal static async Task PostStatus(HttpClient client, string path, object payload, Guid? key, HttpStatusCode expected)
         {
             var response = await Send(client, path, payload, key);
             response.StatusCode.Should().Be(expected, await response.Content.ReadAsStringAsync());
         }
-        private static async Task<T> Post<T>(HttpClient client, string path, object payload, Guid key, HttpStatusCode expected)
+        internal static async Task<T> Post<T>(HttpClient client, string path, object payload, Guid key, HttpStatusCode expected)
         {
             var response = await Send(client, path, payload, key);
             response.StatusCode.Should().Be(expected, await response.Content.ReadAsStringAsync());

@@ -41,6 +41,18 @@ D04, D07–D12, D15 e D19–D25 já foram respondidas. Não repetir perguntas j�
 
 Uma casa por assinatura e um login por casa são regras independentes, ambas confirmadas. A casa pode ter vários usuários; cada usuário pertence apenas a ela no piloto.
 
+## Premissas adotadas na execução autônoma
+
+Em 10/10/2026 o usuário autorizou concluir todos os marcos até a publicação Docker sem aguardar aprovação a cada etapa. Onde a regra não estava fechada, foi aplicada a proposta mais conservadora abaixo. Cada premissa pode ser revertida; nenhuma substitui as perguntas abertas.
+
+| ID | Premissa aplicada | Marco | Como reverter |
+|---|---|---|---|
+| A01 | Recorrências e parcelamentos dividem só por percentual (o valor de cada ocorrência pode mudar); conta avulsa aceita valor ou percentual | M5 | Aceitar valor fixo por ocorrência no modelo da recorrência |
+| A02 | Juros, multa e desconto não são apagados; erro se corrige com ajuste de sinal oposto e justificativa | M5 | Criar estorno de ajuste exclusivo do titular |
+| A03 | O comportamento do tipo de despesa define o formulário (avulsa, recorrente, parcelada, cartão) | M5 | Permitir tipo neutro em qualquer formulário |
+| A04 | O acerto do rateio é sugestão exibida; não gera lançamento. Se ocorrer entre contas da casa, registra-se transferência | M5 | Registrar acerto como movimento interno vinculado |
+| A05 | Pagamento pode deixar a conta com saldo negativo (cheque especial); só o saldo aberto da despesa é limite | M5 | Bloquear saída acima do saldo da conta |
+
 ## Regra de tratamento
 
 Trabalhar nas partes independentes enquanto aguarda resposta. Não implementar a parte que depende de decisão aberta. Ao receber resposta, atualizar este registro e os documentos afetados, preservando histórico. Estimativas de prazo permanecem condicionais à capacidade disponível, compatibilidade da stack e regras detalhadas aprovadas.
