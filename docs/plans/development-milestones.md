@@ -1,6 +1,6 @@
 # Marcos de início do desenvolvimento
 
-Data: 10/10/2026. Estado: M1.1 concluído; M1.2 concluído com validação em banco descartável; M1.3 concluído tecnicamente (revisão visual pendente); M1.4 em preparação. Evidências em [M1.1](../testing/m1-1-foundation.md) e [M1.2](../testing/m1-2-persistence.md).
+Data: 10/10/2026. Estado: M1.1 concluído; M1.2 concluído com validação em banco descartável; M1.3 concluído tecnicamente (revisão visual pendente); M1.4 concluído tecnicamente (revisão visual pendente). Evidências em [M1.1](../testing/m1-1-foundation.md) e [M1.2](../testing/m1-2-persistence.md).
 
 Este detalhamento desdobra M1–M3 do [plano geral](implementation.md), preservando seus identificadores e dependências. O primeiro objetivo demonstrável é entrar em uma casa isolada, navegar com permissões e manter seus cadastros. Indicadores financeiros reais entram após receitas, despesas e cartões.
 
@@ -29,7 +29,7 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ## 2. Quadro de execução inicial
 
-**M1.1 concluído**; M1.2 concluído; M1.3 concluído tecnicamente e demais itens não iniciados. Uma tarefa fica concluída somente com sua evidência de aceite. Criar um commit por marco concluído; push apenas ao final.
+**M1.1 concluído**; M1.2 concluído; M1.3/M1.4 concluídos tecnicamente e demais itens não iniciados. Uma tarefa fica concluída somente com sua evidência de aceite. Criar um commit por marco concluído; push apenas ao final.
 
 | Etapa | Entrega demonstrável | Dependência | Aceite principal |
 |---|---|---|---|
@@ -82,11 +82,11 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ### M1.4 — Base web e execução local
 
-- [ ] Criar frontend nas versões e organização do RevendaPRO; ler o guia da versão instalada do Next.js.
-- [ ] Preparar integração HTTP e a estrutura de sessão/proxy a ser completada em M2.
-- [ ] Configurar exemplos de ambiente, Dockerfiles e Compose próprios a partir dos padrões existentes.
-- [ ] Conferir portas/volumes independentes, sem reutilizar bancos ou secrets das referências.
-- [ ] Documentar apenas comandos de restore/build/start efetivamente validados.
+- [x] Criar frontend nas versões e organização do RevendaPRO; ler o guia da versão instalada do Next.js.
+- [x] Preparar integração HTTP e a estrutura de sessão/proxy a ser completada em M2.
+- [x] Configurar exemplos de ambiente, Dockerfiles e Compose próprios a partir dos padrões existentes.
+- [x] Conferir portas/volumes independentes, sem reutilizar bancos ou secrets das referências.
+- [x] Documentar apenas comandos de restore/build/start efetivamente validados.
 
 **Saída:** frontend compila, API responde e instruções locais são reproduzíveis. Não fabricar dados de dashboard para declarar o módulo financeiro pronto. Aparência final aguarda decisão visual.
 

@@ -1,19 +1,19 @@
 # 🏡 Organizali Finanças — Gestão financeira da casa
 
 <!-- Estado do projeto -->
-[![Estado](https://img.shields.io/badge/Estado-M1.3%20implementado-blue.svg)](docs/testing/m1-1-foundation.md)
+[![Estado](https://img.shields.io/badge/Estado-M1%20base%20tecnica-blue.svg)](docs/testing/m1-1-foundation.md)
 [![Arquitetura](https://img.shields.io/badge/Arquitetura-Clean%20Architecture%20%2B%20DDD-6A3FA0.svg)](docs/architecture/overview.md)
 [![Referência](https://img.shields.io/badge/Padr%C3%A3o-RevendaPRO-34495E.svg)](docs/architecture/decisions/ADR-0001-revenda-pro.md)
 
 <!-- Stack definida para implementação -->
 [![.NET](https://img.shields.io/badge/.NET-10-512BD4.svg?logo=dotnet)](docs/architecture/overview.md)
 [![C#](https://img.shields.io/badge/C%23-implementado-239120.svg)](docs/architecture/overview.md)
-[![EF Core](https://img.shields.io/badge/EF%20Core-10%20%7C%20schema%20planejado-blue.svg?logo=nuget)](docs/architecture/overview.md)
+[![EF Core](https://img.shields.io/badge/EF%20Core-10%20%7C%20schema-blue.svg?logo=nuget)](docs/architecture/overview.md)
 [![JWT](https://img.shields.io/badge/JWT-planejado-green.svg?logo=jsonwebtokens)](docs/architecture/overview.md)
-[![Next.js](https://img.shields.io/badge/Next.js-16%20%7C%20planejado-000000.svg?logo=nextdotjs)](docs/architecture/overview.md)
-[![React](https://img.shields.io/badge/React-19%20%7C%20planejado-149ECA.svg?logo=react)](docs/architecture/overview.md)
-[![MariaDB](https://img.shields.io/badge/MariaDB-11.8%20%7C%20planejado-003545.svg?logo=mariadb)](docs/architecture/overview.md)
-[![Dapper](https://img.shields.io/badge/Dapper-SQL%20parametrizado%20%7C%20planejado-0078D4.svg)](docs/architecture/overview.md)
+[![Next.js](https://img.shields.io/badge/Next.js-16.3.3-000000.svg?logo=nextdotjs)](docs/architecture/overview.md)
+[![React](https://img.shields.io/badge/React-19.2.8-149ECA.svg?logo=react)](docs/architecture/overview.md)
+[![MariaDB](https://img.shields.io/badge/MariaDB-11.8-003545.svg?logo=mariadb)](docs/architecture/overview.md)
+[![Dapper](https://img.shields.io/badge/Dapper-SQL%20parametrizado-0078D4.svg)](docs/architecture/overview.md)
 
 <!-- Documentação disponível -->
 [![Requisitos funcionais](https://img.shields.io/badge/Requisitos%20funcionais-46-informational.svg)](docs/requirements/functional.md)
@@ -26,7 +26,7 @@ O **Organizali Finanças** é um projeto de SaaS web para quem coordena as finan
 
 A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQRS com MediatR** e **Foundation.Base**. Cada assinatura atende uma casa, com dados compartilhados entre os integrantes e permissões para controlar as alterações.
 
-> **Estado atual:** M1.1–M1.3 implementados: cinco camadas, persistência base, Minimal API e Swagger. 29 testes aprovados, incluindo MariaDB descartável autorizado. Revisão visual do Swagger pendente por indisponibilidade do navegador. Frontend e funcionalidades financeiras abaixo seguem planejados. Piloto com liberação manual.
+> **Estado atual:** M1.1–M1.4 implementados: cinco camadas, persistência base, Minimal API e Swagger. 29 testes aprovados, incluindo MariaDB descartável autorizado. Revisão visual do Swagger pendente por indisponibilidade do navegador. Base Next.js disponível; login e funcionalidades financeiras abaixo seguem planejados. Piloto com liberação manual.
 
 ### ✨ Funcionalidades principais
 
@@ -64,7 +64,7 @@ A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQR
 
 A estrutura de implementação seguirá as camadas e convenções do **RevendaPRO**, conforme a [decisão arquitetural](docs/architecture/decisions/ADR-0001-revenda-pro.md).
 
-**Árvore alvo:** as cinco camadas em `src/`, o projeto em `tests/` e `docs/` já existem. Subpastas funcionais e `frontend/` serão acrescentados nos respectivos marcos. A árvore abaixo mostra a organização completa prevista. [Estrutura efetivamente criada no M1.1](docs/testing/m1-1-foundation.md).
+**Árvore alvo:** as cinco camadas em `src/`, o projeto em `tests/` e `docs/` já existem. O frontend também existe; subpastas funcionais serão acrescentadas nos respectivos marcos. A árvore abaixo mostra a organização completa prevista. [Estrutura efetivamente criada no M1.1](docs/testing/m1-1-foundation.md).
 
 ```text
 PainelGestao.OrganizaliFinancas/
@@ -149,6 +149,8 @@ dotnet test PainelGestao.OrganizaliFinancas.slnx --no-build --no-restore -c Rele
 
 O restore requer acesso ao Foundation.Base 3.2.0-rc.5. Nenhuma credencial de feed é versionada. [Evidências e limites do M1.1](docs/testing/m1-1-foundation.md).
 
+**[Executar API e Swagger](docs/testing/m1-3-api.md)** · **[Executar frontend e conferir Docker](docs/testing/m1-4-web.md)**
+
 ## 🐳 Docker
 
 **Preparação para execução em containers:**
@@ -156,7 +158,7 @@ O restore requer acesso ao Foundation.Base 3.2.0-rc.5. Nenhuma credencial de fee
 - **[Plano operacional](docs/operations/plan.md)** — ambientes, configuração, publicação e recuperação.
 - **[Fundação técnica — M1](docs/plans/implementation.md)** — criação e validação de Dockerfiles e Compose.
 
-Os arquivos de container e os comandos de execução ainda serão implementados.
+Dockerfiles e Compose disponíveis. [Builds e execução local](docs/testing/m1-4-web.md). Imagens e comunicação web/API verificadas; Compose persistente não iniciado.
 
 ## 📖 Guias de desenvolvimento
 
@@ -225,7 +227,7 @@ O pipeline ainda não foi criado.
 | M1.1 — solução backend | Concluído; build e 18 testes aprovados |
 | M1.2 — persistência | Concluído; [22 testes aprovados, incluindo banco descartável](docs/testing/m1-2-persistence.md) |
 | M1.3 — endpoints e Swagger | [Implementado e testado](docs/testing/m1-3-api.md); revisão visual pendente |
-| Frontend Next.js | Próxima etapa M1.4 |
+| M1.4 — base Next.js e Docker | [Build, lint e comunicação aprovados](docs/testing/m1-4-web.md) |
 | Piloto | Liberação manual definida; execução futura |
 
 ## 📋 Documentação por público
@@ -319,6 +321,3 @@ A licença de distribuição do projeto ainda não foi definida. As condições 
 - [React](https://react.dev/)
 - [Dapper](https://github.com/DapperLib/Dapper)
 - [MariaDB](https://mariadb.com/docs/)
-
-
-Execução da API e acesso ao Swagger: [guia M1.3](docs/testing/m1-3-api.md).

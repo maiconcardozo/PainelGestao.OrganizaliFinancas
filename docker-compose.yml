@@ -1,0 +1,38 @@
+name: organizali-financas
+services:
+  database:
+    image: mariadb:11.8
+    environment:
+      MARIADB_DATABASE: organizali
+      MARIADB_USER: organizali
+      MARIADB_PASSWORD: ${ORGANIZALI_DB_PASSWORD:?Defina ORGANIZALI_DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${ORGANIZALI_DB_ROOT_PASSWORD:?Defina ORGANIZALI_DB_ROOT_PASSWORD}
+    volumes:
+      - organizali_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  api:
+    build:
+      context: .
+      dockerfile: src/PainelGestao.OrganizaliFinancas.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      OrganizaliFinancas__ConnectionString: Server=database;Database=organizali;User=organizali;Password=${ORGANIZALI_DB_PASSWORD};Connection Timeout=3
+    ports:
+      - "127.0.0.1:5189:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+  frontend:
+    build: ./frontend
+    environment:
+      INTERNAL_API_URL: http://api:8080
+    ports:
+      - "127.0.0.1:3110:3100"
+    depends_on:
+      - api
+volumes:
+  organizali_data:

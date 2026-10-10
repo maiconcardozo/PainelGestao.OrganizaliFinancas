@@ -16,3 +16,5 @@ coverage/
 .env.*
 !.env.example
 !.env.*.example
+
+**/tsconfig.tsbuildinfo
