@@ -1,6 +1,6 @@
 # Marcos de início do desenvolvimento
 
-Data: 10/10/2026. Estado: M1.1 concluído; M1.2 concluído com validação em banco descartável; M1.3 concluído tecnicamente (revisão visual pendente); M1.4 concluído tecnicamente (revisão visual pendente). Evidências em [M1.1](../testing/m1-1-foundation.md) e [M1.2](../testing/m1-2-persistence.md).
+Data: 10/10/2026. M2.1/M2.2 implementados e testados; M2.3 aguarda matriz; M2.4 parcialmente entregue (testing/m2-4-web-access.md). Estado da fundação: M1.1 concluído; M1.2 concluído com validação em banco descartável; M1.3 concluído tecnicamente (revisão visual pendente); M1.4 concluído tecnicamente (revisão visual pendente). Evidências em [M1.1](../testing/m1-1-foundation.md) e [M1.2](../testing/m1-2-persistence.md).
 
 Este detalhamento desdobra M1–M3 do [plano geral](implementation.md), preservando seus identificadores e dependências. O primeiro objetivo demonstrável é entrar em uma casa isolada, navegar com permissões e manter seus cadastros. Indicadores financeiros reais entram após receitas, despesas e cartões.
 
@@ -122,9 +122,9 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ### M2.4 — Interface autenticada
 
-- [ ] Confirmar nome/identidade visual em D15 antes de consolidar tokens e componentes.
-- [ ] Reutilizar o padrão de organização do shell do RevendaPRO, adaptado ao Organizali.
-- [ ] Implementar login, menu, estado ativo, navegação mobile, mensagens de erro e estados vazios.
+- [x] Confirmar nome/identidade visual em D15 antes de consolidar tokens e componentes.
+- [x] Reutilizar o padrão de organização do shell do RevendaPRO, adaptado ao Organizali.
+- [x] Implementar login, navegação comum, estado ativo, navegação mobile, mensagens de erro e estados vazios. Menu por permissões depende de M2.3.
 - [ ] Conferir a jornada com dados de teste identificados e permissões reais.
 
 **Aceite demonstrável:** login → casa → navegação autorizada → perfil/usuário → logout. O dashboard financeiro permanece identificado como etapa M7.
@@ -177,7 +177,7 @@ M9/M10 permanecem no plano geral: complementos e comercialização posterior. O 
 |---|---|---|
 | Login pertence a uma casa | M2.1 | D20 confirmado; aplicar User : TenantEntity do RevendaPRO |
 | Matriz final de perfis | M2.3 | Apresentar operações/perfis concretos antes do seed |
-| Identidade visual D15 | M2.4 | Revisar proposta com o usuário |
+| Identidade visual D15 | M2.4 | Confirmado: seguir RevendaPRO, marca Organizali e português |
 | Idioma/fuso D19 | M3.1 | Confirmado: português e America/Sao_Paulo configurável |
 | Fechamento de cartão D13 | M6 | Confirmar regra do dia de corte |
 | Hospedagem/e-mail/storage D16 e retenção D17 | M8 ou recurso dependente | Escolher antes de operação externa |

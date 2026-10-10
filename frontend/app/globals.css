@@ -30,9 +30,53 @@ h2 { font-size: clamp(2rem, 3vw, 3rem); max-width: 22ch; }
 h3 { margin: 0; font-weight: 600; }
 .feature-list p { margin: .25rem 0 0; }
 .availability { border-left: 3px solid var(--signal); padding-left: 1rem; font-size: .9rem; color: var(--text-secondary); }
+.auth-form { max-width: 26rem; }
+.auth-form label { display: block; margin-top: 1.25rem; font-weight: 600; }
+.auth-form input { display: block; width: 100%; margin-top: .4rem; border: 1px solid var(--border); background: white; border-radius: .35rem; padding: .75rem; color: var(--ink); font: inherit; }
+.primary-button { display: inline-flex; justify-content: center; align-items: center; min-height: 44px; padding: .7rem 1.2rem; border: 0; border-radius: .35rem; background: #007da9; color: white; font-weight: 600; text-decoration: none; cursor: pointer; }
+.primary-button:hover { background: #006d93; }
+.auth-form .primary-button { width: 100%; margin-top: 1.5rem; }
+button:disabled { opacity: .65; cursor: wait; }
+.form-hint { font-size: .9rem; color: var(--text-secondary); margin-top: 1.2rem; }
+.form-error { padding: .8rem 1rem; background: #fff0f0; color: #922d2d; border-left: 3px solid #922d2d; }
+.session-message { max-width: 36rem; margin: 10vh auto; padding: 2rem; }
+.session-message h1 { font-size: 2.6rem; max-width: none; }
+.session-message > a { display: block; margin-top: 1.2rem; text-decoration: underline; }
+.skip-link { position: fixed; top: -100px; left: 1rem; padding: 1rem; z-index: 50; background: white; color: var(--ink); }
+.skip-link:focus { top: 1rem; }
+.panel-shell { display: flex; min-height: 100svh; }
+.panel-sidebar { width: 264px; flex-shrink: 0; background: var(--ink); color: white; padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 2rem; }
+.panel-sidebar .brand { padding: 0 .75rem; }
+.panel-sidebar nav { display: grid; gap: .5rem; }
+.panel-sidebar nav a { display: flex; align-items: center; gap: .75rem; min-height: 44px; padding: .65rem .85rem; border-radius: .35rem; text-decoration: none; color: #c8d6e5; }
+.panel-sidebar nav a[aria-current] { background: #153857; box-shadow: inset 3px 0 #60cdff; color: white; }
+.panel-sidebar nav a:hover { background: #153857; }
+.panel-identity { margin-top: auto; border-top: 1px solid #314560; padding-top: 1rem; overflow-wrap: anywhere; }
+.panel-identity p { margin: 0 0 .8rem; }
+.panel-identity button, .panel-mobile-header button { display: flex; align-items: center; gap: .6rem; min-height: 44px; text-align: left; font: inherit; cursor: pointer; }
+.panel-main { flex: 1; min-width: 0; }
+.panel-header { min-height: 65px; padding: 1.25rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); font-weight: 600; }
+.page-content { max-width: 1200px; padding: 2rem; }
+.page-content h1 { font-size: clamp(2rem, 4vw, 3rem); max-width: none; overflow-wrap: anywhere; }
+.empty-state { margin-top: 2rem; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: .5rem; }
+.empty-state h2 { font-size: 1.75rem; margin-top: 0; }
+.empty-state p { max-width: 65ch; color: var(--text-secondary); }
+.account-details { background: var(--surface); padding: 1.5rem; border: 1px solid var(--border); border-radius: .5rem; overflow-wrap: anywhere; }
+.account-details dt { font-weight: 600; color: var(--text-secondary); }
+.account-details dd { margin: .25rem 0 1.5rem; }
+.account-details dd:last-child { margin-bottom: 0; }
+.panel-mobile-header { display: none; }
 @media (max-width: 760px) {
   .welcome { grid-template-columns: 1fr; }
   .welcome-brand { gap: 2.5rem; }
   h1 { max-width: 18ch; }
   .brand-footer { display: none; }
+  .panel-shell { display: block; }
+  .panel-mobile-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--ink); color: white; gap: 1rem; }
+  .panel-sidebar { display: none; width: 100%; }
+  .panel-sidebar.is-open { display: flex; }
+  .panel-sidebar > .brand { display: none; }
+  .panel-header { padding: 1rem; min-height: 0; }
+  .page-content { padding: 1rem; }
+  .empty-state { padding: 1.25rem; }
 }

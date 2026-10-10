@@ -1,5 +1,7 @@
 # M1.3 — Base da API
 
+**Atualização após M2.2:** iniciar HTTP também exige `Jwt__Key` configurada; consulte [Autenticação e configuração atual](m2-2-authentication.md). As evidências abaixo descrevem a execução original de M1.3.
+
 Implementado: endpoints Minimal API, MediatR, readiness de persistência, erros padronizados, correlação e Swagger.
 
 ## Referências

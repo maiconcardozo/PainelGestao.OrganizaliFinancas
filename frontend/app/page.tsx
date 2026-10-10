@@ -1,4 +1,5 @@
 import { House, Wallet, CalendarDays, Users } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -15,13 +16,14 @@ export default function Home() {
       <section className="welcome-content" aria-labelledby="pilot-title">
         <p className="eyebrow">Piloto por convite</p>
         <h2 id="pilot-title">Estamos preparando sua nova rotina financeira.</h2>
-        <p className="intro">O acesso às primeiras casas será liberado por convite. O cadastro e o painel ainda estão em preparação.</p>
+        <p className="intro">Já recebeu seu acesso ao piloto? Entre para acompanhar a preparação da sua casa.</p>
+        <Link className="primary-button" href="/login">Entrar no Organizali</Link>
         <ul className="feature-list">
           <li><Wallet aria-hidden="true" /><div><h3>Saiba o que entra e o que sai</h3><p>Acompanhe rendas, despesas e o saldo da casa.</p></div></li>
           <li><CalendarDays aria-hidden="true" /><div><h3>Planeje os próximos dias</h3><p>Reúna vencimentos, parcelas e orçamento.</p></div></li>
           <li><Users aria-hidden="true" /><div><h3>Organize as responsabilidades</h3><p>Compartilhe as informações e combine a contribuição de cada pessoa.</p></div></li>
         </ul>
-        <p className="availability">Em preparação · Nenhum cadastro está sendo recebido nesta etapa.</p>
+        <p className="availability">Piloto com liberação manual. As ferramentas financeiras estão em preparação.</p>
       </section>
     </main>
   );

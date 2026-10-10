@@ -14,6 +14,11 @@ test("cookies, origin protection, token isolation and expired-access logout", { 
     request.resume();
     if (request.url === "/api/auth/logout") { response.writeHead(204); response.end(); return; }
     response.setHeader("Content-Type", "application/json");
+    if (request.url === "/api/auth/me") {
+      if (request.headers.authorization !== `Bearer ${access}`) { response.writeHead(401); response.end("{}"); return; }
+      response.end(JSON.stringify({ data: { userCode: "00000000-0000-0000-0000-000000000001", name: "Morador de teste", email: "test@example.test" } }));
+      return;
+    }
     response.end(JSON.stringify({ data: { tokens: {
       accessToken: access, refreshToken: refresh,
       accessTokenExpiresAt: new Date(Date.now() + 900000).toISOString(),
@@ -51,6 +56,13 @@ test("cookies, origin protection, token isolation and expired-access logout", { 
     const denied = await post("/api/auth/login", { headers: { Origin: "https://foreign.example" } });
     assert.equal(denied.status, 403);
     assert.equal(calls.length, 0);
+    for (const path of ["/household", "/my-account"]) {
+      const anonymous = await fetch(origin + path, { redirect: "manual" });
+      assert.equal(anonymous.status, 307);
+      assert.equal(anonymous.headers.get("location"), "/login");
+    }
+    const expired = await fetch(origin + "/household", { redirect: "manual", headers: { Cookie: `organizali_refresh=${refresh}` } });
+    assert.equal(expired.headers.get("location"), "/session-renew");
     const login = await post("/api/auth/login", { body: { email: "test@example.test", password: "synthetic" } });
     assert.equal(login.status, 200);
     assert.deepEqual(await login.json(), { ok: true });
@@ -61,6 +73,13 @@ test("cookies, origin protection, token isolation and expired-access logout", { 
       assert.match(cookie, /Secure/i);
       assert.match(cookie, /SameSite=lax/i);
     }
+    const account = await fetch(origin + "/my-account", { headers: { Cookie: `organizali_access=${access}` } });
+    assert.equal(account.status, 200);
+    const accountHtml = await account.text();
+    assert.ok(accountHtml.includes("Morador de teste"));
+    assert.ok(accountHtml.includes("test@example.test"));
+    assert.ok(!accountHtml.includes(access));
+    assert.ok(!accountHtml.includes(refresh));
     const blocked = await post("/api/backend/Auth/refresh", { headers: { Cookie: `organizali_access=${access}` } });
     assert.equal(blocked.status, 404);
     const mutation = await post("/api/backend/people", { headers: { Origin: "https://foreign.example" } });

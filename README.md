@@ -230,6 +230,8 @@ O pipeline ainda não foi criado.
 | M1.4 — base Next.js e Docker | [Build, lint e comunicação aprovados](docs/testing/m1-4-web.md) |
 | M2.1 — piloto | [Provisionamento e histórico implementados](docs/testing/m2-1-pilot.md) |
 | M2.2 — autenticação | [JWT, cookies, renovação e revogação testados](docs/testing/m2-2-authentication.md); transporte externo de recuperação pendente |
+| M2.3 — permissões | Matriz proposta aguardando confirmação, sem seed presumido |
+| M2.4 — interface | [Login, shell e Minha conta implementados](docs/testing/m2-4-web-access.md); jornada por permissões e revisão visual pendentes |
 
 ## 📋 Documentação por público
 

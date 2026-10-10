@@ -1,5 +1,7 @@
 # M1.4 — Base web e execução local
 
+**Atualização após M2:** login e cookies foram implementados; consulte [M2.2](m2-2-authentication.md) para `Jwt__Key`, `APP_ORIGIN` e `COOKIE_SECURE`, e [M2.4](m2-4-web-access.md) para as telas disponíveis. As evidências abaixo descrevem a execução original de M1.4.
+
 Estado: base técnica concluída. Identidade visual baseada no RevendaPRO, confirmada pelo usuário. Revisão em navegador permanece pendente porque o conector não disponibilizou navegador nesta sessão.
 
 ## Implementação

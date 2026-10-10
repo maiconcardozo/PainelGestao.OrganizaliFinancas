@@ -21,6 +21,7 @@ Estado inicial em 10/10/2026. O usuário pediu que dúvidas sejam perguntadas se
 | D12 | Bruto opcional, líquido esperado e recebimentos efetivos separados | Resposta específica do usuário |
 | D19 | Interface em português e fuso inicial America/Sao_Paulo, configurável por casa | Resposta no detalhamento dos marcos |
 | D20 | Um login pertence a uma única casa no piloto, seguindo RevendaPRO | Resposta no detalhamento dos marcos |
+| D15 | Marca Organizali e textos em português, com layout e componentes seguindo RevendaPRO | Confirmação explícita do usuário sobre o frontend |
 
 ## Perguntas abertas
 
@@ -28,11 +29,11 @@ Estado inicial em 10/10/2026. O usuário pediu que dúvidas sejam perguntadas se
 |---|---|---|---|
 | D13 | Fechamento do cartão usa lançamento no dia de corte em qual fatura? | Proposta de prévia editável; regra precisa ser escolhida pela casa/cartão | Antes do módulo de cartões |
 | D14 | Planos, preços, limites, trial, cancelamento e inadimplência? | Sem valores inventados; dependente da modalidade comercial | Antes do lançamento comercial |
-| D15 | Nome público Organizali Finanças, cores e estilo visual? | Nome deriva do repositório; identidade proposta em experience.md | Antes do frontend final |
+| D21 | Matriz de operações dos perfis titular, editor e leitor? | Proposta enviada; confirmar liquidação, estorno, exportação, orçamento e gestão de integrantes antes do seed | M2.3 |
 | D16 | Hospedagem, domínio, e-mail, storage e metas de disponibilidade? | Mantém Docker; dimensionamento e custos dependem das escolhas | Antes de homologação externa |
 | D17 | Prazo de retenção, exclusão definitiva e acesso excepcional de suporte? | Proposta técnica deve ser validada para a operação real | Antes de receber usuários externos |
 
-D04, D07–D12, D19 e D20 já foram respondidas. Não repetir perguntas já respondidas. D13–D17 são dúvidas registradas para discussão antes das etapas correspondentes; ainda não são decisões aprovadas.
+D04, D07–D12, D15, D19 e D20 já foram respondidas. Não repetir perguntas já respondidas. D13, D14, D16, D17 e D21 permanecem abertas.
 
 Uma casa por assinatura e um login por casa são regras independentes, ambas confirmadas. A casa pode ter vários usuários; cada usuário pertence apenas a ela no piloto.
 
