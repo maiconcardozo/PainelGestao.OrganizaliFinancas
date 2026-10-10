@@ -138,6 +138,8 @@ PainelGestao.OrganizaliFinancas/
 3. **[Dashboard e experiência](docs/product/experience.md)** — indicadores, navegação e ações.
 4. **[Plano de implementação](docs/plans/implementation.md)** — marcos, dependências e critérios de entrega.
 
+**[Marcos iniciais M1.1–M3.4](docs/plans/development-milestones.md)** — tarefas de fundação, acesso e cadastros, com referências do RevendaPRO e aceite por entrega.
+
 A execução local será documentada no M1, após a criação e validação da solução.
 
 ## 🐳 Docker

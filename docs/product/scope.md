@@ -12,7 +12,7 @@ Perguntas que o produto deve responder: quem contribui, quanto cada pessoa ganha
 
 Confirmado: projeto particular; uma casa por assinatura; RevendaPRO como padrão principal; Foundation.Base autorizado; dados compartilhados com permissões de edição; piloto manual; BRL; renda bruta opcional, líquida esperada e recebida; rateio por valor/percentual; dashboard moderno; documentação e escopo antes do código; perguntar quando houver dúvida; sem Wiki ou tarefas corporativas.
 
-Proposto para revisão: pt-BR; moradores sem login; receitas/despesas manuais inicialmente; orçamento mensal; categorias e tipos livres por casa; lançamentos com competência e vencimento separados. Regras detalhadas de cartão, identidade visual e operação continuam no [registro de decisões](decisions.md).
+Confirmado no detalhamento: português e fuso inicial America/Sao_Paulo configurável. Proposto para revisão: moradores sem login; receitas/despesas manuais inicialmente; orçamento mensal; categorias e tipos livres por casa; lançamentos com competência e vencimento separados. Regras detalhadas de cartão, identidade visual e operação continuam no [registro de decisões](decisions.md).
 
 ## 3. Público e perfis
 
@@ -24,7 +24,7 @@ Proposto para revisão: pt-BR; moradores sem login; receitas/despesas manuais in
 | Leitor | Consultar dados e relatórios autorizados | Sem alteração financeira |
 | Operador da plataforma | Administrar assinatura, disponibilidade e suporte | Sem acesso automático a detalhes financeiros |
 
-Pessoa/morador e usuário são conceitos diferentes. Pode-se cadastrar quem contribui com a casa sem exigir e-mail ou login. Um usuário poderá ter vínculos com casas de assinaturas diferentes, se aprovado; a navegação sempre exige uma casa ativa e não consolida dados entre elas.
+Pessoa/morador e usuário são conceitos diferentes. Pode-se cadastrar quem contribui com a casa sem exigir e-mail ou login. Cada usuário pertence a uma única casa no piloto, conforme RevendaPRO. A casa pode ter vários usuários; não há seletor de múltiplas casas para o mesmo login. Interface em português; fuso inicial America/Sao_Paulo configurável por casa.
 
 ## 4. Módulos da primeira versão funcional
 

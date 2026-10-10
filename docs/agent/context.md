@@ -1,5 +1,7 @@
 # Contexto para continuidade
 
+Início organizado em M1.1–M3.4 em plans/development-milestones.md. D19/D20 confirmados: português, America/Sao_Paulo configurável por casa; cada login pertence a uma casa no piloto. Modelo de usuário segue User : TenantEntity do RevendaPRO, sem identidade global/múltiplos vínculos.
+
 Organizali Finanças é projeto particular de SaaS doméstico. Usuário quer escopo completo antes do desenvolvimento e exige perguntas quando houver dúvidas. RevendaPRO é referência técnica principal; Arquitetura.Global orienta camadas; CP Comunica foi apenas comparação inicial.
 
 Confirmado: uma casa por assinatura; dados compartilhados entre integrantes; permissões de edição; piloto manual; Foundation.Base autorizado; BRL; renda com bruto opcional, líquido previsto e recebido real; rateio por valor ou percentual; dashboard moderno com saldo, fluxo de caixa, orçamento e alertas. Wiki recusada. Não há chamado Azure/Redmine associado.

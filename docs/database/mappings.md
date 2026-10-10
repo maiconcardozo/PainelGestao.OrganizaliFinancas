@@ -1,12 +1,14 @@
 # Modelo conceitual de dados
 
+Decisão D20: seguir User : TenantEntity do RevendaPRO no piloto. Cada casa tem vários usuários; cada usuário pertence a uma única casa. A entidade HouseholdMembership antes cogitada não faz parte do modelo inicial.
+
 Modelo proposto; não existe migration nesta entrega. Toda entidade persistida de negócio mantém Id, Code UUID v7, auditoria e tenant, conforme Foundation/RevendaPRO. Tabelas de plataforma têm escopo explícito separado. Pessoa não se confunde com identidade de login.
 
 | Contexto | Entidades previstas | Relações e responsabilidades |
 |---|---|---|
 | Plataforma | Subscription, Tenant, Plan | Subscription ↔ Tenant 1:1; plano/limites configuráveis; piloto manual |
-| Acesso | User, HouseholdMembership, Role, Permission, RolePermission, Invitation, RefreshToken | Identidade e vínculo com casa; papéis e permissão por operação |
-| Casa | HouseholdSettings, Person | Person pertence a Tenant e pode vincular um membership |
+| Acesso | User, Role, Permission, RolePermission, Invitation, RefreshToken | User : TenantEntity; papéis e permissões por operação |
+| Casa | HouseholdSettings, Person | Person pertence a Tenant; vínculo opcional com User da mesma casa |
 | Catálogos | Category, IncomeType, ExpenseType, ExpenseTypeVersion, PaymentMethod, Creditor | Catálogos por casa; categoria pode ter pai |
 | Campos | CustomFieldDefinition, CustomFieldValue | Tipo, restrição, opções e versão; valores validados e preservados |
 | Renda | IncomeSource, IncomeSourceVersion, IncomeForecast, Receipt, ReceiptAllocation | Fonte gera previsões; alocação liga recebido à previsão |

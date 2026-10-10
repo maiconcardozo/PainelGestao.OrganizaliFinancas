@@ -16,6 +16,7 @@ Escopo v0.1 para revisão, preparado antes do desenvolvimento. Organização bas
 10. [Modelo de dados](database/mappings.md)
 11. [Endpoints](api/endpoints.md) e [respostas](api/responses.md)
 12. [Plano de implementação](plans/implementation.md)
+    - [Marcos iniciais M1.1–M3.4](plans/development-milestones.md)
 13. [Testes e aceite](testing/test-patterns.md)
 14. [Operação](operations/plan.md)
 15. [Referências consultadas](architecture/references.md)

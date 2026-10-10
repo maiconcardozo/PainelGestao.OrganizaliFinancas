@@ -19,6 +19,8 @@ Estado inicial em 10/10/2026. O usuário pediu que dúvidas sejam perguntadas se
 | D10 | Rateio por valor ou percentual na primeira versão | Resposta específica do usuário |
 | D11 | Moeda BRL no lançamento | Confirmação conjunta da proposta de renda |
 | D12 | Bruto opcional, líquido esperado e recebimentos efetivos separados | Resposta específica do usuário |
+| D19 | Interface em português e fuso inicial America/Sao_Paulo, configurável por casa | Resposta no detalhamento dos marcos |
+| D20 | Um login pertence a uma única casa no piloto, seguindo RevendaPRO | Resposta no detalhamento dos marcos |
 
 ## Perguntas abertas
 
@@ -29,9 +31,10 @@ Estado inicial em 10/10/2026. O usuário pediu que dúvidas sejam perguntadas se
 | D15 | Nome público Organizali Finanças, cores e estilo visual? | Nome deriva do repositório; identidade proposta em experience.md | Antes do frontend final |
 | D16 | Hospedagem, domínio, e-mail, storage e metas de disponibilidade? | Mantém Docker; dimensionamento e custos dependem das escolhas | Antes de homologação externa |
 | D17 | Prazo de retenção, exclusão definitiva e acesso excepcional de suporte? | Proposta técnica deve ser validada para a operação real | Antes de receber usuários externos |
-| D19 | Português e fuso padrão America/Sao_Paulo para a casa? | Proposta configurável, sem conversão de vencimento por UTC | Antes das regras de calendário |
 
-D04 e D07–D12 já foram respondidas. Não repetir perguntas já respondidas. D13–D17 e D19 são dúvidas registradas para discussão antes das etapas correspondentes; ainda não são decisões aprovadas.
+D04, D07–D12, D19 e D20 já foram respondidas. Não repetir perguntas já respondidas. D13–D17 são dúvidas registradas para discussão antes das etapas correspondentes; ainda não são decisões aprovadas.
+
+Uma casa por assinatura e um login por casa são regras independentes, ambas confirmadas. A casa pode ter vários usuários; cada usuário pertence apenas a ela no piloto.
 
 ## Regra de tratamento
 

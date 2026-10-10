@@ -7,7 +7,7 @@ Contratos propostos, não endpoints existentes. Prefixo `/api`, rotas em inglês
 | Sessão | POST /api/auth/login, /refresh, /logout, /recover, /reset | Sessão e recuperação |
 | Identidade | GET /api/me | Usuário, vínculo, permissões e menu filtrado |
 | Casa | GET/PUT /api/household | Configuração da única casa da assinatura |
-| Integrantes | /api/memberships, /api/invitations, /api/roles | CRUD autorizado e convite |
+| Integrantes | /api/users, /api/invitations, /api/roles | Usuários da casa, CRUD autorizado e convite; D20 |
 | Pessoas | /api/people | Cadastro, consulta e inativação |
 | Catálogos | /api/categories, /income-types, /expense-types, /creditors, /payment-methods | Cadastro e manutenção por casa |
 | Campos | /api/expense-types/{code}/fields | Definição e versão |
