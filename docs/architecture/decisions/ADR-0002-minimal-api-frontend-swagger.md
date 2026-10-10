@@ -21,3 +21,5 @@ Aplicar a skill swagger-global: estilo Windows dark aprovado, cinza grafite, Seg
 Adaptar título, links, logo e favicon ao Organizali, por ser projeto particular; não transferir a marca Global. Preservar comportamento visual da referência. Não copiar exceções de compatibilidade da Facade nem seus contratos.
 
 Documentar autenticação, permissões, payloads e respostas SuccessDetails/ProblemDetails nos endpoints Minimal API. Validar o OpenAPI servido e a renderização do Swagger. Nenhuma atualização de NuGet é autorizada por essa escolha.
+
+Implementação M1.3: referência MapGet em RevendaPRO/Api/Program.cs e /health/live em PainelGestao.CPComunica/Api/Program.cs. Rotas agrupadas por extensão em Api/Configuration/HealthEndpoints.cs, sem framework adicional; readiness passa pelo MediatR. Swagger em Development. Evidências em ../../testing/m1-3-api.md.

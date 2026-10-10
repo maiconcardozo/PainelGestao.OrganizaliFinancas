@@ -1,6 +1,6 @@
 # Marcos de início do desenvolvimento
 
-Data: 10/10/2026. Estado: M1.1 concluído; M1.2 concluído com validação em banco descartável; demais etapas não iniciadas. Evidências em [M1.1](../testing/m1-1-foundation.md) e [M1.2](../testing/m1-2-persistence.md).
+Data: 10/10/2026. Estado: M1.1 concluído; M1.2 concluído com validação em banco descartável; M1.3 concluído tecnicamente (revisão visual pendente); M1.4 em preparação. Evidências em [M1.1](../testing/m1-1-foundation.md) e [M1.2](../testing/m1-2-persistence.md).
 
 Este detalhamento desdobra M1–M3 do [plano geral](implementation.md), preservando seus identificadores e dependências. O primeiro objetivo demonstrável é entrar em uma casa isolada, navegar com permissões e manter seus cadastros. Indicadores financeiros reais entram após receitas, despesas e cartões.
 
@@ -29,7 +29,7 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ## 2. Quadro de execução inicial
 
-**M1.1 concluído**; M1.2 concluído; demais itens não iniciados. Uma tarefa fica concluída somente com sua evidência de aceite. Criar um commit por marco concluído; push apenas ao final.
+**M1.1 concluído**; M1.2 concluído; M1.3 concluído tecnicamente e demais itens não iniciados. Uma tarefa fica concluída somente com sua evidência de aceite. Criar um commit por marco concluído; push apenas ao final.
 
 | Etapa | Entrega demonstrável | Dependência | Aceite principal |
 |---|---|---|---|
@@ -72,11 +72,11 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ### M1.3 — Base da API
 
-- [ ] Preparar DI, opções tipadas e validação de configuração seguindo a referência.
-- [ ] Aplicar endpoints Minimal API finos com IMediator, ValidationBehavior e tratamento centralizado de erros.
-- [ ] Usar SuccessDetails/ProblemDetails e documentar respostas em OpenAPI.
-- [ ] Preparar correlação, logs sem dados sensíveis, health live/ready e configuração local segura.
-- [ ] Conferir resposta de erro e cancelamento de requisição com casos técnicos, sem financeiro fictício.
+- [x] Preparar DI, opções tipadas e validação de configuração seguindo a referência.
+- [x] Aplicar endpoints Minimal API finos com IMediator, ValidationBehavior e tratamento centralizado de erros.
+- [x] Usar SuccessDetails/ProblemDetails e documentar respostas em OpenAPI.
+- [x] Preparar correlação, logs sem dados sensíveis, health live/ready e configuração local segura.
+- [x] Conferir resposta de erro e cancelamento de requisição com casos técnicos, sem financeiro fictício.
 
 **Saída:** API técnica executável e contratos consistentes. **Evidência:** startup, health e exemplos reais de validação/erro. Login pertence a M2; M1 não promete autenticação pronta.
 

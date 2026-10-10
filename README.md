@@ -1,7 +1,7 @@
 # 🏡 Organizali Finanças — Gestão financeira da casa
 
 <!-- Estado do projeto -->
-[![Estado](https://img.shields.io/badge/Estado-M1.1%20concluido-blue.svg)](docs/testing/m1-1-foundation.md)
+[![Estado](https://img.shields.io/badge/Estado-M1.3%20implementado-blue.svg)](docs/testing/m1-1-foundation.md)
 [![Arquitetura](https://img.shields.io/badge/Arquitetura-Clean%20Architecture%20%2B%20DDD-6A3FA0.svg)](docs/architecture/overview.md)
 [![Referência](https://img.shields.io/badge/Padr%C3%A3o-RevendaPRO-34495E.svg)](docs/architecture/decisions/ADR-0001-revenda-pro.md)
 
@@ -26,7 +26,7 @@ O **Organizali Finanças** é um projeto de SaaS web para quem coordena as finan
 
 A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQRS com MediatR** e **Foundation.Base**. Cada assinatura atende uma casa, com dados compartilhados entre os integrantes e permissões para controlar as alterações.
 
-> **Estado atual:** M1.1 concluído: cinco camadas, Foundation.Base, build Release sem avisos e 18 testes aprovados localmente em 10/10/2026. Host preparado para Minimal API. Persistência, endpoints, Swagger, frontend e funcionalidades abaixo seguem planejados. Piloto com liberação manual.
+> **Estado atual:** M1.1–M1.3 implementados: cinco camadas, persistência base, Minimal API e Swagger. 29 testes aprovados, incluindo MariaDB descartável autorizado. Revisão visual do Swagger pendente por indisponibilidade do navegador. Frontend e funcionalidades financeiras abaixo seguem planejados. Piloto com liberação manual.
 
 ### ✨ Funcionalidades principais
 
@@ -211,7 +211,7 @@ O pipeline ainda não foi criado.
 - **[Plano de testes](docs/testing/test-patterns.md)** — cenários, ferramentas e resultados esperados.
 - **[Regras financeiras](docs/domain/financial-rules.md)** — exemplos para validar cálculos.
 
-**18 testes técnicos aprovados localmente:** dependências entre camadas, referências dos projetos, Foundation, ausência de controllers e validação. Não representam os 32 cenários funcionais nem medição de cobertura. [Execução do M1.1](docs/testing/m1-1-foundation.md).
+**29 testes técnicos aprovados localmente:** dependências entre camadas, referências dos projetos, Foundation, ausência de controllers e validação. Não representam os 32 cenários funcionais nem medição de cobertura. [Execução do M1.1](docs/testing/m1-1-foundation.md).
 
 ## 📊 Estado do projeto
 
@@ -224,7 +224,7 @@ O pipeline ainda não foi criado.
 | Plano de implementação e testes | Documentado |
 | M1.1 — solução backend | Concluído; build e 18 testes aprovados |
 | M1.2 — persistência | Concluído; [22 testes aprovados, incluindo banco descartável](docs/testing/m1-2-persistence.md) |
-| Endpoints e Swagger | Próxima etapa M1.3 |
+| M1.3 — endpoints e Swagger | [Implementado e testado](docs/testing/m1-3-api.md); revisão visual pendente |
 | Frontend Next.js | Próxima etapa M1.4 |
 | Piloto | Liberação manual definida; execução futura |
 
@@ -319,3 +319,6 @@ A licença de distribuição do projeto ainda não foi definida. As condições 
 - [React](https://react.dev/)
 - [Dapper](https://github.com/DapperLib/Dapper)
 - [MariaDB](https://mariadb.com/docs/)
+
+
+Execução da API e acesso ao Swagger: [guia M1.3](docs/testing/m1-3-api.md).

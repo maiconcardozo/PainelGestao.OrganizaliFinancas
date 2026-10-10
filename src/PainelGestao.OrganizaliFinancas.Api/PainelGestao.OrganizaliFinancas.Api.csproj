@@ -7,4 +7,7 @@
     <ProjectReference Include="../PainelGestao.OrganizaliFinancas.Infrastructure/PainelGestao.OrganizaliFinancas.Infrastructure.csproj" />
     <ProjectReference Include="../PainelGestao.OrganizaliFinancas.Shared/PainelGestao.OrganizaliFinancas.Shared.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
 </Project>

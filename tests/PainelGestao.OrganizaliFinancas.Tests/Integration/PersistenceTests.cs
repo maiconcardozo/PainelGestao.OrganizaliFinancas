@@ -33,6 +33,12 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
             await using var provider = services.BuildServiceProvider();
 
             await ApplyMigrationsConcurrently(provider);
+            await using (var scope = provider.CreateAsyncScope())
+            {
+                var readiness = scope.ServiceProvider.GetRequiredService<
+                    PainelGestao.OrganizaliFinancas.Domain.Interfaces.Services.IDatabaseReadiness>();
+                (await readiness.IsReadyAsync(CancellationToken.None)).Should().BeTrue();
+            }
             await VerifyCommitAndTenantLookup(provider);
             await VerifyRollback(provider);
             await VerifyGeneratedIdInSingleCommit(provider);
