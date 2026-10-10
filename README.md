@@ -228,7 +228,7 @@ O pipeline ainda não foi criado.
 | M1.2 — persistência | Concluído; [22 testes aprovados, incluindo banco descartável](docs/testing/m1-2-persistence.md) |
 | M1.3 — endpoints e Swagger | [Implementado e testado](docs/testing/m1-3-api.md); revisão visual pendente |
 | M1.4 — base Next.js e Docker | [Build, lint e comunicação aprovados](docs/testing/m1-4-web.md) |
-| Piloto | Liberação manual definida; execução futura |
+| M2.1 — piloto | [Provisionamento e histórico implementados](docs/testing/m2-1-pilot.md); login em M2.2 |
 
 ## 📋 Documentação por público
 

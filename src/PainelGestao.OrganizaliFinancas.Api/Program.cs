@@ -10,6 +10,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApiDocumentation();
 
 var app = builder.Build();
+if (await app.RunAdministrativeOperationAsync()) return;
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseApiDocumentation();
 app.MapHealthEndpoints();

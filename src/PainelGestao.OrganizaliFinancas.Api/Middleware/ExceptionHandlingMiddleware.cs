@@ -16,7 +16,9 @@ namespace PainelGestao.OrganizaliFinancas.Api.Middleware
             {
                 var status = exception switch
                 {
-                    InputValidationException => 400,
+                InputValidationException => 400,
+                ConflictException => 409,
+                NotFoundException => 404,
                     BadHttpRequestException request => request.StatusCode,
                     _ => 500
                 };

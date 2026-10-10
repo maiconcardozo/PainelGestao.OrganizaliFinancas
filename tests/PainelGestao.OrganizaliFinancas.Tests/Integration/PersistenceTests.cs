@@ -1,4 +1,9 @@
 using FluentAssertions;
+using Dapper;
+using Foundation.Domain.Interfaces.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PainelGestao.OrganizaliFinancas.Domain.Entities;
@@ -29,6 +34,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
                 }).Build();
             var services = new ServiceCollection();
             services.AddLogging();
+            PainelGestao.OrganizaliFinancas.Application.Configuration.ServiceCollectionExtensions.AddApplication(services);
             services.AddInfrastructure(configuration);
             await using var provider = services.BuildServiceProvider();
 
@@ -43,10 +49,22 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
             await VerifyRollback(provider);
             await VerifyGeneratedIdInSingleCommit(provider);
             await VerifyConcurrentDuplicateCode(provider);
+            await PilotPersistenceAssertions.VerifyAsync(provider);
         }
 
         private static async Task ApplyMigrationsConcurrently(ServiceProvider provider)
         {
+            int remaining;
+            await using (var scope = provider.CreateAsyncScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<
+                    PainelGestao.OrganizaliFinancas.Infrastructure.Database.Contexts.OrganizaliFinancasDbContext>();
+                var migrations = context.Database.GetMigrations().ToArray();
+                var script = context.GetService<IMigrator>().GenerateScript(Migration.InitialDatabase, migrations[0]);
+                using var connection = scope.ServiceProvider.GetRequiredService<ISqlConnectionFactory>().CreateConnection();
+                await connection.ExecuteAsync(script);
+                remaining = migrations.Length - 1;
+            }
             async Task<int> Apply()
             {
                 await using var scope = provider.CreateAsyncScope();
@@ -54,7 +72,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
             }
 
             var applied = await Task.WhenAll(Apply(), Apply());
-            applied.Sum().Should().Be(1, "only one runner applies the initial migration");
+            applied.Sum().Should().Be(remaining, "only one runner applies migrations after the existing schema");
             (await Apply()).Should().Be(0, "restarting must not reapply the schema");
         }
 

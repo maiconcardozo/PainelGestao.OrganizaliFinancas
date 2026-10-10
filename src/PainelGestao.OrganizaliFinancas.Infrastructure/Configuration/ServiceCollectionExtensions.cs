@@ -34,6 +34,9 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Configuration
             services.AddScoped<IDapperUnitOfWork>(provider => provider.GetRequiredService<OrganizaliFinancasUnitOfWork>());
             services.AddScoped<Func<IDapperUnitOfWork, ITenantRepository>>(_ => unitOfWork => new TenantRepository(unitOfWork));
             services.AddScoped<SchemaMigrator>();
+            services.AddScoped<Func<IDapperUnitOfWork, Domain.Interfaces.Repositories.IPilotRepository>>(
+                _ => work => new Repositories.Pilot.PilotRepository(work));
+            services.AddScoped<Domain.Interfaces.Security.IPasswordHasher, Security.PasswordHasherService>();
             services.AddScoped<PainelGestao.OrganizaliFinancas.Domain.Interfaces.Services.IDatabaseReadiness,
                 PainelGestao.OrganizaliFinancas.Infrastructure.Services.DatabaseReadiness>();
             return services;

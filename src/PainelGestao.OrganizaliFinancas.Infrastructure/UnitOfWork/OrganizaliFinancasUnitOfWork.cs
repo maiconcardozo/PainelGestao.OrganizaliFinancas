@@ -9,10 +9,13 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
     /// <summary>Uses the transaction implementation supplied by Foundation.Base.</summary>
     public class OrganizaliFinancasUnitOfWork(
         ISqlConnectionFactory connectionFactory,
-        Func<IDapperUnitOfWork, ITenantRepository> tenantRepositoryFactory)
+        Func<IDapperUnitOfWork, ITenantRepository> tenantRepositoryFactory,
+        Func<IDapperUnitOfWork, IPilotRepository> pilotRepositoryFactory)
         : DapperUnitOfWork(connectionFactory), IUnitOfWork
     {
         private ITenantRepository? _tenantRepository;
         public ITenantRepository TenantRepository => _tenantRepository ??= tenantRepositoryFactory(this);
+        private IPilotRepository? _pilotRepository;
+        public IPilotRepository PilotRepository => _pilotRepository ??= pilotRepositoryFactory(this);
     }
 }

@@ -7,5 +7,6 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces
     public interface IUnitOfWork : IDapperUnitOfWork
     {
         ITenantRepository TenantRepository { get; }
+        IPilotRepository PilotRepository { get; }
     }
 }

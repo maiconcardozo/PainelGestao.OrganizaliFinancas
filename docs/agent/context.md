@@ -13,3 +13,6 @@ Estado: M1.1 publicado e M1.2 concluído. Usuário autorizou escrita de teste so
 Skills usadas: clean-ddd-hexagonal, clean-code e frontend-design. Usar skills adicionais só quando correspondam à etapa real. Referências técnicas e versões em architecture/references.md e overview.md. Dúvidas bloqueiam apenas a implementação dependente, não a documentação independente.
 
 Arquivos de entrega em C:/Codex/Upload; documentação de desenvolvimento também permanece neste repositório. A pasta .vs preexistia e não foi alterada.
+
+
+Continuação autorizada pelo usuário para todos os marcos, mantendo commits por marco e push ao final. M2.1 implementado: provisionamento administrativo, assinatura e histórico; 29 testes aprovados incluindo migration incremental e isolamento por FK. M2.2 é o próximo. Perguntas sobre matriz de permissões e corte de cartão enviadas; sem resposta ainda, não fazer seed nem presumir decisão. Visual RevendaPRO para Organizali confirmado (D15).
