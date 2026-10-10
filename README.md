@@ -223,7 +223,8 @@ O pipeline ainda não foi criado.
 | Modelo de dados e API | Contratos propostos |
 | Plano de implementação e testes | Documentado |
 | M1.1 — solução backend | Concluído; build e 18 testes aprovados |
-| Persistência, endpoints e Swagger | Próximas etapas M1.2/M1.3 |
+| M1.2 — persistência | Concluído; [22 testes aprovados, incluindo banco descartável](docs/testing/m1-2-persistence.md) |
+| Endpoints e Swagger | Próxima etapa M1.3 |
 | Frontend Next.js | Próxima etapa M1.4 |
 | Piloto | Liberação manual definida; execução futura |
 

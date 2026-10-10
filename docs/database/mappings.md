@@ -2,7 +2,7 @@
 
 Decisão D20: seguir User : TenantEntity do RevendaPRO no piloto. Cada casa tem vários usuários; cada usuário pertence a uma única casa. A entidade HouseholdMembership antes cogitada não faz parte do modelo inicial.
 
-Modelo proposto; não existe migration nesta entrega. Toda entidade persistida de negócio mantém Id, Code UUID v7, auditoria e tenant, conforme Foundation/RevendaPRO. Tabelas de plataforma têm escopo explícito separado. Pessoa não se confunde com identidade de login.
+Modelo alvo. M1.2 introduz somente Tenant e a migration InitialTenant, gerada offline e aplicada apenas no container descartável de testes. Demais entidades seguem propostas. Toda entidade persistida de negócio mantém Id, Code UUID v7, auditoria e tenant, conforme Foundation/RevendaPRO. Tabelas de plataforma têm escopo explícito separado. Pessoa não se confunde com identidade de login.
 
 | Contexto | Entidades previstas | Relações e responsabilidades |
 |---|---|---|

@@ -8,7 +8,7 @@ Organizali Finanças é projeto particular de SaaS doméstico. Usuário quer esc
 
 Confirmado: uma casa por assinatura; dados compartilhados entre integrantes; permissões de edição; piloto manual; Foundation.Base autorizado; BRL; renda com bruto opcional, líquido previsto e recebido real; rateio por valor ou percentual; dashboard moderno com saldo, fluxo de caixa, orçamento e alertas. Wiki recusada. Não há chamado Azure/Redmine associado.
 
-Estado: M1.1 concluído. Cinco camadas, restore, build Release sem avisos e 18 testes aprovados. Host preparado para Minimal API. Evidências em testing/m1-1-foundation.md. Próximo M1.2; banco, endpoints, Swagger e frontend não implementados. Nenhum deploy.
+Estado: M1.1 publicado e M1.2 concluído. Usuário autorizou escrita de teste somente em MariaDB descartável; 22 testes aprovados. Ver testing/m1-2-persistence.md. Próximo M1.3. Commit por marco concluído; push somente ao final.
 
 Skills usadas: clean-ddd-hexagonal, clean-code e frontend-design. Usar skills adicionais só quando correspondam à etapa real. Referências técnicas e versões em architecture/references.md e overview.md. Dúvidas bloqueiam apenas a implementação dependente, não a documentação independente.
 

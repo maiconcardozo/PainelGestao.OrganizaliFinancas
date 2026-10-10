@@ -1,6 +1,6 @@
 # Marcos de início do desenvolvimento
 
-Data: 10/10/2026. Estado: M1.1 concluído; demais etapas não iniciadas. Evidências em [M1.1](../testing/m1-1-foundation.md).
+Data: 10/10/2026. Estado: M1.1 concluído; M1.2 concluído com validação em banco descartável; demais etapas não iniciadas. Evidências em [M1.1](../testing/m1-1-foundation.md) e [M1.2](../testing/m1-2-persistence.md).
 
 Este detalhamento desdobra M1–M3 do [plano geral](implementation.md), preservando seus identificadores e dependências. O primeiro objetivo demonstrável é entrar em uma casa isolada, navegar com permissões e manter seus cadastros. Indicadores financeiros reais entram após receitas, despesas e cartões.
 
@@ -29,7 +29,7 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ## 2. Quadro de execução inicial
 
-**M1.1 concluído**; demais itens não iniciados. Uma tarefa fica concluída somente com sua evidência de aceite.
+**M1.1 concluído**; M1.2 concluído; demais itens não iniciados. Uma tarefa fica concluída somente com sua evidência de aceite. Criar um commit por marco concluído; push apenas ao final.
 
 | Etapa | Entrega demonstrável | Dependência | Aceite principal |
 |---|---|---|---|
@@ -61,12 +61,12 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ### M1.2 — Persistência e transação
 
-- [ ] Usar Entity/TenantEntity e contratos Foundation conforme a referência.
-- [ ] Configurar conexão, query objects, repositories e Unit of Work nas pastas previstas.
-- [ ] Preparar contexto EF/mapeamentos exclusivamente para schema.
-- [ ] Validar geração de migration e comportamento do SchemaMigrator no MariaDB escolhido.
-- [ ] Verificar IDs gerados dentro da transação, commit, rollback e concorrência, sem commits intermediários para uma mesma operação.
-- [ ] Garantir que os contratos usados por casos de uso não permitam acesso financeiro sem contexto de casa.
+- [x] Usar Entity/TenantEntity e contratos Foundation conforme a referência.
+- [x] Configurar conexão, query objects, repositories e Unit of Work nas pastas previstas.
+- [x] Preparar contexto EF/mapeamentos exclusivamente para schema.
+- [x] Validar geração de migration e comportamento do SchemaMigrator no MariaDB escolhido.
+- [x] Verificar IDs gerados dentro da transação, commit, rollback e concorrência, sem commits intermediários para uma mesma operação.
+- [x] Garantir que os contratos usados por casos de uso não permitam acesso financeiro sem contexto de casa.
 
 **Saída:** prova técnica da persistência. Ensaios que gravam dados exigem banco descartável isolado e autorização específica conforme a regra do usuário para testes; não rodar migrations ou escrita em banco existente nesta fase de planejamento. **Evidência:** isolamento do ambiente, scripts/migrations revisados e resultados efetivos quando executados. Não afirmar que o filtro global do EF protege queries Dapper.
 
