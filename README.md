@@ -26,11 +26,11 @@ O **Organizali Finanças** é um projeto de SaaS web para quem coordena as finan
 
 A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQRS com MediatR** e **Foundation.Base**. Cada assinatura atende uma casa, com dados compartilhados entre os integrantes e permissões para controlar as alterações.
 
-> **Estado atual:** fundação, acesso, permissões e cadastros implementados até M3.4. 38 testes .NET aprovados com banco descartável e jornada integrada no Chrome. Recuperação externa e núcleo financeiro pendentes. [Estado completo](docs/status/PROJECT_STATUS.md) · [Entregas e regras por marco](docs/deliveries/README.md).
+> **Estado atual:** fundação, acesso, cadastros, contas e rendas implementados até M4. 58 testes .NET aprovados com banco descartável e jornada integrada no Chrome. Despesas, cartões, orçamento, dashboard e recuperação externa pendentes. [Estado completo](docs/status/PROJECT_STATUS.md) · [Entregas e regras por marco](docs/deliveries/README.md).
 
 ### ✨ Funcionalidades principais
 
-Escopo do produto: os recursos financeiros abaixo estão planejados para M4–M10; o quadro de estado distingue o que já foi implementado.
+Escopo do produto: contas e rendas foram entregues no M4; os demais recursos financeiros abaixo estão planejados para M5–M10. O quadro de estado distingue o que já foi implementado.
 
 - 📊 **Dashboard da casa** — saldo atual, previsto e realizado, vencimentos e ações pendentes.
 - 💸 **Fluxo de caixa** — entradas, saídas e projeção diária e mensal, com alerta de saldo negativo.
@@ -215,7 +215,7 @@ O pipeline ainda não foi criado.
 - **[Plano de testes](docs/testing/test-patterns.md)** — cenários, ferramentas e resultados esperados.
 - **[Regras financeiras](docs/domain/financial-rules.md)** — exemplos para validar cálculos.
 
-**38 testes .NET aprovados**, além dos testes HTTP do Next e jornada integrada no Chrome. Não representam os cenários financeiros futuros nem medição de cobertura. [Evidências M3.4](docs/testing/m3-4-integrated.md).
+**58 testes .NET aprovados**, além dos testes HTTP do Next e jornada integrada no Chrome. Não representam os cenários financeiros futuros nem medição de cobertura. [Evidências M4](docs/testing/m4-accounts-income.md).
 
 ## 📊 Estado do projeto
 
@@ -241,7 +241,8 @@ O pipeline ainda não foi criado.
 | M3.2 — catálogos | [Categorias, tipos de renda, credores e formas de pagamento implementados e testados](docs/testing/m3-2-catalogs.md) |
 | M3.3 — parametrização | [Tipos de despesa e formulários tipados/versionados implementados e testados](docs/testing/m3-3-expense-types.md) |
 | M3.4 — jornada integrada | [Navegador, Next, API e MariaDB](docs/testing/m3-4-integrated.md) |
-| M4–M10 | [Trabalho restante](docs/status/PROJECT_STATUS.md) |
+| M4 — contas e rendas | [Contas, transferências, previsões, recebimentos, estornos e média anual](docs/testing/m4-accounts-income.md) |
+| M5–M10 | [Trabalho restante](docs/status/PROJECT_STATUS.md) |
 
 ## 📋 Documentação por público
 

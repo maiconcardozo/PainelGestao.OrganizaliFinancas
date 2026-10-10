@@ -2,7 +2,7 @@
 
 ## Estado vigente — 10/10/2026
 
-M3.4 concluído: jornada Chrome/Next/API/MariaDB aprovada, revisão desktop/mobile e correção do tema Swagger. Próximo M4: contas e rendas; ainda não há operações financeiras. D21 resolvida; D13/D14/D16/D17 abertas. Cada marco exige documento com regras de negócio e atualização de status. [Estado completo](../status/PROJECT_STATUS.md) · [Entregas](../deliveries/README.md). Commit por etapa; sem push intermediário.
+M4 concluído: contas, extrato, transferências, fontes de renda fixas/variáveis com vigência, previsões (mês atual + 12), recebimentos, estornos, idempotência e média anual por meses fechados (D22–D25). Próximo M5: despesas e liquidação. D13/D14/D16/D17 abertas. Cada marco exige documento com regras de negócio e atualização de status. [Estado completo](../status/PROJECT_STATUS.md) · [Entregas](../deliveries/README.md). Commit por etapa; sem push intermediário.
 
 ## Histórico de execução
 
@@ -36,3 +36,5 @@ M3.1 implementado e testado: moradores sem login, inativação, configurações 
 M3.2 implementado: Category/IncomeType/Creditor/PaymentMethod em tabelas próprias, hierarquia por casa e versões imutáveis CatalogRevision. 29 testes .NET com novas asserções, build/lint/teste HTTP Next aprovados. Ver testing/m3-2-catalogs.md. Próximo M3.3 (tipos de despesa/campos parametrizados). Sem push.
 
 M3.3 implementado: ExpenseType/ExpenseTypeVersion, definições de campos tipados serializadas por versão imutável, formulário dinâmico e validação API. 38 testes .NET, build/lint/teste HTTP aprovados; ver testing/m3-3-expense-types.md. Próximo M3.4 revisão integrada: Chrome/Edge executáveis locais detectados, tentar teste headless isolado para validar visual e jornada real sem depender do conector CUA indisponível. Sem push.
+
+M4 implementado: decisões D22–D25 registradas no início do marco (todas as periodicidades, horizonte +12, média do ano civil por meses fechados, recebimento acima da base é um só lançamento com comparativo). 58 testes .NET e jornada Chrome/Next/API/MariaDB aprovados; ver testing/m4-accounts-income.md. Pendente confirmar se a média deve ignorar meses anteriores à data de início da casa. .gitignore igualado ao RevendaPRO (.idea/) e launchSettings.json versionado como no RevendaPRO. Sem push.

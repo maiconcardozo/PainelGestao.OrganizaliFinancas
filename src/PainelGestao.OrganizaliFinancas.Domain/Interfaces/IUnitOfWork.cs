@@ -13,5 +13,8 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces
         IHouseholdRepository HouseholdRepository { get; }
         ICatalogRepository CatalogRepository { get; }
         IExpenseTypeRepository ExpenseTypeRepository { get; }
+        IAccountRepository AccountRepository { get; }
+        IIncomeRepository IncomeRepository { get; }
+        IIdempotencyRepository IdempotencyRepository { get; }
     }
 }

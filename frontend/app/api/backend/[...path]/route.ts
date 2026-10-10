@@ -15,10 +15,15 @@ async function forward(request: Request, path: string[]) {
   const token = await getAccessToken();
   if (!token) return NextResponse.json({ detail: "Entre novamente." }, { status: 401 });
   const url = new URL(request.url);
+  const headers: Record<string, string> = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  // Financial writes are deduplicated by the API; only a well-formed UUID is forwarded.
+  const idempotencyKey = request.headers.get("idempotency-key");
+  if (idempotencyKey && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idempotencyKey))
+    headers["Idempotency-Key"] = idempotencyKey;
   try {
     const response = await fetch(`${INTERNAL_API_URL}/api/${path.join("/")}${url.search}`, {
       method: request.method,
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      headers,
       body: readOnly ? undefined : await request.text(),
       cache: "no-store", redirect: "error", signal: AbortSignal.timeout(10000),
     });

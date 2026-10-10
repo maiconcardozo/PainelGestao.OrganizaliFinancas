@@ -15,7 +15,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
         Func<IDapperUnitOfWork, IMemberRepository> memberRepositoryFactory,
         Func<IDapperUnitOfWork, IHouseholdRepository> householdRepositoryFactory,
         Func<IDapperUnitOfWork, ICatalogRepository> catalogRepositoryFactory,
-        Func<IDapperUnitOfWork, IExpenseTypeRepository> expenseTypeRepositoryFactory)
+        Func<IDapperUnitOfWork, IExpenseTypeRepository> expenseTypeRepositoryFactory,
+        Func<IDapperUnitOfWork, IAccountRepository> accountRepositoryFactory,
+        Func<IDapperUnitOfWork, IIncomeRepository> incomeRepositoryFactory,
+        Func<IDapperUnitOfWork, IIdempotencyRepository> idempotencyRepositoryFactory)
         : DapperUnitOfWork(connectionFactory), IUnitOfWork
     {
         private ITenantRepository? _tenantRepository;
@@ -32,5 +35,11 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
         public ICatalogRepository CatalogRepository => _catalogRepository ??= catalogRepositoryFactory(this);
         private IExpenseTypeRepository? _expenseTypeRepository;
         public IExpenseTypeRepository ExpenseTypeRepository => _expenseTypeRepository ??= expenseTypeRepositoryFactory(this);
+        private IAccountRepository? _accountRepository;
+        public IAccountRepository AccountRepository => _accountRepository ??= accountRepositoryFactory(this);
+        private IIncomeRepository? _incomeRepository;
+        public IIncomeRepository IncomeRepository => _incomeRepository ??= incomeRepositoryFactory(this);
+        private IIdempotencyRepository? _idempotencyRepository;
+        public IIdempotencyRepository IdempotencyRepository => _idempotencyRepository ??= idempotencyRepositoryFactory(this);
     }
 }

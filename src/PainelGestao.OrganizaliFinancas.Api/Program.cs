@@ -24,6 +24,7 @@ app.MapMemberEndpoints();
 app.MapHouseholdEndpoints();
 app.MapCatalogEndpoints();
 app.MapExpenseTypeEndpoints();
+app.MapFinanceEndpoints();
 
 app.Run();
 

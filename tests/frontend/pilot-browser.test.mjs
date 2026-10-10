@@ -45,7 +45,7 @@ class Cdp {
   }
 }
 
-test("pilot journey through real browser, Next, API and disposable MariaDB", { timeout: 180000, skip: process.env.ORGANIZALI_DATABASE_TESTS !== "1" }, async () => {
+test("pilot journey through real browser, Next, API and disposable MariaDB", { timeout: 300000, skip: process.env.ORGANIZALI_DATABASE_TESTS !== "1" }, async () => {
   const databaseName = `organizali-browser-${randomUUID().slice(0, 8)}`;
   const output = join(root, "TestResults", "browser-m3"); await mkdir(output, { recursive: true });
   const profile = await mkdtemp(join(output, "chrome-"));
@@ -145,7 +145,44 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     await navigate(reader, "/catalogs/categories"); await waitFor(reader, "document.body.innerText.includes('Moradia') || !!document.querySelector('input[value=Moradia]')");
     assert.equal(await reader.evaluate("[...document.querySelectorAll('button')].some(b=>b.textContent==='Salvar cadastro')"), false);
     assert.equal(await reader.evaluate("fetch('/api/backend/catalogs/categories',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Denied',isActive:true,version:0,parentCode:null})}).then(r=>r.status)"), 403);
-    const swagger = await page(`${apiUrl}/swagger/index.html`);
+    // M4: contas, transferência, fonte fixa, recebimentos parciais e estorno pelo titular.
+    const submit = (session, selector) => session.evaluate(`document.querySelector(${JSON.stringify(selector)}).form.requestSubmit()`);
+    await navigate(editor, "/accounts"); await waitFor(editor, "!!document.querySelector('input[name=openingBalance]')");
+    for (const [name, balance] of [["Conta corrente", "1.000,00"], ["Poupança", "0,00"]]) {
+      const rows = await editor.evaluate("document.querySelectorAll('.finance-table tbody tr').length");
+      await input(editor, "input[name=name]", name); await input(editor, "input[name=openingBalance]", balance); await submit(editor, "input[name=openingBalance]");
+      await waitFor(editor, `document.querySelectorAll('.finance-table tbody tr').length === ${rows + 1}`);
+    }
+    await waitFor(editor, "!!document.querySelector('select[name=source]')");
+    await input(editor, "input[name=amount]", "500,00"); await submit(editor, "input[name=amount]");
+    await waitFor(editor, "document.body.innerText.includes('Transferência registrada')");
+    assert.ok((await editor.evaluate("document.querySelector('.money-summary strong').textContent")).includes("1.000,00"), "Transfer must keep the household total");
+    await navigate(editor, "/income"); await waitFor(editor, "!!document.querySelector('input[name=expected]')");
+    await input(editor, "input[name=name]", "Salário"); await input(editor, "input[name=expected]", "4.000,00"); await submit(editor, "input[name=expected]");
+    await waitFor(editor, "document.querySelectorAll('.forecast-list li').length === 3");
+    for (const amount of ["2.000,00", "1.800,00"]) {
+      const source = await editor.evaluate("[...document.querySelector('select[name=receiptSource]').options].find(o => o.value).value");
+      await input(editor, "select[name=receiptSource]", source); await waitFor(editor, "!!document.querySelector('select[name=receiptForecast]')?.value");
+      await input(editor, "input[name=amount]", amount); await submit(editor, "input[name=amount]");
+      await waitFor(editor, `document.body.innerText.includes('Recebimento registrado') && document.querySelector('.forecast-list li').innerText.includes(${JSON.stringify(amount === "2.000,00" ? "2.000,00" : "3.800,00")})`);
+    }
+    assert.ok((await editor.evaluate("document.querySelector('.forecast-list li').innerText")).includes("Falta receber R$ 200,00"), "Residual of 200 expected");
+    assert.equal(await editor.evaluate("[...document.querySelectorAll('button')].some(b => b.textContent === 'Estornar')"), false, "Editor cannot reverse");
+    await navigate(owner, "/income"); await waitFor(owner, "[...document.querySelectorAll('button')].some(b => b.textContent === 'Estornar')");
+    await owner.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Estornar').click()"); await waitFor(owner, "!!document.querySelector('input[name=reason]')");
+    await input(owner, "input[name=reason]", "Depósito devolvido"); await submit(owner, "input[name=reason]");
+    await waitFor(owner, "document.body.innerText.includes('Estornado: Depósito devolvido') && document.querySelector('.forecast-list li').innerText.includes('Falta receber R$ 2.000,00')");
+    await screenshot(owner, "rendas-desktop.png");
+    await owner.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 800, deviceScaleFactor: 1, mobile: false });
+    for (const [path, shot] of [["/income", "rendas-mobile.png"], ["/accounts", "contas-mobile.png"]]) {
+      await navigate(owner, path); await waitFor(owner, "!!document.querySelector('.money-summary')");
+      assert.ok(await owner.evaluate("document.documentElement.scrollWidth <= innerWidth"), `Mobile viewport overflow on ${path}`);
+      await screenshot(owner, shot);
+    }
+    await owner.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+    await navigate(owner, "/accounts"); await waitFor(owner, "!!document.querySelector('.finance-table')");
+    await owner.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Ver extrato').click()"); await waitFor(owner, "!!document.querySelector('.statement-totals')");
+    await screenshot(owner, "contas-desktop.png");    const swagger = await page(`${apiUrl}/swagger/index.html`);
     await waitFor(swagger, "!!document.querySelector('.swagger-ui .opblock')");
     await writeFile(join(output, "swagger-dom.html"), await swagger.evaluate("document.documentElement.outerHTML"));
     await waitFor(swagger, "!!document.querySelector('.swagger-ui .opblock') && !!document.querySelector('.global-docs-hero')");
@@ -153,7 +190,7 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     await owner.evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Sair de todas')).click()");
     await waitFor(owner, "location.pathname === '/login'");
     await navigate(owner, "/people"); await waitFor(owner, "location.pathname === '/login'");
-    await writeFile(join(output, "result.json"), JSON.stringify({ passed: true, household: "synthetic", browser: "Chrome headless isolated profile", database: "disposable MariaDB", checks: ["login", "HttpOnly", "resident without login", "mobile width", "manual invitation", "editor catalogs", "required custom field", "reader route and API denial", "Swagger", "logout and private route denial"], screenshots: ["moradores-mobile.png", "tipos-desktop.png", "swagger-desktop.png"] }, null, 2));
+    await writeFile(join(output, "result.json"), JSON.stringify({ passed: true, household: "synthetic", browser: "Chrome headless isolated profile", database: "disposable MariaDB", checks: ["login", "HttpOnly", "resident without login", "mobile width", "manual invitation", "editor catalogs", "required custom field", "reader route and API denial", "accounts and transfer total", "income forecast 4000 with 2000+1800 receipts", "owner reversal", "mobile accounts/income", "Swagger", "logout and private route denial"], screenshots: ["moradores-mobile.png", "tipos-desktop.png", "rendas-desktop.png", "rendas-mobile.png", "contas-mobile.png", "contas-desktop.png", "swagger-desktop.png"] }, null, 2));
   } finally {
     for (const socket of sockets) socket.socket.close();
     if (browser) { await browser.send("Browser.close").catch(() => {}); browser.socket.close(); }

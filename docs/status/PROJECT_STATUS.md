@@ -10,9 +10,10 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 - Moradores sem login, inativação, fuso IANA configurável, BRL, português e data inicial.
 - Categorias/subcategorias, tipos de renda, credores, formas de pagamento e revisões históricas.
 - Tipos de despesa com campos de texto, decimal, data, booleano e lista, definições versionadas e prévia validada no servidor.
+- Contas com saldo recomposto e extrato; transferências atômicas; fontes de renda fixas ou variáveis com vigência; previsões até o mês atual + 12; recebimentos com ou sem previsão; estornos compensatórios; idempotência; média mensal do ano e comparativo previsto × recebido (M4).
 - Base técnica, migrations, Swagger e telas integradas; testes em MariaDB efêmero e navegador isolado.
 
-**Ainda não há saldo financeiro, renda recebida, dívida liquidada, cartão, orçamento ou dashboard financeiro.** Os seletores de comportamento preparam esses módulos; não executam seus cálculos.
+**Ainda não há despesas, dívida liquidada, cartão, orçamento ou dashboard financeiro.** O saldo atual considera só rendas e transferências; saídas entram no M5. Os seletores de comportamento dos tipos de despesa preparam esses módulos; não executam seus cálculos.
 
 ## Entregas e situação
 
@@ -26,7 +27,7 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 | M2.4 | Interface integrada; aceite visual no M3.4 | [Entrega](../deliveries/M2.4.md) |
 | M3.1–M3.3 | Cadastros e parametrização implementados | [Entregas](../deliveries/README.md) |
 | M3.4 | Revisão integrada | [Evidências](../testing/m3-4-integrated.md) |
-| M4 | A implementar | Contas, extrato, transferências, fontes/previsões/recebimentos e estornos |
+| M4 | Contas e rendas implementadas | [Entrega](../deliveries/M4.md); agendador do horizonte fica para M8 |
 | M5 | A implementar | Obrigações, recorrências, parcelas, pagamentos, encargos, cancelamento e rateio |
 | M6 | A implementar; regra D13 aberta | Cartões, compras, faturas e pagamento sem duplicidade |
 | M7 | A implementar | Dashboard, fluxo, orçamento, agenda, filtros e alertas |
@@ -34,22 +35,18 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 | M9 | A implementar | Complementos da V1 |
 | M10 | A implementar; D14 aberta | Comercialização e importação |
 
-## Próximo marco: M4 — contas e rendas
+## Próximo marco: M5 — despesas e liquidação
 
-Implementar ponta a ponta, seguindo os contextos Accounts e Income já previstos, sem reorganizar as camadas:
+Implementar sobre as contas do M4, sem reorganizar as camadas:
 
-1. Conta financeira: nome, situação, data/valor inicial; extrato recomposto do saldo inicial e movimentos efetivos. Conta inativa preserva histórico. Não aceitar movimento anterior à abertura sem procedimento explícito de correção.
-2. Transferência: débito e crédito vinculados na mesma transação, entre contas da mesma casa. Não altera renda/despesa nem saldo consolidado; tarifa é despesa separada.
-3. Fontes de renda por morador: tipo, bruto opcional, líquido esperado e vigência versionada. Mudança futura não reescreve previsão histórica.
-4. Previsões por competência: geração idempotente e vínculo com a versão da fonte. Definir periodicidades adicionais e horizonte antes de expor geração automática não aprovada.
-5. Recebimentos: conta e data reais; renda extra sem previsão; recebimentos parciais e múltiplas alocações explícitas. Soma alocada não supera o recebido.
-6. Estorno: titular, justificativa, movimento compensatório e vínculo com original; nunca apagar movimento confirmado.
-7. Precisão: decimal(19,2), valores monetários como string invariável na API, nenhuma soma financeira oficial em ponto flutuante.
-8. Idempotência por casa/operação/chave e hash do conteúdo; repetição divergente gera conflito. Movimento, alocação e auditoria confirmados juntos.
-9. Interface RevendaPRO adaptada, permissões e isolamento testados; documentação de entrega com exemplos e regras.
+1. Obrigação com tipo de despesa versionado (M3.3), categoria, credor, competência, vencimento, pagador e responsável; valores dos campos adicionais vinculados à versão do tipo.
+2. Recorrência com a mesma geração idempotente das previsões de renda (horizonte D23, chave casa/regra/data) e escolha “esta” ou “esta e próximas”.
+3. Parcelamento com prévia e soma exata (R$ 100 em 3 → 33,33 + 33,33 + 33,34).
+4. Pagamento: saída da conta, alocações, juros/multa/desconto separados, pagamentos parciais, idempotência e bloqueio contra pagar acima do saldo aberto, reaproveitando `AccountMovement` e `IdempotencyRecord`.
+5. Estorno de pagamento (titular), reabrindo o saldo; rateio por valor ou percentual sem criar segunda despesa (D10).
+6. Saldo das contas passa a refletir saídas; interface no padrão das telas de Contas/Rendas.
 
-Aceite: previsão de R$ 4.000, recebimentos de R$ 2.000 e R$ 1.800, realizado R$ 3.800 e residual R$ 200. Transferir R$ 500 entre contas conserva o total da casa. Repetir a mesma requisição não duplica entrada. Estornar mantém o original e recompõe o saldo.
-
+Aceite: R$ 100 em três parcelas soma R$ 100; dois responsáveis e um pagador sem duplicação; pagamentos concorrentes não quitam em excesso; estorno restaura o saldo aberto e o da conta.
 ## Trabalho restante por marco
 
 | Marco | Funcionalidades e regras essenciais | Aceite |
@@ -67,11 +64,11 @@ Aceite: previsão de R$ 4.000, recebimentos de R$ 2.000 e R$ 1.800, realizado R$
 |---|---|
 | RF01, RF03, RF37 | Implementados no escopo de piloto manual |
 | RF02 | Sessões implementadas; recuperação externa pendente |
-| RF04–05 | Cadastro/configuração implementados; aplicação em finanças entra no M4 |
-| RF06–11 | M4 pendente |
+| RF04–05 | Cadastro/configuração implementados; fuso da casa aplicado às datas financeiras do M4 |
+| RF06–11 | Implementados no M4 (contas, extrato, transferência, fontes, previsões e recebimentos) |
 | RF12–15 | Cadastros/parametrização implementados; integração com lançamento/orçamento depende dos módulos respectivos |
 | RF16–20, RF22, RF41 | M5 pendente |
-| RF21 | Estorno de recebimento no M4 e pagamento no M5; ambos pendentes |
+| RF21 | Estorno de recebimento e transferência implementado no M4; estorno de pagamento no M5 |
 | RF23–25 | M6 pendente |
 | RF26–33 | M7 pendente |
 | RF36 | Autoria e históricos implementados nos módulos atuais; auditoria integral e consulta operacional ainda evoluem com os módulos |

@@ -1,5 +1,6 @@
 # Visual Studio e configurações locais
 .vs/
+.idea/
 *.user
 *.suo
 
