@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { House, LogOut, Menu, UserRound, Users, Settings, type LucideIcon } from "lucide-react";
+import { House, LogOut, Menu, UserRound, Users, Settings, Tags, type LucideIcon } from "lucide-react";
 import type { Session } from "@/lib/session";
 
 /** RevendaPRO shell structure: sidebar, current screen, identity and content. */
@@ -13,7 +13,7 @@ export function PanelShell({ session, children }: { session: Session; children: 
   const [menuOpen, setMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const icons: Record<string, LucideIcon> = { House, UserRound, Users, Settings };
+  const icons: Record<string, LucideIcon> = { House, UserRound, Users, Settings, Tags };
   const items = session.menu.map(item => ({ ...item, Icon: icons[item.icon] ?? House }));
   async function signOut() {
     setBusy(true); setError("");
@@ -32,13 +32,13 @@ export function PanelShell({ session, children }: { session: Session; children: 
     <aside id="panel-sidebar" className={`panel-sidebar ${menuOpen ? "is-open" : ""}`}>
       <div className="brand"><House aria-hidden="true" /><span>Organizali<span className="brand-subtitle">Finanças da casa</span></span></div>
       <nav aria-label="Navegação principal">{items.map(({ route, name, Icon }) =>
-        <Link key={route} href={route} onClick={() => setMenuOpen(false)} aria-current={pathname === route ? "page" : undefined}><Icon aria-hidden="true" size={20} />{name}</Link>)}
+        <Link key={route} href={route} onClick={() => setMenuOpen(false)} aria-current={pathname === route || pathname.startsWith(`${route}/`) ? "page" : undefined}><Icon aria-hidden="true" size={20} />{name}</Link>)}
       </nav>
       <div className="panel-identity"><p>{session.name}</p><button disabled={busy} onClick={signOut}><LogOut aria-hidden="true" size={20} />{busy ? "Saindo…" : "Sair de todas as sessões"}</button>
         {error && <p role="alert">{error}</p>}
       </div>
     </aside>
-    <div className="panel-main"><header className="panel-header">{items.find(item => item.route === pathname)?.name}</header>
+    <div className="panel-main"><header className="panel-header">{items.find(item => item.route === pathname || pathname.startsWith(`${item.route}/`))?.name}</header>
       <main id="content" tabIndex={-1}>{children}</main>
     </div>
   </div>;

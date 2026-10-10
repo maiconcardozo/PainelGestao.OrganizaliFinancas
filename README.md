@@ -233,6 +233,7 @@ O pipeline ainda não foi criado.
 | M2.3 — permissões | [Perfis, convites, integrantes e revogação implementados e testados](docs/testing/m2-3-members.md) |
 | M2.4 — interface | [Login, shell e Minha conta](docs/testing/m2-4-web-access.md), menu por permissões e integrantes implementados; revisão visual pendente |
 | M3.1 — moradores e configurações | [Cadastro sem login, fuso, BRL e português implementados e testados](docs/testing/m3-1-households.md) |
+| M3.2 — catálogos | [Categorias, tipos de renda, credores e formas de pagamento implementados e testados](docs/testing/m3-2-catalogs.md) |
 
 ## 📋 Documentação por público
 

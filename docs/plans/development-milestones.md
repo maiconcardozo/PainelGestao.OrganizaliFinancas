@@ -140,9 +140,9 @@ Skills: **clean-ddd-hexagonal** nas fronteiras/invariantes; **clean-code** na im
 
 ### M3.2 — Catálogos
 
-- [ ] Implementar categorias/subcategorias, tipos de renda, credores e formas de pagamento.
-- [ ] Aplicar escopo por casa, validação e inativação.
-- [ ] Garantir que alterações de rótulo não mudem o significado financeiro do histórico.
+- [x] Implementar categorias/subcategorias, tipos de renda, credores e formas de pagamento.
+- [x] Aplicar escopo por casa, validação e inativação.
+- [x] Garantir que alterações de rótulo não mudem o significado financeiro do histórico.
 
 ### M3.3 — Parametrização
 

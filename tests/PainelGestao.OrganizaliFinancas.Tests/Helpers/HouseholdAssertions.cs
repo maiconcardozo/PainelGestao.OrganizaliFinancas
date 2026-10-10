@@ -71,6 +71,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             var session = (await owner.GetFromJsonAsync<SuccessDetails<SessionDto>>("/api/auth/me"))!.Data;
             actor.Should().Be(session.UserCode.ToString());
             (await database.QuerySingleAsync<int>("SELECT COUNT(*) FROM User WHERE Name='Morador sem e-mail'")).Should().Be(0);
+            await CatalogAssertions.VerifyAsync(owner, other, reader, connection);
         }
         private static async Task Login(HttpClient client, string email)
         {

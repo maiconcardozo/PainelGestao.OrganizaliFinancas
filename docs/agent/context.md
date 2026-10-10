@@ -24,3 +24,5 @@ M2.4 parcialmente entregue: login, shell responsivo, Minha conta, renovação ex
 D21 aprovada na continuação após a matriz apresentada. M2.3 implementado: Role/UserRole por casa, titulares/editor/leitor, convites manuais de 48h, menu servidor, bloqueio/revogação e proteção concorrente do último titular. 29 testes .NET e testes Next aprovados. Ver testing/m2-3-members.md. M2.4 integrado com permissões; visual ainda pendente. Próximo M3.1. Sem push.
 
 M3.1 implementado e testado: moradores sem login, inativação, configurações pt-BR/BRL/fuso IANA/data inicial, controle de versão e autoria. 29 testes .NET em banco descartável, build/lint/teste HTTP web aprovados. Ver testing/m3-1-households.md. Próximo M3.2; sem push.
+
+M3.2 implementado: Category/IncomeType/Creditor/PaymentMethod em tabelas próprias, hierarquia por casa e versões imutáveis CatalogRevision. 29 testes .NET com novas asserções, build/lint/teste HTTP Next aprovados. Ver testing/m3-2-catalogs.md. Próximo M3.3 (tipos de despesa/campos parametrizados). Sem push.
