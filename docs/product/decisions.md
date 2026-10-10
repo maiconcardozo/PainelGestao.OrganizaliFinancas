@@ -1,0 +1,38 @@
+# Registro de decisões e dúvidas
+
+Estado inicial em 10/10/2026. O usuário pediu que dúvidas sejam perguntadas sempre. Uma proposta abaixo não equivale a decisão aceita.
+
+## Confirmadas
+
+| ID | Decisão | Origem |
+|---|---|---|
+| D01 | Projeto particular, sem envolvimento operacional da empresa | Mensagem do usuário |
+| D02 | Não registrar na Wiki | Recusa explícita |
+| D03 | RevendaPRO como referência principal de arquitetura e tecnologia | Confirmação do usuário |
+| D04 | Uma casa por assinatura | Resposta à pergunta de escopo |
+| D05 | Preparar escopo, requisitos, plano e README antes do desenvolvimento | Pedido inicial |
+| D06 | Perguntar quando houver dúvida | Orientação explícita |
+| D07 | Dados financeiros compartilhados; permissões controlam edição | Resposta do usuário |
+| D08 | Piloto com famílias convidadas e liberação manual | Resposta do usuário |
+| D18 | Dashboard moderno com saldo, fluxo de caixa, orçamento e alertas para coordenar a casa | Complemento explícito do usuário |
+| D09 | Uso do Foundation.Base autorizado no projeto particular | Resposta específica do usuário; restore/feed serão validados em M1 |
+| D10 | Rateio por valor ou percentual na primeira versão | Resposta específica do usuário |
+| D11 | Moeda BRL no lançamento | Confirmação conjunta da proposta de renda |
+| D12 | Bruto opcional, líquido esperado e recebimentos efetivos separados | Resposta específica do usuário |
+
+## Perguntas abertas
+
+| ID | Questão | Alternativas/impacto | Momento limite |
+|---|---|---|---|
+| D13 | Fechamento do cartão usa lançamento no dia de corte em qual fatura? | Proposta de prévia editável; regra precisa ser escolhida pela casa/cartão | Antes do módulo de cartões |
+| D14 | Planos, preços, limites, trial, cancelamento e inadimplência? | Sem valores inventados; dependente da modalidade comercial | Antes do lançamento comercial |
+| D15 | Nome público Organizali Finanças, cores e estilo visual? | Nome deriva do repositório; identidade proposta em experience.md | Antes do frontend final |
+| D16 | Hospedagem, domínio, e-mail, storage e metas de disponibilidade? | Mantém Docker; dimensionamento e custos dependem das escolhas | Antes de homologação externa |
+| D17 | Prazo de retenção, exclusão definitiva e acesso excepcional de suporte? | Proposta técnica deve ser validada para a operação real | Antes de receber usuários externos |
+| D19 | Português e fuso padrão America/Sao_Paulo para a casa? | Proposta configurável, sem conversão de vencimento por UTC | Antes das regras de calendário |
+
+D04 e D07–D12 já foram respondidas. Não repetir perguntas já respondidas. D13–D17 e D19 são dúvidas registradas para discussão antes das etapas correspondentes; ainda não são decisões aprovadas.
+
+## Regra de tratamento
+
+Trabalhar nas partes independentes enquanto aguarda resposta. Não implementar a parte que depende de decisão aberta. Ao receber resposta, atualizar este registro e os documentos afetados, preservando histórico. Estimativas de prazo permanecem condicionais à capacidade disponível, compatibilidade da stack e regras detalhadas aprovadas.
