@@ -17,5 +17,6 @@ Cada documento registra objetivo, funcionalidades, regras de negócio, validaç�
 - [M3.4 — Demonstração integrada](M3.4.md)
 - [M4 — Contas e rendas](M4.md)
 - [M5 — Despesas e liquidação](M5.md)
+- [M6 — Cartões e faturas](M6.md)
 
 Próximas entregas devem usar a mesma estrutura, atualizar o [quadro consolidado](../status/PROJECT_STATUS.md) e registrar um commit por etapa. Não marcar futuro como entregue nem apresentar seletor como mecanismo financeiro implementado.

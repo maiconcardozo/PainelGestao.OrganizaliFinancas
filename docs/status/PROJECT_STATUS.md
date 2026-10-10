@@ -12,9 +12,10 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 - Tipos de despesa com campos de texto, decimal, data, booleano e lista, definições versionadas e prévia validada no servidor.
 - Contas com saldo recomposto e extrato; transferências atômicas; fontes de renda fixas ou variáveis com vigência; previsões até o mês atual + 12; recebimentos com ou sem previsão; estornos compensatórios; idempotência; média mensal do ano e comparativo previsto × recebido (M4).
 - Despesas avulsas, recorrentes (fixas ou estimadas, “esta” ou “esta e próximas”) e parceladas com soma exata; pagamentos parciais com juros, multa e desconto separados; cancelamento; estorno de pagamento; rateio por valor ou percentual com acerto sugerido; saldo das contas com as saídas (M5).
+- Cartões sem número, compras à vista ou parceladas nas faturas pelos ciclos, prévia com correção de um ciclo, pagamento de fatura que reduz o caixa uma vez, estorno da loja e limite disponível estimado (M6).
 - Base técnica, migrations, Swagger e telas integradas; testes em MariaDB efêmero e navegador isolado.
 
-**Ainda não há cartão, orçamento ou dashboard financeiro.** O saldo atual considera rendas, transferências e pagamentos; compras no cartão entram no M6. O comportamento “cartão” dos tipos de despesa ainda é recusado.
+**Ainda não há orçamento, alertas ou dashboard financeiro.** O saldo atual considera rendas, transferências e pagamentos (inclusive de faturas); compras no cartão só afetam o caixa quando a fatura é paga.
 
 ## Entregas e situação
 
@@ -30,29 +31,26 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 | M3.4 | Revisão integrada | [Evidências](../testing/m3-4-integrated.md) |
 | M4 | Contas e rendas implementadas | [Entrega](../deliveries/M4.md); agendador do horizonte fica para M8 |
 | M5 | Despesas e liquidação implementadas | [Entrega](../deliveries/M5.md); premissas A01–A05 a revisar |
-| M6 | A implementar; regra D13 aberta | Cartões, compras, faturas e pagamento sem duplicidade |
+| M6 | Cartões e faturas implementados; D13 com premissa A06 | [Entrega](../deliveries/M6.md) |
 | M7 | A implementar | Dashboard, fluxo, orçamento, agenda, filtros e alertas |
 | M8 | A implementar; D16/D17 abertas | Segurança operacional, recuperação, homologação e aceite da família piloto |
 | M9 | A implementar | Complementos da V1 |
 | M10 | A implementar; D14 aberta | Comercialização e importação |
 
-## Próximo marco: M6 — cartões e faturas
+## Próximo marco: M7 — painel, fluxo, orçamento e alertas
 
-Implementar sobre despesas e pagamentos do M5, sem reorganizar as camadas:
+1. Painel da casa: saldo real, previsto × realizado do mês, saldo projetado com origem rastreável e primeira data de déficit.
+2. Fluxo de caixa diário e mensal: saldo inicial, entradas, saídas, saldo final; trecho futuro diferenciado.
+3. Orçamento mensal por categoria (pai agrega filhos sem dupla soma), cópia do mês anterior com revisão, comprometido × pago, sem orçamento × limite zero.
+4. Alertas configuráveis (80%/100%), saldo projetado negativo, vencimentos e faturas próximas, deduplicados por condição/versão; ler, adiar e resolver.
+5. Agenda (vencidos, hoje, 7/30 dias) e filtros por mês, conta, pessoa, categoria e situação com o mesmo total em gráfico e lista.
 
-1. Cartão com apelido, titular, dia de fechamento, dia de vencimento e limite informado; nunca PAN/CVV.
-2. Compra no cartão (à vista ou parcelada) gera itens nas faturas pelos ciclos; não movimenta conta bancária.
-3. Fatura agregadora (aberta, fechada, paga em parte, paga) com prévia da fatura de destino; alterar fechamento afeta só ciclos futuros.
-4. Pagamento da fatura reduz o caixa uma única vez; pagamento parcial mantém o restante em aberto; estorno de compra reduz a despesa.
-5. Regra do dia de corte (D13): sem resposta, aplicar a premissa registrada e manter a prévia editável.
-
-Aceite: compra de 300 + pagamento de 300 não vira despesa de 600; parcial de 100 em fatura de 300 deixa 200; limite disponível estimado.
+Aceite: mostrar a origem do total, excesso de orçamento e primeira data de déficit; mesmo total em gráfico e lista; revisão mobile.
 
 ## Trabalho restante por marco
 
 | Marco | Funcionalidades e regras essenciais | Aceite |
 |---|---|---|
-| M6 | Cartão sem PAN/CVV; corte/vencimento; compras não reduzem banco; parcelas em faturas; pagamento reduz caixa uma vez; estornos e parcial reconciliados | Compra R$ 300 + pagamento R$ 300 não vira despesa R$ 600; regra de corte confirmada antes do código dependente |
 | M7 | Saldo real/projetado rastreável, fluxo diário/mensal, previsto/realizado, orçamento por categoria, subcategorias sem dupla soma, alertas configuráveis/deduplicados, agenda e filtros | Mostrar origem do total, excesso de orçamento e primeira data de déficit; mesmo total em gráfico/lista; revisão mobile |
 | M8 | Recuperação real após provedor escolhido, configuração de produção, observabilidade, backup/restauração, segurança, limites, concorrência, jornada completa e política de retenção | Restauração ensaiada e família piloto valida jornada; nenhuma liberação antecipada por cadastro funcionar |
 | M9 | Comprovantes privados, exportações autorizadas, metas, conciliação manual justificada, renegociação vinculada, encerramento/exportação/exclusão, resumo mensal e simulação | Arquivos isolados por casa; reserva não cria renda; simulação não cria obrigação; exclusão segue política aprovada |
@@ -69,7 +67,7 @@ Aceite: compra de 300 + pagamento de 300 não vira despesa de 600; parcial de 10
 | RF12–15 | Cadastros/parametrização implementados; integração com lançamento/orçamento depende dos módulos respectivos |
 | RF16–20, RF22, RF41 | Implementados no M5 |
 | RF21 | Estornos de recebimento, transferência (M4) e pagamento (M5) implementados |
-| RF23–25 | M6 pendente |
+| RF23–25 | Implementados no M6 |
 | RF26–33 | M7 pendente |
 | RF36 | Autoria e históricos implementados nos módulos atuais; auditoria integral e consulta operacional ainda evoluem com os módulos |
 | RF34–35, RF38–40, RF42, RF45–46 | M9 pendente |

@@ -126,6 +126,291 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.ToTable("AccountMovement", (string)null);
                 });
 
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.CardInvoice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime>("ClosingDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(6);
+
+                    b.Property<Guid>("Code")
+                        .HasColumnType("char(36)")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(14);
+
+                    b.Property<DateTime>("DtCreated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(9);
+
+                    b.Property<DateTime?>("DtDeleted")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(13);
+
+                    b.Property<DateTime?>("DtUpdated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(11);
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(7);
+
+                    b.Property<int>("IdCreditCard")
+                        .HasColumnType("int")
+                        .HasColumnOrder(4);
+
+                    b.Property<int>("IdTenant")
+                        .HasColumnType("int")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnOrder(8);
+
+                    b.Property<DateTime>("ReferenceMonth")
+                        .HasColumnType("date")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(12);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IdTenant", "IdCreditCard", "ReferenceMonth")
+                        .IsUnique();
+
+                    b.ToTable("CardInvoice", (string)null);
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.CardItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("decimal(19,2)")
+                        .HasColumnOrder(8);
+
+                    b.Property<Guid>("Code")
+                        .HasColumnType("char(36)")
+                        .HasColumnOrder(2);
+
+                    b.Property<DateTime>("Competence")
+                        .HasColumnType("date")
+                        .HasColumnOrder(9);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(13);
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(17);
+
+                    b.Property<DateTime>("DtCreated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(12);
+
+                    b.Property<DateTime?>("DtDeleted")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(16);
+
+                    b.Property<DateTime?>("DtUpdated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(14);
+
+                    b.Property<int>("IdCardInvoice")
+                        .HasColumnType("int")
+                        .HasColumnOrder(5);
+
+                    b.Property<int>("IdCardPurchase")
+                        .HasColumnType("int")
+                        .HasColumnOrder(4);
+
+                    b.Property<int>("IdTenant")
+                        .HasColumnType("int")
+                        .HasColumnOrder(3);
+
+                    b.Property<int?>("InstallmentNumber")
+                        .HasColumnType("int")
+                        .HasColumnOrder(7);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnOrder(11);
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnOrder(6);
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(15);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IdTenant", "Competence");
+
+                    b.HasIndex("IdTenant", "IdCardPurchase");
+
+                    b.HasIndex("IdTenant", "IdCardInvoice", "IsActive");
+
+                    b.ToTable("CardItem", (string)null);
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.CardPurchase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<Guid>("Code")
+                        .HasColumnType("char(36)")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(18);
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(22);
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnOrder(8);
+
+                    b.Property<DateTime>("DtCreated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(17);
+
+                    b.Property<DateTime?>("DtDeleted")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(21);
+
+                    b.Property<DateTime?>("DtUpdated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(19);
+
+                    b.Property<int?>("ExpenseTypeVersion")
+                        .HasColumnType("int")
+                        .HasColumnOrder(9);
+
+                    b.Property<string>("FieldValuesJson")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnOrder(10);
+
+                    b.Property<int?>("IdBuyerPerson")
+                        .HasColumnType("int")
+                        .HasColumnOrder(5);
+
+                    b.Property<int?>("IdCategory")
+                        .HasColumnType("int")
+                        .HasColumnOrder(7);
+
+                    b.Property<int>("IdCreditCard")
+                        .HasColumnType("int")
+                        .HasColumnOrder(4);
+
+                    b.Property<int?>("IdExpenseType")
+                        .HasColumnType("int")
+                        .HasColumnOrder(6);
+
+                    b.Property<int>("IdTenant")
+                        .HasColumnType("int")
+                        .HasColumnOrder(3);
+
+                    b.Property<int>("InstallmentCount")
+                        .HasColumnType("int")
+                        .HasColumnOrder(13);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnOrder(16);
+
+                    b.Property<DateTime>("PurchaseDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(11);
+
+                    b.Property<decimal>("RefundedAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("decimal(19,2)")
+                        .HasColumnOrder(14);
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("decimal(19,2)")
+                        .HasColumnOrder(12);
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(20);
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int")
+                        .HasColumnOrder(15);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IdTenant", "IdBuyerPerson");
+
+                    b.HasIndex("IdTenant", "IdCategory");
+
+                    b.HasIndex("IdTenant", "IdCreditCard");
+
+                    b.HasIndex("IdTenant", "IdExpenseType");
+
+                    b.HasIndex("IdTenant", "PurchaseDate");
+
+                    b.ToTable("CardPurchase", (string)null);
+                });
+
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.CatalogRevision", b =>
                 {
                     b.Property<int>("Id")
@@ -281,6 +566,96 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.HasIndex("IdTenant", "IdParentCategory");
 
                     b.ToTable("Category", (string)null);
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.CreditCard", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("ClosingDay")
+                        .HasColumnType("int")
+                        .HasColumnOrder(6);
+
+                    b.Property<string>("ClosingDayRule")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnOrder(9);
+
+                    b.Property<Guid>("Code")
+                        .HasColumnType("char(36)")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(13);
+
+                    b.Property<decimal?>("CreditLimit")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("decimal(19,2)")
+                        .HasColumnOrder(8);
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(17);
+
+                    b.Property<DateTime>("DtCreated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(12);
+
+                    b.Property<DateTime?>("DtDeleted")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(16);
+
+                    b.Property<DateTime?>("DtUpdated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(14);
+
+                    b.Property<int>("DueDay")
+                        .HasColumnType("int")
+                        .HasColumnOrder(7);
+
+                    b.Property<int>("IdHolderPerson")
+                        .HasColumnType("int")
+                        .HasColumnOrder(4);
+
+                    b.Property<int>("IdTenant")
+                        .HasColumnType("int")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnOrder(11);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("varchar(60)")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(15);
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int")
+                        .HasColumnOrder(10);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IdTenant", "IdHolderPerson");
+
+                    b.ToTable("CreditCard", (string)null);
                 });
 
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.Creditor", b =>
@@ -1260,12 +1635,12 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.Property<decimal>("Amount")
                         .HasPrecision(19, 2)
                         .HasColumnType("decimal(19,2)")
-                        .HasColumnOrder(17);
+                        .HasColumnOrder(18);
 
                     b.Property<string>("CancelReason")
                         .HasMaxLength(300)
                         .HasColumnType("varchar(300)")
-                        .HasColumnOrder(20);
+                        .HasColumnOrder(21);
 
                     b.Property<Guid>("Code")
                         .HasColumnType("char(36)")
@@ -1273,49 +1648,53 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
 
                     b.Property<DateTime>("Competence")
                         .HasColumnType("date")
-                        .HasColumnOrder(15);
+                        .HasColumnOrder(16);
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(29);
+                        .HasColumnOrder(30);
 
                     b.Property<string>("DeletedBy")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(33);
+                        .HasColumnOrder(34);
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(12);
 
                     b.Property<DateTime>("DtCreated")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(28);
+                        .HasColumnOrder(29);
 
                     b.Property<DateTime?>("DtDeleted")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(32);
+                        .HasColumnOrder(33);
 
                     b.Property<DateTime?>("DtUpdated")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(30);
+                        .HasColumnOrder(31);
 
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("date")
-                        .HasColumnOrder(16);
+                        .HasColumnOrder(17);
 
                     b.Property<int?>("ExpenseTypeVersion")
                         .HasColumnType("int")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<string>("FieldValuesJson")
                         .IsRequired()
                         .HasColumnType("longtext")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(14);
+
+                    b.Property<int?>("IdCardInvoice")
+                        .HasColumnType("int")
+                        .HasColumnOrder(11);
 
                     b.Property<int?>("IdCategory")
                         .HasColumnType("int")
@@ -1351,51 +1730,51 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
 
                     b.Property<int?>("InstallmentCount")
                         .HasColumnType("int")
-                        .HasColumnOrder(25);
+                        .HasColumnOrder(26);
 
                     b.Property<int?>("InstallmentNumber")
                         .HasColumnType("int")
-                        .HasColumnOrder(24);
+                        .HasColumnOrder(25);
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)")
-                        .HasColumnOrder(27);
+                        .HasColumnOrder(28);
 
                     b.Property<bool>("IsDetached")
                         .HasColumnType("tinyint(1)")
-                        .HasColumnOrder(23);
+                        .HasColumnOrder(24);
 
                     b.Property<bool>("IsEstimated")
                         .HasColumnType("tinyint(1)")
-                        .HasColumnOrder(18);
+                        .HasColumnOrder(19);
 
                     b.Property<DateTime?>("OccurrenceDate")
                         .HasColumnType("date")
-                        .HasColumnOrder(22);
+                        .HasColumnOrder(23);
 
                     b.Property<int?>("RecurrenceVersion")
                         .HasColumnType("int")
-                        .HasColumnOrder(21);
+                        .HasColumnOrder(22);
 
                     b.Property<string>("SplitMode")
                         .HasMaxLength(10)
                         .HasColumnType("varchar(10)")
-                        .HasColumnOrder(14);
+                        .HasColumnOrder(15);
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("varchar(10)")
-                        .HasColumnOrder(19);
+                        .HasColumnOrder(20);
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(31);
+                        .HasColumnOrder(32);
 
                     b.Property<int>("Version")
                         .HasColumnType("int")
-                        .HasColumnOrder(26);
+                        .HasColumnOrder(27);
 
                     b.HasKey("Id");
 
@@ -1405,6 +1784,9 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.HasIndex("IdTenant", "Competence");
 
                     b.HasIndex("IdTenant", "DueDate");
+
+                    b.HasIndex("IdTenant", "IdCardInvoice")
+                        .IsUnique();
 
                     b.HasIndex("IdTenant", "IdCategory");
 
@@ -3001,6 +3383,61 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.CardInvoice", b =>
+                {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.CreditCard", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdCreditCard")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.CardItem", b =>
+                {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.CardInvoice", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdCardInvoice")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.CardPurchase", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdCardPurchase")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.CardPurchase", b =>
+                {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdBuyerPerson")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Category", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdCategory")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.CreditCard", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdCreditCard")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.ExpenseType", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdExpenseType")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.CatalogRevision", b =>
                 {
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Tenant", null)
@@ -3023,6 +3460,16 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .HasForeignKey("IdTenant", "IdParentCategory")
                         .HasPrincipalKey("IdTenant", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.CreditCard", b =>
+                {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdHolderPerson")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.Creditor", b =>
@@ -3159,6 +3606,12 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
 
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.Obligation", b =>
                 {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.CardInvoice", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdCardInvoice")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Category", null)
                         .WithMany()
                         .HasForeignKey("IdTenant", "IdCategory")

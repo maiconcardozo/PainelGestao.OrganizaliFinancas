@@ -84,7 +84,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
             return new ExpenseDto(x.Code, x.Description, x.Competence.ToString("yyyy-MM"), DateOnly.FromDateTime(x.DueDate), Money.Format(x.Amount),
                 Money.Format(x.Adjustments), Money.Format(x.Paid), Money.Format(state.OpenBalance), state.Status, state.IsOverdue, x.IsEstimated, x.CancelReason,
                 x.ExpenseTypeCode, x.ExpenseTypeName, x.ExpenseTypeVersion, x.CategoryCode, x.CategoryName, x.CreditorCode, x.CreditorName, x.PaymentMethodCode,
-                x.PayerPersonCode, x.PayerPersonName, x.RecurrenceCode, x.IsDetached, x.InstallmentPlanCode, x.InstallmentNumber, x.InstallmentCount, x.SplitMode,
+                x.PayerPersonCode, x.PayerPersonName, x.RecurrenceCode, x.IsDetached, x.InstallmentPlanCode, x.InstallmentNumber, x.InstallmentCount, x.CardInvoiceCode, x.SplitMode,
                 shares.Where(s => s.ObligationCode == x.Code).Select(s => new ShareDto(s.PersonCode, s.PersonName, Money.Format(s.Amount),
                     s.Percent is decimal percent ? percent.ToString("0.####", CultureInfo.InvariantCulture) : null)).ToArray(),
                 Fields(x.FieldValuesJson), x.Version);

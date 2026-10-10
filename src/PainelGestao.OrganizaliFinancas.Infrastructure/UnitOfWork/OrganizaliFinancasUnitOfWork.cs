@@ -19,7 +19,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
         Func<IDapperUnitOfWork, IAccountRepository> accountRepositoryFactory,
         Func<IDapperUnitOfWork, IIncomeRepository> incomeRepositoryFactory,
         Func<IDapperUnitOfWork, IIdempotencyRepository> idempotencyRepositoryFactory,
-        Func<IDapperUnitOfWork, IExpenseRepository> expenseRepositoryFactory)
+        Func<IDapperUnitOfWork, IExpenseRepository> expenseRepositoryFactory,
+        Func<IDapperUnitOfWork, ICardRepository> cardRepositoryFactory)
         : DapperUnitOfWork(connectionFactory), IUnitOfWork
     {
         private ITenantRepository? _tenantRepository;
@@ -44,5 +45,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
         public IIdempotencyRepository IdempotencyRepository => _idempotencyRepository ??= idempotencyRepositoryFactory(this);
         private IExpenseRepository? _expenseRepository;
         public IExpenseRepository ExpenseRepository => _expenseRepository ??= expenseRepositoryFactory(this);
+        private ICardRepository? _cardRepository;
+        public ICardRepository CardRepository => _cardRepository ??= cardRepositoryFactory(this);
     }
 }

@@ -26,6 +26,7 @@ app.MapCatalogEndpoints();
 app.MapExpenseTypeEndpoints();
 app.MapFinanceEndpoints();
 app.MapExpenseEndpoints();
+app.MapCardEndpoints();
 
 app.Run();
 

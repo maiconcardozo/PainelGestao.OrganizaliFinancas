@@ -32,7 +32,7 @@ Estado inicial em 10/10/2026. O usuário pediu que dúvidas sejam perguntadas se
 
 | ID | Questão | Alternativas/impacto | Momento limite |
 |---|---|---|---|
-| D13 | Fechamento do cartão usa lançamento no dia de corte em qual fatura? | Proposta de prévia editável; regra precisa ser escolhida pela casa/cartão | Antes do módulo de cartões |
+| D13 | Fechamento do cartão usa lançamento no dia de corte em qual fatura? | Proposta de prévia editável; regra precisa ser escolhida pela casa/cartão. Implementado como opção por cartão com padrão da premissa A06 | Antes do módulo de cartões |
 | D14 | Planos, preços, limites, trial, cancelamento e inadimplência? | Sem valores inventados; dependente da modalidade comercial | Antes do lançamento comercial |
 | D16 | Hospedagem, domínio, e-mail, storage e metas de disponibilidade? | Mantém Docker; dimensionamento e custos dependem das escolhas | Antes de homologação externa |
 | D17 | Prazo de retenção, exclusão definitiva e acesso excepcional de suporte? | Proposta técnica deve ser validada para a operação real | Antes de receber usuários externos |
@@ -52,6 +52,9 @@ Em 10/10/2026 o usuário autorizou concluir todos os marcos até a publicação 
 | A03 | O comportamento do tipo de despesa define o formulário (avulsa, recorrente, parcelada, cartão) | M5 | Permitir tipo neutro em qualquer formulário |
 | A04 | O acerto do rateio é sugestão exibida; não gera lançamento. Se ocorrer entre contas da casa, registra-se transferência | M5 | Registrar acerto como movimento interno vinculado |
 | A05 | Pagamento pode deixar a conta com saldo negativo (cheque especial); só o saldo aberto da despesa é limite | M5 | Bloquear saída acima do saldo da conta |
+| A06 | D13 sem resposta: cada cartão escolhe a regra; o padrão é a compra do dia do fechamento entrar na **próxima** fatura. A prévia permite mover a primeira parcela um ciclo antes de salvar | M6 | Trocar o padrão para “fatura que fecha no dia” ou responder D13 |
+| A07 | Compras no cartão não são rateadas entre moradores no M6 | M6 | Rateio por percentual nas parcelas, como nas recorrências |
+| A08 | Estorno da loja cancela as últimas parcelas ainda abertas que cabem no valor e credita o restante na fatura da data; crédito de fatura já paga fica como saldo negativo dessa fatura | M6 | Transferir crédito automaticamente para a próxima fatura |
 
 ## Regra de tratamento
 

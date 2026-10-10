@@ -12,7 +12,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             SELECT o.Code,o.Description,o.Competence,o.DueDate,o.Amount,({AdjustmentSum}) Adjustments,({LivePaid}) Paid,o.Status,o.IsEstimated,
                 o.CancelReason,t.Code ExpenseTypeCode,t.Name ExpenseTypeName,o.ExpenseTypeVersion,c.Code CategoryCode,c.Name CategoryName,
                 cr.Code CreditorCode,cr.Name CreditorName,pm.Code PaymentMethodCode,pp.Code PayerPersonCode,pp.Name PayerPersonName,
-                r.Code RecurrenceCode,o.IsDetached,ip.Code InstallmentPlanCode,o.InstallmentNumber,o.InstallmentCount,o.FieldValuesJson,o.SplitMode,o.Version
+                r.Code RecurrenceCode,o.IsDetached,ip.Code InstallmentPlanCode,o.InstallmentNumber,o.InstallmentCount,o.FieldValuesJson,o.SplitMode,o.Version,ci.Code CardInvoiceCode
             FROM Obligation o
             LEFT JOIN ExpenseType t ON t.Id=o.IdExpenseType AND t.IdTenant=o.IdTenant
             LEFT JOIN Category c ON c.Id=o.IdCategory AND c.IdTenant=o.IdTenant
@@ -21,6 +21,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             LEFT JOIN Person pp ON pp.Id=o.IdPayerPerson AND pp.IdTenant=o.IdTenant
             LEFT JOIN RecurringExpense r ON r.Id=o.IdRecurringExpense AND r.IdTenant=o.IdTenant
             LEFT JOIN InstallmentPlan ip ON ip.Id=o.IdInstallmentPlan AND ip.IdTenant=o.IdTenant
+            LEFT JOIN CardInvoice ci ON ci.Id=o.IdCardInvoice AND ci.IdTenant=o.IdTenant
             """;
         public const string List = SelectObligation + $"""
              WHERE o.IdTenant=@IdTenant AND o.IsActive=1 AND (o.DueDate BETWEEN @From AND @To

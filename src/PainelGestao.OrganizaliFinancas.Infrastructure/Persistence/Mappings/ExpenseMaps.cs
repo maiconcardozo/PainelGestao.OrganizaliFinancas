@@ -78,6 +78,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Persistence.Mappings
                 .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<InstallmentPlan>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdInstallmentPlan })
                 .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
+            // A card invoice has exactly one backing obligation.
+            builder.HasIndex(x => new { x.IdTenant, x.IdCardInvoice }).IsUnique();
+            builder.HasOne<CardInvoice>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdCardInvoice })
+                .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
         }
     }
     public class ObligationShareMap : EntityMap<ObligationShare>, IEntityTypeConfiguration<ObligationShare>

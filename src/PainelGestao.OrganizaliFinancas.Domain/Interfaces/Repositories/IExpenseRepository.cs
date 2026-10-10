@@ -13,7 +13,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         public Guid? PaymentMethodCode { get; init; } public Guid? PayerPersonCode { get; init; } public string? PayerPersonName { get; init; }
         public Guid? RecurrenceCode { get; init; } public bool IsDetached { get; init; } public Guid? InstallmentPlanCode { get; init; }
         public int? InstallmentNumber { get; init; } public int? InstallmentCount { get; init; } public string FieldValuesJson { get; init; } = "{}";
-        public string? SplitMode { get; init; } public int Version { get; init; }
+        public string? SplitMode { get; init; } public int Version { get; init; } public Guid? CardInvoiceCode { get; init; }
     }
     public sealed record ShareRecord
     {

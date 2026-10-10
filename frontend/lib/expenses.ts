@@ -7,7 +7,7 @@ export type Expense = {
   status: "open" | "partial" | "paid" | "cancelled"; isOverdue: boolean; isEstimated: boolean; cancelReason: string | null;
   expenseTypeCode: string | null; expenseTypeName: string | null; expenseTypeVersion: number | null; categoryCode: string | null; categoryName: string | null;
   creditorCode: string | null; creditorName: string | null; paymentMethodCode: string | null; payerPersonCode: string | null; payerPersonName: string | null;
-  recurrenceCode: string | null; isDetached: boolean; installmentPlanCode: string | null; installmentNumber: number | null; installmentCount: number | null;
+  recurrenceCode: string | null; isDetached: boolean; installmentPlanCode: string | null; installmentNumber: number | null; installmentCount: number | null; cardInvoiceCode: string | null;
   splitMode: string | null; shares: Share[]; fields: Record<string, unknown>; version: number;
 };
 export type ExpenseList = { from: string; to: string; today: string; total: string; paid: string; open: string; overdue: string; items: Expense[] };

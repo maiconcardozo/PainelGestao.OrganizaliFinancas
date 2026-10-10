@@ -71,6 +71,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Authentication.Handlers
                 menu.Add(new("accounts", "Contas", "/accounts", "Landmark"));
                 menu.Add(new("income", "Rendas", "/income", "TrendingUp"));
                 menu.Add(new("expenses", "Despesas", "/expenses", "Receipt"));
+                menu.Add(new("cards", "Cartões", "/cards", "CreditCard"));
                 menu.Add(new("expense-types", "Tipos de despesa", "/expense-types", "Tags"));
                 menu.Add(new("household-settings", "Configurações da casa", "/household-settings", "Settings"));
             }

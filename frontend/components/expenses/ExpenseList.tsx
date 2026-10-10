@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { civilDate, monthLabel, money, toApiMoney, type Account } from "@/lib/finance";
 import { adjustmentKinds, statusLabels, type Expense, type ExpenseDetail } from "@/lib/expenses";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
+import type { Person } from "@/components/households/HouseholdForms";
 import { ShareInputs, type Catalogs } from "./DetailInputs";
 
 type Rights = { canEdit: boolean; canSettle: boolean };
@@ -29,7 +30,7 @@ function ExpenseRow({ expense, accounts, catalogs, today, canEdit, canSettle }: 
     event.preventDefault();
     await action.send(`expenses/${expense.code}/cancel`, "POST", { reason: new FormData(event.currentTarget).get("reason"), version: expense.version }, "Despesa cancelada.");
   }
-  const origin = expense.installmentNumber ? `Parcela ${expense.installmentNumber}/${expense.installmentCount}` : expense.recurrenceCode ? (expense.isDetached ? "Recorrente, editada" : "Recorrente") : null;
+  const origin = expense.cardInvoiceCode ? "Fatura do cartão" : expense.installmentNumber ? `Parcela ${expense.installmentNumber}/${expense.installmentCount}` : expense.recurrenceCode ? (expense.isDetached ? "Recorrente, editada" : "Recorrente") : null;
   return <li className={`expense-row status-${expense.status}${expense.isOverdue ? " is-overdue" : ""}`}>
     <div className="expense-main">
       <div><strong>{expense.description}</strong>
@@ -49,17 +50,18 @@ function ExpenseRow({ expense, accounts, catalogs, today, canEdit, canSettle }: 
     <div className="row-actions">
       {canSettle && open && accounts.some(account => account.isActive) && <button type="button" className="secondary-button" aria-expanded={panel === "pay"} onClick={() => setPanel(panel === "pay" ? "" : "pay")}>Pagar</button>}
       <button type="button" className="secondary-button" aria-expanded={panel === "detail"} disabled={action.busy} onClick={toggleDetail}>Detalhes</button>
-      {canEdit && expense.status === "open" && <button type="button" className="text-button" onClick={() => setPanel(panel === "cancel" ? "" : "cancel")}>Cancelar despesa</button>}
+      {canEdit && expense.status === "open" && !expense.cardInvoiceCode && <button type="button" className="text-button" onClick={() => setPanel(panel === "cancel" ? "" : "cancel")}>Cancelar despesa</button>}
     </div>
-    {panel === "pay" && <PayForm expense={expense} accounts={accounts} catalogs={catalogs} today={today} />}
+    {panel === "pay" && <PayForm expense={expense} accounts={accounts} people={catalogs.people} today={today} />}
     {panel === "cancel" && <form className="inline-form" onSubmit={cancel}><label>Por que cancelar?<input name="reason" required maxLength={300} /></label>
       <button className="secondary-button" disabled={action.busy}>Confirmar cancelamento</button></form>}
     {panel === "detail" && detail && <DetailPanel detail={detail} catalogs={catalogs} canEdit={canEdit} canSettle={canSettle} />}
   </li>;
 }
 
-/** Partial or total payment; interest, fine and discount are shown separately before confirming. */
-function PayForm({ expense, accounts, catalogs, today }: { expense: Expense; accounts: Account[]; catalogs: Catalogs; today: string }) {
+export type Payable = Pick<Expense, "code" | "description" | "openBalance" | "payerPersonCode" | "paymentMethodCode">;
+/** Partial or total payment; interest, fine and discount are shown separately before confirming. Also pays card invoices. */
+export function PayForm({ expense, accounts, people, today }: { expense: Payable; accounts: Account[]; people: Person[]; today: string }) {
   const action = useFinanceAction();
   const [extra, setExtra] = useState({ interest: "", fine: "", discount: "" });
   const charges = Number(toApiMoney(extra.interest) || 0) + Number(toApiMoney(extra.fine) || 0) - Number(toApiMoney(extra.discount) || 0);
@@ -80,7 +82,7 @@ function PayForm({ expense, accounts, catalogs, today }: { expense: Expense; acc
       <label>Conta de saída<select name="account" required>{accounts.filter(account => account.isActive).map(account => <option key={account.code} value={account.code}>{account.name}</option>)}</select></label>
       <label>Data do pagamento<input type="date" name="paymentDate" required defaultValue={today} max={today} /></label>
       <label>Quem pagou<select name="payer" defaultValue={expense.payerPersonCode ?? ""}><option value="">A casa</option>
-        {catalogs.people.filter(person => person.isActive).map(person => <option key={person.code} value={person.code}>{person.name}</option>)}</select></label>
+        {people.filter(person => person.isActive).map(person => <option key={person.code} value={person.code}>{person.name}</option>)}</select></label>
     </div>
     <div className="form-row">
       {(["interest", "fine", "discount"] as const).map(kind => <label key={kind}>{adjustmentKinds[kind]} (opcional)
@@ -96,7 +98,7 @@ function PayForm({ expense, accounts, catalogs, today }: { expense: Expense; acc
 function DetailPanel({ detail, catalogs, canEdit, canSettle }: { detail: ExpenseDetail; catalogs: Catalogs; canEdit: boolean; canSettle: boolean }) {
   const action = useFinanceAction();
   const expense = detail.expense;
-  const editable = canEdit && (expense.status === "open" || expense.status === "partial");
+  const editable = canEdit && !expense.cardInvoiceCode && (expense.status === "open" || expense.status === "partial");
   async function edit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

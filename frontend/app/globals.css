@@ -171,6 +171,7 @@ button:disabled { opacity: .65; cursor: wait; }
   .stack-table tbody tr:last-child { border-bottom: 0; }
   .stack-table tbody tr > * { border-bottom: 0; padding: .35rem .8rem; }
   .stack-table tbody td:nth-child(3), .stack-table tbody td.row-actions { grid-column: 1 / -1; }
+  .stack-table tbody td.number { white-space: normal; text-align: right; }
 }
 
 /* M5 — despesas. Situação por cor e texto (nunca só cor); vencida destaca a borda. */
@@ -210,3 +211,7 @@ button:disabled { opacity: .65; cursor: wait; }
 .expense-detail { display: grid; gap: .75rem; border-top: 1px solid var(--border); padding-top: .75rem; }
 .expense-detail h3 { font-size: 1rem; }
 .expense-detail .entry-list { margin: 0; }
+
+/* M6 — cartões. */
+.inline-select { display: inline-grid; gap: .3rem; font-weight: 600; margin: .5rem 0; }
+.inline-select select { min-height: 44px; padding: .5rem; border: 1px solid var(--border); border-radius: .3rem; background: var(--surface); color: var(--ink); font: inherit; }

@@ -29,7 +29,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
         string OpenBalance, string Status, bool IsOverdue, bool IsEstimated, string? CancelReason, Guid? ExpenseTypeCode, string? ExpenseTypeName,
         int? ExpenseTypeVersion, Guid? CategoryCode, string? CategoryName, Guid? CreditorCode, string? CreditorName, Guid? PaymentMethodCode,
         Guid? PayerPersonCode, string? PayerPersonName, Guid? RecurrenceCode, bool IsDetached, Guid? InstallmentPlanCode, int? InstallmentNumber,
-        int? InstallmentCount, string? SplitMode, IReadOnlyList<ShareDto> Shares, JsonElement Fields, int Version);
+        int? InstallmentCount, Guid? CardInvoiceCode, string? SplitMode, IReadOnlyList<ShareDto> Shares, JsonElement Fields, int Version);
     /// <summary>Totals cover the obligations due in the period; overdue items from earlier periods are listed and summed separately.</summary>
     public sealed record ExpenseListDto(DateOnly From, DateOnly To, DateOnly Today, string Total, string Paid, string Open, string Overdue, IReadOnlyList<ExpenseDto> Items);
     public sealed record AdjustmentDto(Guid Code, string Kind, string Amount, DateOnly Date, string Reason);

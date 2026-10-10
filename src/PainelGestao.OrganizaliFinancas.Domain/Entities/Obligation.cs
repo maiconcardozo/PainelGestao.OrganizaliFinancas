@@ -44,6 +44,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
         public int? IdInstallmentPlan { get; private set; }
         public int? InstallmentNumber { get; private set; }
         public int? InstallmentCount { get; private set; }
+        public int? IdCardInvoice { get; private set; }
         public int Version { get; private set; }
 
         public static Obligation Create(int idTenant, ObligationDetails details, DateOnly competence, DateOnly dueDate, decimal amount, string actor)
@@ -59,6 +60,17 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
             (obligation.InstallmentNumber, obligation.InstallmentCount) = (installment.Number, count);
             return obligation;
         }
+        /// <summary>Backing obligation of a card invoice: its amount is the sum of the invoice items and starts at zero.</summary>
+        public static Obligation CreateInvoice(CreditCard card, CardInvoice invoice, string actor)
+        {
+            var obligation = new Obligation(card.IdTenant)
+            {
+                Description = $"Fatura {card.Name}", Competence = invoice.ReferenceMonth, DueDate = invoice.DueDate, Amount = 0, FieldValuesJson = "{}"
+            };
+            obligation.SetCreatedBy(actor);
+            return obligation;
+        }
+        public bool IsInvoice() => IdCardInvoice is not null;
         public static DateOnly Month(DateOnly date) => new(date.Year, date.Month, 1);
         private void Apply(ObligationDetails details, DateOnly competence, DateOnly dueDate, decimal amount)
         {
@@ -80,6 +92,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
         public void Edit(ObligationDetails details, DateOnly competence, DateOnly dueDate, decimal amount, decimal livePaid, string actor)
         {
             EnsureOpen();
+            EnsureNotInvoice();
             if (livePaid > 0 && amount != Amount)
                 throw new ConflictException("Esta despesa já tem pagamento; corrija o valor com juros, multa, desconto ou ajuste.");
             Apply(details.Normalized(), competence, dueDate, amount);
@@ -92,10 +105,15 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
         public void Cancel(string reason, decimal livePaid, string actor)
         {
             EnsureOpen();
+            EnsureNotInvoice();
             if (livePaid > 0) throw new ConflictException("Esta despesa tem pagamento ativo. Estorne o pagamento antes de cancelar.");
             ArgumentException.ThrowIfNullOrWhiteSpace(reason);
             Status = "cancelled"; CancelReason = reason.Trim(); Version++;
             UpdateAuditInfo(actor);
+        }
+        private void EnsureNotInvoice()
+        {
+            if (IsInvoice()) throw new ConflictException("O valor da fatura vem das compras do cartão; altere ou estorne as compras.");
         }
         public void EnsureOpen()
         {

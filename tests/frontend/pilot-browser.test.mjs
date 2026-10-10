@@ -208,6 +208,28 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     assert.ok(await owner.evaluate("document.documentElement.scrollWidth <= innerWidth"), "Mobile viewport overflow on /expenses");
     await screenshot(owner, "despesas-mobile.png");
     await owner.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+    // M6: cartão sem número, compra de 300 sem mexer na conta e pagamento da fatura que reduz o caixa uma única vez.
+    const householdTotal = async session => { await navigate(session, "/accounts"); await waitFor(session, "!!document.querySelector('.money-summary strong')");
+      return Number((await session.evaluate("document.querySelector('.money-summary strong').textContent")).replace(/[^\d,-]/g, "").replace(",", ".")); };
+    const before = await householdTotal(editor);
+    await navigate(editor, "/cards"); await waitFor(editor, "!!document.querySelector('input[name=closingDay]')");
+    await input(editor, "input[name=name]", "Visa da casa"); await input(editor, "input[name=creditLimit]", "1.000,00"); await submit(editor, "input[name=closingDay]");
+    await waitFor(editor, "document.body.innerText.includes('Cartão cadastrado') && !!document.querySelector('input[name=total]')");
+    await input(editor, "input[name=description]", "Mercado no cartão"); await input(editor, "input[name=total]", "300,00");
+    await editor.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Ver em quais faturas cai').click()");
+    await waitFor(editor, "document.querySelector('.data-form caption')?.textContent.includes('1 parcela(s) somando R$')");
+    await submit(editor, "input[name=total]"); await waitFor(editor, "document.body.innerText.includes('Compra lançada') && [...document.querySelectorAll('.expense-row')].some(r => r.innerText.includes('300,00'))");
+    assert.equal(await householdTotal(editor), before, "A card purchase must not change the household balance");
+    await navigate(editor, "/cards"); await waitFor(editor, "[...document.querySelectorAll('button')].some(b => b.textContent === 'Pagar fatura')");
+    await editor.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Pagar fatura').click()"); await waitFor(editor, "!!document.querySelector('.nested-form input[name=amount]')");
+    await submit(editor, ".nested-form input[name=amount]"); await waitFor(editor, "[...document.querySelectorAll('.status-tag')].some(t => t.textContent === 'Paga')");
+    await screenshot(editor, "cartoes-desktop.png");
+    assert.equal(await householdTotal(editor), before - 300, "Paying the invoice reduces cash once");
+    await editor.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 800, deviceScaleFactor: 1, mobile: false });
+    await navigate(editor, "/cards"); await waitFor(editor, "!!document.querySelector('.money-grid')");
+    assert.ok(await editor.evaluate("document.documentElement.scrollWidth <= innerWidth"), "Mobile viewport overflow on /cards");
+    await screenshot(editor, "cartoes-mobile.png");
+    await editor.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
     const swagger = await page(`${apiUrl}/swagger/index.html`);
     await waitFor(swagger, "!!document.querySelector('.swagger-ui .opblock')");
     await writeFile(join(output, "swagger-dom.html"), await swagger.evaluate("document.documentElement.outerHTML"));
@@ -216,7 +238,7 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     await owner.evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Sair de todas')).click()");
     await waitFor(owner, "location.pathname === '/login'");
     await navigate(owner, "/people"); await waitFor(owner, "location.pathname === '/login'");
-    await writeFile(join(output, "result.json"), JSON.stringify({ passed: true, household: "synthetic", browser: "Chrome headless isolated profile", database: "disposable MariaDB", checks: ["login", "HttpOnly", "resident without login", "mobile width", "manual invitation", "editor catalogs", "required custom field", "reader route and API denial", "accounts and transfer total", "income forecast 4000 with 2000+1800 receipts", "owner reversal", "mobile accounts/income", "expense partial payment", "installments 100 in 3", "owner payment reversal", "mobile expenses", "Swagger", "logout and private route denial"], screenshots: ["moradores-mobile.png", "tipos-desktop.png", "rendas-desktop.png", "rendas-mobile.png", "contas-mobile.png", "contas-desktop.png", "despesas-desktop.png", "despesas-mobile.png", "swagger-desktop.png"] }, null, 2));
+    await writeFile(join(output, "result.json"), JSON.stringify({ passed: true, household: "synthetic", browser: "Chrome headless isolated profile", database: "disposable MariaDB", checks: ["login", "HttpOnly", "resident without login", "mobile width", "manual invitation", "editor catalogs", "required custom field", "reader route and API denial", "accounts and transfer total", "income forecast 4000 with 2000+1800 receipts", "owner reversal", "mobile accounts/income", "expense partial payment", "installments 100 in 3", "owner payment reversal", "mobile expenses", "card purchase keeps balance", "invoice payment once", "mobile cards", "Swagger", "logout and private route denial"], screenshots: ["moradores-mobile.png", "tipos-desktop.png", "rendas-desktop.png", "rendas-mobile.png", "contas-mobile.png", "contas-desktop.png", "despesas-desktop.png", "despesas-mobile.png", "cartoes-desktop.png", "cartoes-mobile.png", "swagger-desktop.png"] }, null, 2));
   } finally {
     for (const socket of sockets) socket.socket.close();
     if (browser) { await browser.send("Browser.close").catch(() => {}); browser.socket.close(); }
