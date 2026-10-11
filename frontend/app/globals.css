@@ -1952,7 +1952,7 @@ a {
     color: var(--text-secondary);
   }
 
-  .session-message > a,
+  .session-message > a:not(.primary-button),
   .session-message .form-hint a {
     display: inline-block;
     margin-top: 0.75rem;
@@ -1962,7 +1962,7 @@ a {
     text-decoration: none;
   }
 
-  .session-message > a:hover,
+  .session-message > a:not(.primary-button):hover,
   .session-message .form-hint a:hover {
     text-decoration: underline;
   }
@@ -2121,4 +2121,10 @@ a {
 .modal-card h2 {
   font-family: var(--font-display), "Segoe UI", sans-serif;
   letter-spacing: -0.01em;
+}
+
+/* The call to action on the public pages keeps the button colors and sits apart from the text above. */
+.session-message > a.primary-button {
+  margin-top: 0.25rem;
+  color: #fff;
 }
