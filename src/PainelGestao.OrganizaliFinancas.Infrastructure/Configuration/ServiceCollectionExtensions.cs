@@ -50,7 +50,13 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Configuration
                 _ => work => new Repositories.Authentication.AuthenticationRepository(work));
             services.Configure<Shared.Settings.JwtSettings>(configuration.GetSection(Shared.Settings.JwtSettings.SectionName));
             services.AddScoped<Domain.Interfaces.Security.ITokenService, Security.JwtTokenService>();
-            services.AddSingleton<Domain.Interfaces.Security.IRecoveryDelivery, Security.UnavailableRecoveryDelivery>();
+            var mail = configuration.GetSection(MailSettings.SectionName).Get<MailSettings>() ?? new MailSettings();
+            services.AddSingleton(mail);
+            // Without a configured provider the recovery keeps answering 503 instead of pretending to send.
+            if (mail.IsConfigured) services.AddSingleton<Domain.Interfaces.Security.IRecoveryDelivery, Security.SmtpRecoveryDelivery>();
+            else services.AddSingleton<Domain.Interfaces.Security.IRecoveryDelivery, Security.UnavailableRecoveryDelivery>();
+            services.AddSingleton(configuration.GetSection(JobSettings.SectionName).Get<JobSettings>() ?? new JobSettings());
+            services.AddScoped<Domain.Interfaces.Services.IJobLock, Services.MariaDbJobLock>();
             services.AddScoped<Func<IDapperUnitOfWork, Domain.Interfaces.Repositories.IPilotRepository>>(
                 _ => work => new Repositories.Pilot.PilotRepository(work));
             services.AddScoped<Domain.Interfaces.Security.IPasswordHasher, Security.PasswordHasherService>();

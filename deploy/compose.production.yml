@@ -1,0 +1,106 @@
+# Organizali Finanças — produção em um servidor com Docker.
+# Uso: docker compose -f deploy/compose.production.yml --env-file deploy/.env.production up -d
+# Só o proxy publica portas. O banco fica numa rede interna, sem saída; a API não é exposta.
+name: organizali
+services:
+  database:
+    image: mariadb:11.8
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: organizali
+      MARIADB_USER: organizali
+      MARIADB_PASSWORD: ${ORGANIZALI_DB_PASSWORD:?Defina ORGANIZALI_DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${ORGANIZALI_DB_ROOT_PASSWORD:?Defina ORGANIZALI_DB_ROOT_PASSWORD}
+    volumes:
+      - organizali_data:/var/lib/mysql
+    networks: [data]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Processo único de migration antes da API (nunca em cada réplica).
+  migrate:
+    image: "organizali-api:${ORGANIZALI_VERSION:?Defina ORGANIZALI_VERSION com o commit da imagem}"
+    build:
+      context: ..
+      dockerfile: src/PainelGestao.OrganizaliFinancas.Api/Dockerfile
+    command: ["--Operation=Migrate"]
+    environment: &api-environment
+      ASPNETCORE_ENVIRONMENT: Production
+      Jwt__Key: ${ORGANIZALI_JWT_KEY:?Defina ORGANIZALI_JWT_KEY com pelo menos 32 caracteres}
+      OrganizaliFinancas__ConnectionString: Server=database;Database=organizali;User=organizali;Password=${ORGANIZALI_DB_PASSWORD};Connection Timeout=5
+      Jobs__HorizonEnabled: "true"
+      Jobs__TrustedProxyNetworks__0: 172.16.0.0/12
+      Jobs__TrustedProxyNetworks__1: 192.168.0.0/16
+      Jobs__TrustedProxyNetworks__2: 10.0.0.0/8
+      Mail__Host: ${ORGANIZALI_SMTP_HOST:-}
+      Mail__Port: ${ORGANIZALI_SMTP_PORT:-587}
+      Mail__EnableSsl: ${ORGANIZALI_SMTP_SSL:-true}
+      Mail__User: ${ORGANIZALI_SMTP_USER:-}
+      Mail__Password: ${ORGANIZALI_SMTP_PASSWORD:-}
+      Mail__From: ${ORGANIZALI_SMTP_FROM:-}
+      Mail__AppOrigin: "${ORGANIZALI_PUBLIC_ORIGIN:?Defina ORGANIZALI_PUBLIC_ORIGIN com a origem pública https}"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks: [data]
+    restart: "no"
+
+  api:
+    image: organizali-api:${ORGANIZALI_VERSION}
+    restart: unless-stopped
+    environment: *api-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks: [data, app]
+
+  frontend:
+    image: organizali-frontend:${ORGANIZALI_VERSION}
+    build:
+      context: ../frontend
+    restart: unless-stopped
+    environment:
+      INTERNAL_API_URL: http://api:8080
+      APP_ORIGIN: ${ORGANIZALI_PUBLIC_ORIGIN}
+      COOKIE_SECURE: "true"
+    depends_on:
+      - api
+    networks: [app, edge]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      ORGANIZALI_SITE_ADDRESS: "${ORGANIZALI_SITE_ADDRESS:?Defina ORGANIZALI_SITE_ADDRESS com o domínio}"
+      ORGANIZALI_TLS: "${ORGANIZALI_TLS:?Defina ORGANIZALI_TLS com o e-mail do certificado ou internal}"
+    ports:
+      - "${ORGANIZALI_HTTP_PORT:-80}:80"
+      - "${ORGANIZALI_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      frontend:
+        condition: service_healthy
+    networks: [edge]
+
+networks:
+  data:
+    internal: true
+  app: {}
+  edge: {}
+
+volumes:
+  organizali_data:
+  caddy_data:
+  caddy_config:

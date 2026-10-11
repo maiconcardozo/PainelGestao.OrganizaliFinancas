@@ -19,5 +19,6 @@ Cada documento registra objetivo, funcionalidades, regras de negócio, validaç�
 - [M5 — Despesas e liquidação](M5.md)
 - [M6 — Cartões e faturas](M6.md)
 - [M7 — Painel, fluxo, orçamento e alertas](M7.md)
+- [M8 — Produção e publicação Docker](M8.md)
 
 Próximas entregas devem usar a mesma estrutura, atualizar o [quadro consolidado](../status/PROJECT_STATUS.md) e registrar um commit por etapa. Não marcar futuro como entregue nem apresentar seletor como mecanismo financeiro implementado.

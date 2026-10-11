@@ -11,7 +11,7 @@
 - [x] Escopo revisado pelo usuário e decisões necessárias a M1–M3 confirmadas; dúvidas futuras no registro de decisões.
 - [x] Desenvolvimento solicitado após revisão.
 
-## Gates de implementação — situação até M7
+## Gates de implementação — situação até M8
 
 - [x] Stack e Foundation restauram em ambiente independente; versões fixadas.
 - [x] Provider/migration MariaDB validado em vazio e atualização.
@@ -23,6 +23,6 @@
 - [x] Interface de acesso/cadastros revisada em desktop e viewport estreito; dashboard ainda pendente.
 - [ ] Orçamentos/alertas rastreáveis e sem duplicidade.
 - [ ] Backup restaurado e operação/retenção definidas.
-- [x] Build/lint/testes aplicáveis a M1–M7 aprovados; docs atualizadas.
+- [x] Build/lint/testes aplicáveis a M1–M8 aprovados; pilha de produção descartável, backup e restauração verificados; docs atualizadas.
 - [x] Documentos de entrega por marco com regras de negócio e quadro do trabalho restante.
 - [ ] Piloto autorizado e liberado manualmente.

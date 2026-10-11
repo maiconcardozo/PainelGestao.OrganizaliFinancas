@@ -19,3 +19,7 @@ coverage/
 !.env.*.example
 
 **/tsconfig.tsbuildinfo
+
+# Produção: segredos e backups nunca vão para o Git.
+deploy/.env.production
+deploy/backups/

@@ -60,5 +60,6 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Pilot
             INSERT INTO SubscriptionEvent (Code, IdTenant, IdSubscription, Status, Reason, IsActive, DtCreated, CreatedBy)
             VALUES (@Code, @IdTenant, @IdSubscription, @Status, @Reason, 1, UTC_TIMESTAMP(6), @Actor)
             """;
+        public const string ActiveHouseholds = "SELECT IdTenant FROM Subscription WHERE Status = @Status ORDER BY IdTenant";
     }
 }

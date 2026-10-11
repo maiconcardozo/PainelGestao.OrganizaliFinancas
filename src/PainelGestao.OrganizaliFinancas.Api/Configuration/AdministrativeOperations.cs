@@ -39,6 +39,10 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                         config["Reason"] ?? "", config["Actor"] ?? ""));
                     Console.WriteLine("Situação da assinatura atualizada.");
                     break;
+                case "RollHorizon":
+                    var roll = await mediator.Send(new Application.Planning.RollHorizonCommand(config["Actor"] is { Length: > 0 } actor ? actor : "operator:horizon"));
+                    Console.WriteLine(JsonSerializer.Serialize(roll));
+                    break;
                 default:
                     throw new InvalidOperationException("Operação administrativa desconhecida.");
             }

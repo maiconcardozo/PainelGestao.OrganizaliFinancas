@@ -1,6 +1,6 @@
 # Marcos de início do desenvolvimento
 
-Data: 10/10/2026. Fundação, acesso e cadastros implementados até M3.4; contas e rendas entregues no M4 ([entrega](../deliveries/M4.md)) despesas no M5 ([entrega](../deliveries/M5.md)) cartões no M6 ([entrega](../deliveries/M6.md)) e painel/orçamento/alertas no M7 ([entrega](../deliveries/M7.md)). Operação de produção, recuperação externa e complementos pendentes. [Estado completo](../status/PROJECT_STATUS.md) · [Entregas](../deliveries/README.md).
+Data: 10/10/2026. Fundação, acesso e cadastros implementados até M3.4; contas e rendas entregues no M4 ([entrega](../deliveries/M4.md)) despesas no M5 ([entrega](../deliveries/M5.md)) cartões no M6 ([entrega](../deliveries/M6.md)) painel/orçamento/alertas no M7 ([entrega](../deliveries/M7.md)) e produção com Docker no M8 ([entrega](../deliveries/M8.md)). Escolhas D16/D17, aceite da família piloto e complementos (M9–M10) pendentes. [Estado completo](../status/PROJECT_STATUS.md) · [Entregas](../deliveries/README.md).
 
 Este detalhamento desdobra M1–M3 do [plano geral](implementation.md), preservando seus identificadores e dependências. O primeiro objetivo demonstrável é entrar em uma casa isolada, navegar com permissões e manter seus cadastros. Indicadores financeiros reais entram após receitas, despesas e cartões.
 

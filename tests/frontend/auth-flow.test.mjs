@@ -10,7 +10,7 @@ test("cookies, origin protection, token isolation and expired-access logout", { 
   const access = "synthetic-access-token";
   const refresh = "synthetic-refresh-token";
   const backend = createServer((request, response) => {
-    calls.push({ path: request.url, authorization: request.headers.authorization });
+    calls.push({ path: request.url, authorization: request.headers.authorization, forwarded: request.headers["x-forwarded-for"] });
     request.resume();
     if (request.url === "/api/auth/logout") { response.writeHead(204); response.end(); return; }
     response.setHeader("Content-Type", "application/json");
@@ -64,8 +64,17 @@ test("cookies, origin protection, token isolation and expired-access logout", { 
     }
     const expired = await fetch(origin + "/household", { redirect: "manual", headers: { Cookie: `organizali_refresh=${refresh}` } });
     assert.equal(expired.headers.get("location"), "/session-renew");
-    const login = await post("/api/auth/login", { body: { email: "test@example.test", password: "synthetic" } });
+    const page = await fetch(origin + "/login");
+    assert.match(page.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
+    assert.equal(page.headers.get("x-frame-options"), "DENY");
+    assert.equal(page.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(page.headers.get("x-powered-by"), null);
+    assert.equal((await post("/api/auth/recovery", { headers: { Origin: "https://foreign.example" }, body: { email: "test@example.test" } })).status, 403);
+    assert.equal((await post("/api/auth/recovery", { body: { email: "test@example.test" } })).status, 202);
+    assert.equal((await post("/api/auth/reset-password", { headers: { Origin: "https://foreign.example" }, body: { token: "x", password: "password-long-enough" } })).status, 403);
+    const login = await post("/api/auth/login", { headers: { "X-Forwarded-For": "203.0.113.9" }, body: { email: "test@example.test", password: "synthetic" } });
     assert.equal(login.status, 200);
+    assert.ok(calls.some(call => call.path === "/api/auth/login" && call.forwarded === "203.0.113.9"), "the client address reaches the API for its rate limit");
     assert.deepEqual(await login.json(), { ok: true });
     const cookies = login.headers.getSetCookie();
     assert.equal(cookies.length, 2);

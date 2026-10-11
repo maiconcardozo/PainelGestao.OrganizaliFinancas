@@ -13,5 +13,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         Task<PilotRecord> ProvisionAsync(NewPilot pilot, CancellationToken cancellationToken);
         Task InitializeAccessAsync(Guid householdCode, string actor, CancellationToken cancellationToken);
         Task ChangeStatusAsync(Guid householdCode, SubscriptionStatus status, string reason, string actor, CancellationToken cancellationToken);
+        /// <summary>Households whose subscription is active, for platform routines that keep their own data current.</summary>
+        Task<IReadOnlyList<int>> ActiveHouseholdIdsAsync(CancellationToken cancellationToken);
     }
 }

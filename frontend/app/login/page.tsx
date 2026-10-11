@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { House } from "lucide-react";
 
 export default function Login() {
@@ -43,6 +44,7 @@ export default function Login() {
         <label>E-mail<input name="email" type="email" required maxLength={180} autoComplete="username" /></label>
         <label>Senha<input name="password" type="password" required maxLength={128} autoComplete="current-password" /></label>
         <button className="primary-button" disabled={busy}>{busy ? "Entrando…" : "Entrar"}</button>
+        <p className="form-hint"><Link href="/forgot-password">Esqueci minha senha</Link></p>
         <p className="form-hint">Ainda não tem acesso? Combine a liberação com quem organizou o piloto.</p>
       </form>
     </section>

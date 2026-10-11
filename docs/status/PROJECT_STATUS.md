@@ -14,9 +14,10 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 - Despesas avulsas, recorrentes (fixas ou estimadas, “esta” ou “esta e próximas”) e parceladas com soma exata; pagamentos parciais com juros, multa e desconto separados; cancelamento; estorno de pagamento; rateio por valor ou percentual com acerto sugerido; saldo das contas com as saídas (M5).
 - Cartões sem número, compras à vista ou parceladas nas faturas pelos ciclos, prévia com correção de um ciclo, pagamento de fatura que reduz o caixa uma vez, estorno da loja e limite disponível estimado (M6).
 - Painel da casa com saldo real, previsto × realizado, saldo projetado de 60 dias com primeira data de déficit e causas; fluxo de caixa diário e mensal; orçamento por categoria com hierarquia; central de alertas deduplicada; agenda; análise filtrada com o mesmo total no gráfico e na lista (M7).
+- Pilha Docker de produção com HTTPS (Caddy), banco em rede interna, migration em processo único, imagens versionadas por commit, backup cifrado e restauração ensaiada, rotina diária do horizonte com trava, recuperação de senha por SMTP configurável, cabeçalhos de segurança, limites por sessão e logs estruturados (M8).
 - Base técnica, migrations, Swagger e telas integradas; testes em MariaDB efêmero e navegador isolado.
 
-**O núcleo financeiro do piloto está completo (M4–M7).** Alertas aparecem só na tela (sem e-mail/WhatsApp até D16). Operação de produção, recuperação de senha real e complementos ficam para M8–M10.
+**O piloto está tecnicamente pronto para um servidor com Docker (M4–M8).** Faltam as escolhas de hospedagem, domínio e e-mail (D16), a política de retenção (D17) e o aceite da família piloto. Complementos (M9) e comercialização (M10) não foram iniciados.
 
 ## Entregas e situação
 
@@ -34,25 +35,21 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 | M5 | Despesas e liquidação implementadas | [Entrega](../deliveries/M5.md); premissas A01–A05 a revisar |
 | M6 | Cartões e faturas implementados; D13 com premissa A06 | [Entrega](../deliveries/M6.md) |
 | M7 | Painel, fluxo, orçamento, alertas e análise implementados | [Entrega](../deliveries/M7.md); premissas A09–A12 |
-| M8 | A implementar; D16/D17 abertas | Segurança operacional, recuperação, homologação e aceite da família piloto |
+| M8 | Produção e publicação Docker implementadas; D16/D17 e aceite da família piloto pendentes | [Entrega](../deliveries/M8.md) · [Runbook](../operations/runbook.md) |
 | M9 | A implementar | Complementos da V1 |
 | M10 | A implementar; D14 aberta | Comercialização e importação |
 
-## Próximo marco: M8 — piloto completo e publicação Docker
+## Próximos passos
 
-1. Configuração de produção: variáveis obrigatórias validadas, segredos fora do repositório, cookies seguros, cabeçalhos de segurança e limites.
-2. Docker Compose de produção com proxy HTTPS, imagens versionadas por commit, usuários sem privilégio, healthchecks e volume persistente do MariaDB.
-3. Migrations no início controlado, rotina diária das previsões e recorrências (horizonte D23) e observabilidade (logs estruturados sem dados sensíveis, correlação).
-4. Backup e restauração ensaiados em banco descartável.
-5. Recuperação de senha com provedor SMTP configurável (D16): sem provedor, o recurso continua indisponível.
-
-Aceite: restauração ensaiada; jornada completa verificada nas imagens de produção; nenhuma liberação antecipada por cadastro funcionar.
+1. **Usuário:** responder D16 (servidor, domínio, provedor SMTP), D17 (retenção/exclusão) e revisar as premissas A01–A15; validar a jornada com a família piloto.
+2. **Publicar:** preencher `deploy/.env.production`, rodar `deploy/publish.sh` e subir a pilha conforme o [runbook](../operations/runbook.md).
+3. **M9 — complementos da V1:** comprovantes privados, exportações, metas de reserva, conciliação manual, renegociação, encerramento/exportação/exclusão (depende de D17), resumo mensal e simulação.
+4. **M10:** comercialização (depende de D14) e importação CSV/OFX.
 
 ## Trabalho restante por marco
 
 | Marco | Funcionalidades e regras essenciais | Aceite |
 |---|---|---|
-| M8 | Recuperação real após provedor escolhido, configuração de produção, observabilidade, backup/restauração, segurança, limites, concorrência, jornada completa e política de retenção | Restauração ensaiada e família piloto valida jornada; nenhuma liberação antecipada por cadastro funcionar |
 | M9 | Comprovantes privados, exportações autorizadas, metas, conciliação manual justificada, renegociação vinculada, encerramento/exportação/exclusão, resumo mensal e simulação | Arquivos isolados por casa; reserva não cria renda; simulação não cria obrigação; exclusão segue política aprovada |
 | M10 | Planos/preços/trial/cancelamento após decisão, cobrança automática sandbox, webhook idempotente e eventos fora de ordem; CSV/OFX com prévia | Sem cobrança real em testes; importar somente após confirmação da prévia |
 
@@ -61,7 +58,7 @@ Aceite: restauração ensaiada; jornada completa verificada nas imagens de produ
 | Requisitos | Situação |
 |---|---|
 | RF01, RF03, RF37 | Implementados no escopo de piloto manual |
-| RF02 | Sessões implementadas; recuperação externa pendente |
+| RF02 | Sessões e recuperação por SMTP configurável implementadas; provedor real depende de D16 |
 | RF04–05 | Cadastro/configuração implementados; fuso da casa aplicado às datas financeiras do M4 |
 | RF06–11 | Implementados no M4 (contas, extrato, transferência, fontes, previsões e recebimentos) |
 | RF12–15 | Cadastros/parametrização implementados; integração com lançamento/orçamento depende dos módulos respectivos |

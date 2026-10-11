@@ -20,6 +20,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Pilot
                     new CommandDefinition(query.GetSql(), query, transaction, cancellationToken: cancellationToken)), cancellationToken);
         }
 
+        public async Task<IReadOnlyList<int>> ActiveHouseholdIdsAsync(CancellationToken cancellationToken) =>
+            (await work.ExecuteReadAsync((connection, transaction) => connection.QueryAsync<int>(new CommandDefinition(PilotSql.ActiveHouseholds,
+                new { Status = (int)SubscriptionStatus.Active }, transaction, cancellationToken: cancellationToken)), cancellationToken)).ToArray();
+
         public async Task<PilotRecord> ProvisionAsync(NewPilot pilot, CancellationToken cancellationToken)
         {
             work.AddPendingWrite(PilotSql.InsertTenant, pilot);

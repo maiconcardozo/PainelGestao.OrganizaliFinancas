@@ -8,11 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApiDocumentation();
+builder.AddOperations();
 if (string.IsNullOrEmpty(builder.Configuration["Operation"]))
     builder.Services.AddApiSecurity(builder.Configuration);
 
 var app = builder.Build();
 if (await app.RunAdministrativeOperationAsync()) return;
+app.UseOperations();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseApiDocumentation();
 app.UseRateLimiter();

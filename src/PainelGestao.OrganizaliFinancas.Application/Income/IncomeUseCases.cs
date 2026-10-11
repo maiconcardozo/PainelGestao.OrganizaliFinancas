@@ -87,7 +87,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Income
     }
 
     /// <summary>Applies the idempotent forecast plan of one source within the buffered transaction.</summary>
-    internal static class ForecastGenerator
+    public static class ForecastGenerator
     {
         public static async Task<ForecastGenerationDto> SyncAsync(IUnitOfWork work, IncomeSource source, IReadOnlyList<IncomeTermsVersion> versions,
             bool isNew, DateOnly today, int horizonMonths, string actor, CancellationToken ct)
@@ -102,6 +102,21 @@ namespace PainelGestao.OrganizaliFinancas.Application.Income
             foreach (var (code, occurrence) in plan.Updates) work.IncomeRepository.UpdateForecast(source, code, occurrence, actor);
             foreach (var code in plan.Cancels) work.IncomeRepository.CancelForecast(source.IdTenant, code, actor);
             return new(plan.Inserts.Count, plan.Updates.Count, plan.Cancels.Count, from, to);
+        }
+        /// <summary>Rolls every source of the household forward; used by the screen button and by the daily routine.</summary>
+        public static async Task<ForecastGenerationDto> GenerateAllAsync(IUnitOfWork work, int idTenant, int horizonMonths, string actor, CancellationToken ct)
+        {
+            var today = await HouseholdCalendar.TodayAsync(work, idTenant, ct);
+            var (from, to) = IncomeSchedule.Window(today, horizonMonths);
+            int inserted = 0, updated = 0, cancelled = 0;
+            foreach (var record in await work.IncomeRepository.ListSourcesAsync(idTenant, ct))
+            {
+                var source = (await work.IncomeRepository.FindSourceAsync(idTenant, record.Code, ct))!;
+                var versions = (await work.IncomeRepository.ListSourceVersionsAsync(idTenant, source.Id, ct)).Select(x => x.ToTerms()).ToArray();
+                var result = await SyncAsync(work, source, versions, false, today, horizonMonths, actor, ct);
+                inserted += result.Inserted; updated += result.Updated; cancelled += result.Cancelled;
+            }
+            return new ForecastGenerationDto(inserted, updated, cancelled, from, to);
         }
     }
 
@@ -195,17 +210,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Income
         {
             await work.MemberRepository.LockHouseholdAsync(request.Identity.IdTenant, ct);
             var user = await HouseholdAccess.RequireAsync(work, request.Identity, "finance.write", ct);
-            var today = await HouseholdCalendar.TodayAsync(work, user.IdTenant, ct);
-            var (from, to) = IncomeSchedule.Window(today, settings.ForecastHorizonMonths);
-            int inserted = 0, updated = 0, cancelled = 0;
-            foreach (var record in await work.IncomeRepository.ListSourcesAsync(user.IdTenant, ct))
-            {
-                var source = (await work.IncomeRepository.FindSourceAsync(user.IdTenant, record.Code, ct))!;
-                var versions = (await work.IncomeRepository.ListSourceVersionsAsync(user.IdTenant, source.Id, ct)).Select(x => x.ToTerms()).ToArray();
-                var result = await ForecastGenerator.SyncAsync(work, source, versions, false, today, settings.ForecastHorizonMonths, user.Code.ToString(), ct);
-                inserted += result.Inserted; updated += result.Updated; cancelled += result.Cancelled;
-            }
-            return new ForecastGenerationDto(inserted, updated, cancelled, from, to);
+            return await ForecastGenerator.GenerateAllAsync(work, user.IdTenant, settings.ForecastHorizonMonths, user.Code.ToString(), ct);
         }, ct);
     }
     public class ListForecastsHandler(IUnitOfWork work) : IRequestHandler<ListForecastsQuery, IReadOnlyList<ForecastDto>>

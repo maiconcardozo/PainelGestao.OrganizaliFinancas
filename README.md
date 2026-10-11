@@ -26,7 +26,7 @@ O **Organizali Finanças** é um projeto de SaaS web para quem coordena as finan
 
 A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQRS com MediatR** e **Foundation.Base**. Cada assinatura atende uma casa, com dados compartilhados entre os integrantes e permissões para controlar as alterações.
 
-> **Estado atual:** fundação, acesso, cadastros, contas, rendas, despesas, cartões, painel, fluxo de caixa, orçamento e alertas implementados até M7. 85 testes .NET aprovados com banco descartável e jornada integrada no Chrome. Operação de produção, recuperação externa e complementos pendentes. [Estado completo](docs/status/PROJECT_STATUS.md) · [Entregas e regras por marco](docs/deliveries/README.md).
+> **Estado atual:** fundação, acesso, cadastros, contas, rendas, despesas, cartões, painel, fluxo de caixa, orçamento, alertas e pilha Docker de produção implementados até M8. 89 testes .NET aprovados com banco descartável, jornada no Chrome e pilha de produção descartável verificada. Hospedagem, domínio e e-mail (D16), retenção (D17), aceite da família piloto e complementos (M9–M10) pendentes. [Estado completo](docs/status/PROJECT_STATUS.md) · [Entregas e regras por marco](docs/deliveries/README.md).
 
 ### ✨ Funcionalidades principais
 
@@ -155,12 +155,18 @@ O restore requer acesso ao Foundation.Base 3.2.0-rc.5. Nenhuma credencial de fee
 
 ## 🐳 Docker
 
-**Preparação para execução em containers:**
+**Produção com Docker (M8):** proxy HTTPS (Caddy), frontend, API, migration em processo único e MariaDB em rede interna.
 
-- **[Plano operacional](docs/operations/plan.md)** — ambientes, configuração, publicação e recuperação.
-- **[Fundação técnica — M1](docs/plans/implementation.md)** — criação e validação de Dockerfiles e Compose.
+```bash
+cp deploy/.env.production.example deploy/.env.production   # preencha domínio, senhas e chave JWT
+deploy/publish.sh                                          # imagens com a tag do commit
+docker compose -f deploy/compose.production.yml --env-file deploy/.env.production up -d
+deploy/backup.sh                                           # backup cifrado; restore: deploy/restore.sh --yes <arquivo>
+```
 
-Dockerfiles e Compose disponíveis. [Builds e execução local](docs/testing/m1-4-web.md). Imagens e comunicação web/API verificadas; Compose persistente não iniciado.
+- **[Runbook de produção](docs/operations/runbook.md)** — instalação, provisionamento, atualização, backup, restauração e rotina diária.
+- **[Evidências da pilha de produção](docs/testing/m8-production.md)** — HTTPS, portas privadas, backup cifrado e restauração ensaiada.
+- O `docker-compose.yml` da raiz continua sendo o ambiente local de desenvolvimento ([M1.4](docs/testing/m1-4-web.md)).
 
 ## 📖 Guias de desenvolvimento
 
@@ -215,7 +221,7 @@ O pipeline ainda não foi criado.
 - **[Plano de testes](docs/testing/test-patterns.md)** — cenários, ferramentas e resultados esperados.
 - **[Regras financeiras](docs/domain/financial-rules.md)** — exemplos para validar cálculos.
 
-**85 testes .NET aprovados**, além dos testes HTTP do Next e jornada integrada no Chrome. Não representam os cenários financeiros futuros nem medição de cobertura. [Evidências M7](docs/testing/m7-planning.md).
+**89 testes .NET aprovados**, além dos testes HTTP do Next e jornada integrada no Chrome. Não representam os cenários financeiros futuros nem medição de cobertura. [Evidências M8](docs/testing/m8-production.md).
 
 ## 📊 Estado do projeto
 
@@ -245,6 +251,7 @@ O pipeline ainda não foi criado.
 | M5 — despesas e liquidação | [Despesas, recorrências, parcelas, pagamentos, encargos, estornos e rateio](docs/testing/m5-expenses.md) |
 | M6 — cartões e faturas | [Cartões, compras, faturas, pagamento único e estorno da loja](docs/testing/m6-cards.md) |
 | M7 — painel e orçamento | [Projeção, fluxo, orçamento, alertas, agenda e análise](docs/testing/m7-planning.md) |
+| M8 — produção e Docker | [HTTPS, isolamento, rotina diária, backup cifrado e restauração](docs/testing/m8-production.md) |
 | M5–M10 | [Trabalho restante](docs/status/PROJECT_STATUS.md) |
 
 ## 📋 Documentação por público

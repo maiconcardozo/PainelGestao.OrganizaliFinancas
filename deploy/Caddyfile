@@ -1,0 +1,11 @@
+# HTTPS na frente do frontend. ORGANIZALI_TLS: e-mail (certificado público automático) ou "internal" (teste local).
+{$ORGANIZALI_SITE_ADDRESS} {
+	tls {$ORGANIZALI_TLS}
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+	# A API e o Swagger não são publicados: o navegador fala só com o frontend, que repassa à API pela rede interna.
+	reverse_proxy frontend:3100
+}

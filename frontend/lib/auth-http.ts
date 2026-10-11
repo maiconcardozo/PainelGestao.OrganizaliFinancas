@@ -15,6 +15,12 @@ export function rejectForeignOrigin(request: Request): NextResponse | null {
   return null;
 }
 
+/** The reverse proxy states the client address; the API trusts it only from the web container network (login rate limit per person, not per server). */
+export function forwardedFor(request: Request): Record<string, string> {
+  const value = request.headers.get("x-forwarded-for");
+  return value && /^[0-9a-fA-F:., ]{1,200}$/.test(value) ? { "X-Forwarded-For": value } : {};
+}
+
 export function clearSession(): NextResponse {
   const response = NextResponse.json({ ok: true });
   for (const name of [ACCESS_COOKIE, REFRESH_COOKIE])
@@ -22,10 +28,10 @@ export function clearSession(): NextResponse {
   return response;
 }
 
-export async function exchangeTokens(operation: "login" | "refresh", payload: unknown): Promise<NextResponse> {
+export async function exchangeTokens(operation: "login" | "refresh", payload: unknown, forwarded: Record<string, string> = {}): Promise<NextResponse> {
   try {
     const result = await fetch(`${INTERNAL_API_URL}/api/auth/${operation}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json", ...forwarded },
       body: JSON.stringify(payload), cache: "no-store", redirect: "error", signal: AbortSignal.timeout(10000),
     });
     if (!result.ok) {

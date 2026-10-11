@@ -1,6 +1,6 @@
 # Operação e configuração planejadas
 
-Documento de planejamento. Não existem Dockerfiles, Compose, variáveis carregadas ou pipeline implementados no Organizali nesta etapa.
+Documento de planejamento original. A operação implementada no M8 (Compose de produção, proxy HTTPS, backup cifrado, restauração ensaiada, rotina diária e logs estruturados) está no [runbook](runbook.md); o que segue registra as metas e o que ainda depende de D16/D17.
 
 ## Ambientes
 

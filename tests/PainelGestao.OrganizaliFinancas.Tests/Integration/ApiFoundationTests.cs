@@ -73,16 +73,43 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Integration
                 (await client.GetAsync(path)).StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
+        [Fact]
+        public async Task ApiResponses_CarrySecurityHeadersAndAreLimitedPerClient()
+        {
+            await using var factory = new Factory(new ReadinessStub(_ => Task.FromResult(true)), settings: new() { ["Jobs:ApiRequestsPerMinute"] = "3" });
+            using var client = factory.CreateClient();
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                using var response = await client.GetAsync("/api/accounts");
+                response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+                response.Headers.GetValues("X-Frame-Options").Should().Equal("DENY");
+                response.Headers.GetValues("X-Content-Type-Options").Should().Equal("nosniff");
+                response.Headers.CacheControl!.NoStore.Should().BeTrue("financial responses are never cached");
+            }
+            (await client.GetAsync("/api/accounts")).StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+            for (var attempt = 0; attempt < 5; attempt++) (await client.GetAsync("/health/live")).StatusCode.Should().Be(HttpStatusCode.OK, "health probes are not limited");
+        }
+
+        [Fact]
+        public async Task Swagger_IsNotServedOutsideDevelopment()
+        {
+            await using var factory = new Factory(new ReadinessStub(_ => Task.FromResult(true)), "Production");
+            using var client = factory.CreateClient();
+            (await client.GetAsync("/swagger/v1/swagger.json")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+            (await client.GetAsync("/health/live")).StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
         private sealed class ReadinessStub(Func<CancellationToken, Task<bool>> read) : IDatabaseReadiness
         {
             public Task<bool> IsReadyAsync(CancellationToken cancellationToken) => read(cancellationToken);
         }
 
-        private sealed class Factory(IDatabaseReadiness readiness) : WebApplicationFactory<Program>
+        private sealed class Factory(IDatabaseReadiness readiness, string environment = "Development", Dictionary<string, string>? settings = null) : WebApplicationFactory<Program>
         {
             protected override void ConfigureWebHost(IWebHostBuilder builder)
             {
-                builder.UseEnvironment("Development");
+                builder.UseEnvironment(environment);
+                foreach (var (key, value) in settings ?? []) builder.UseSetting(key, value);
                 builder.UseSetting("Jwt:Key", "Synthetic-api-foundation-signing-key-for-tests-only");
                 builder.UseSetting("OrganizaliFinancas:ConnectionString", "server=127.0.0.1;port=1;database=unused;user=unused");
                 builder.ConfigureServices(services =>
