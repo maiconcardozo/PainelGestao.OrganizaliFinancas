@@ -6,7 +6,7 @@ import { useState, type FormEvent } from "react";
 import { ArrowRight } from "lucide-react";
 import { AuthShell } from "@/components/layout/AuthShell";
 
-const label = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]";
+const label = "mb-1.5 block text-[13px] font-semibold text-[var(--text-secondary)]";
 
 export default function Login() {
   const router = useRouter();
@@ -36,8 +36,8 @@ export default function Login() {
 
   return <AuthShell>
     <form onSubmit={signIn} aria-busy={busy} className="w-full">
-      <p className="font-display mb-1 text-xs font-bold uppercase tracking-[.18em] text-[var(--signal)]">Organizali</p>
-      <p className="hero-title mb-1 text-3xl font-bold text-[var(--text-primary)]">Entrar na sua casa</p>
+      <p className="mb-1.5 text-[13px] font-semibold text-[var(--signal)]">Organizali</p>
+      <p className="hero-title mb-1 text-[28px] font-bold text-[var(--text-primary)]">Entrar na sua casa</p>
       <p className="mb-7 text-sm text-[var(--text-secondary)]">Use o acesso liberado para você no piloto.</p>
       {error && <p role="alert" className="mb-4 rounded-md border border-[color-mix(in_srgb,var(--critical)_40%,transparent)] bg-[color-mix(in_srgb,var(--critical)_8%,transparent)] px-4 py-3 text-sm text-[var(--critical)]">{error}</p>}
       <label className="mb-4 block"><span className={label}>E-mail</span>

@@ -9,7 +9,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
         <div className="grid h-10 w-10 place-items-center rounded-lg bg-[var(--primary)] text-xs font-black">OF</div>
         <div>
           <p className="font-display text-xl font-bold">Organizali</p>
-          <p className="text-[10px] font-semibold uppercase tracking-[.2em] text-white/60">Finanças da casa</p>
+          <p className="text-xs text-white/60">Finanças da casa</p>
         </div>
       </div>
       <div>

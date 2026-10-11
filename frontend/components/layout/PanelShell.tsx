@@ -139,16 +139,16 @@ export function PanelShell({ session, children }: { session: Session; children: 
         <span className="absolute inset-x-0 bottom-0 h-px" style={{ background: "linear-gradient(90deg,var(--primary),transparent)" }} />
         <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--primary)] text-xs font-black text-white">OF</div>
         {expanded && <div className="min-w-0">
-          <p className="font-display truncate text-[15px] font-bold leading-tight">Organizali</p>
-          <p className="truncate text-[10px] font-semibold uppercase leading-tight tracking-[.18em] text-[var(--sidebar-ink-muted)]">Finanças da casa</p>
+          <p className="font-display truncate text-base font-bold leading-tight">Organizali</p>
+          <p className="truncate text-xs leading-tight text-[var(--sidebar-ink-muted)]">Finanças da casa</p>
         </div>}
         <button type="button" onClick={() => { setMobileOpen(false); drawerButtonRef.current?.focus(); }} className="ml-auto grid h-8 w-8 place-items-center lg:hidden" aria-label="Fechar menu"><X size={20} /></button>
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
         {groups.map(group => <div key={group.name}>
-          {expanded && <p className="font-display mb-2 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-[var(--sidebar-ink-muted)]">{group.name}</p>}
-          <div className="space-y-1">{group.items.map(item => <SidebarItem key={item.key} item={item} active={isActive(item, pathname)} expanded={expanded} onNavigate={() => setMobileOpen(false)} />)}</div>
+          {expanded && <p className="mb-1.5 px-3 text-xs font-semibold text-[var(--sidebar-ink-muted)]">{group.name}</p>}
+          <div className="space-y-0.5">{group.items.map(item => <SidebarItem key={item.key} item={item} active={isActive(item, pathname)} expanded={expanded} onNavigate={() => setMobileOpen(false)} />)}</div>
         </div>)}
       </nav>
 
@@ -176,7 +176,7 @@ export function PanelShell({ session, children }: { session: Session; children: 
           className="grid h-10 w-10 place-items-center rounded-md text-[var(--text-secondary)] lg:hidden"><Menu size={23} /></button>
         <button type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menu" : "Recolher menu"} aria-expanded={!collapsed} aria-controls="sidebar-navigation"
           className="hidden h-10 w-10 place-items-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-2)] lg:grid"><PanelLeft size={21} /></button>
-        {current && <p className="font-display ml-1 truncate text-sm font-semibold text-[var(--text-primary)]">{current.name}</p>}
+        {current && <p className="font-display ml-1 truncate text-[15px] font-semibold text-[var(--text-primary)]">{current.name}</p>}
         <div className="flex-1" />
         <button type="button" onClick={toggleTheme} aria-label={dark ? "Ativar tema claro" : "Ativar tema escuro"}
           className="grid h-10 w-10 place-items-center rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]">
@@ -215,12 +215,12 @@ export function PanelShell({ session, children }: { session: Session; children: 
 function SidebarItem({ item, active, expanded, onNavigate }: { item: MenuItem; active: boolean; expanded: boolean; onNavigate: () => void }) {
   const Icon = ICONS[item.icon] ?? CircleHelp;
   return <Link href={item.route} onClick={onNavigate} aria-label={item.name} aria-current={active ? "page" : undefined}
-    className={["relative flex h-11 items-center gap-3 rounded-md text-sm transition-colors",
+    className={["relative flex h-10 items-center gap-3 rounded-md text-[14.5px] transition-colors",
       active ? "font-semibold text-white" : "font-medium text-[var(--sidebar-ink-muted)] hover:bg-[var(--sidebar-hover)] hover:text-white",
       expanded ? "px-3" : "justify-center px-0"].join(" ")}
     style={active ? { backgroundColor: "color-mix(in srgb,var(--primary) 20%,transparent)" } : undefined}>
     {active && <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-[var(--primary)]" />}
-    <Icon className="h-[21px] w-[21px] shrink-0" />
+    <Icon className="h-5 w-5 shrink-0" />
     {expanded && <span>{item.name}</span>}
   </Link>;
 }

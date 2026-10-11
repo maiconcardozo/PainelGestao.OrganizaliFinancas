@@ -76,8 +76,8 @@ export function Card({ children, muted = false }: { children: ReactNode; muted?:
 /** Labelled figure inside a card (RevendaPRO "Total comprado" block). */
 export function Figure({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
   return <div className="rounded-lg bg-[var(--surface-2)] px-4 py-3">
-    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{label}</p>
-    <p className="num text-xl font-bold">{value}</p>
+    <p className="text-[13px] font-semibold text-[var(--text-secondary)]">{label}</p>
+    <p className="font-display text-xl font-bold tracking-tight tabular-nums">{value}</p>
     {hint && <p className="text-xs text-[var(--text-secondary)]">{hint}</p>}
   </div>;
 }
