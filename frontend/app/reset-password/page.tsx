@@ -1,4 +1,5 @@
 "use client";
+import { AuthShell } from "@/components/layout/AuthShell";
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -28,7 +29,7 @@ export default function ResetPassword() {
     } catch { setError("Servidor indisponível. Tente novamente."); }
     finally { setBusy(false); }
   }
-  return <main className="session-message"><h1>{complete ? "Senha alterada" : "Escolha uma nova senha"}</h1>
+  return <AuthShell><h1>{complete ? "Senha alterada" : "Escolha uma nova senha"}</h1>
     {complete ? <><p>As sessões abertas foram encerradas. Entre com a nova senha.</p><Link href="/login">Entrar no Organizali</Link></> :
       <form className="auth-form" onSubmit={reset} aria-busy={busy}><p>Use de 12 a 128 caracteres.</p>
         {error && <p role="alert" className="form-error">{error}</p>}
@@ -37,5 +38,5 @@ export default function ResetPassword() {
         <button className="primary-button" disabled={busy}>{busy ? "Salvando…" : "Salvar nova senha"}</button>
         <p className="form-hint"><Link href="/forgot-password">Pedir outro link</Link></p>
       </form>}
-  </main>;
+  </AuthShell>;
 }

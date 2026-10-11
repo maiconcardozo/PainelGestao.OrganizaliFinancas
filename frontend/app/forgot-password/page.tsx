@@ -1,4 +1,5 @@
 "use client";
+import { AuthShell } from "@/components/layout/AuthShell";
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
@@ -19,7 +20,7 @@ export default function ForgotPassword() {
     } catch { setError("Servidor indisponível. Tente novamente."); }
     finally { setBusy(false); }
   }
-  return <main className="session-message"><h1>{sent ? "Confira seu e-mail" : "Redefinir senha"}</h1>
+  return <AuthShell><h1>{sent ? "Confira seu e-mail" : "Redefinir senha"}</h1>
     {sent ? <><p>Se houver um acesso com esse e-mail, enviamos um link válido por 15 minutos. Ele só pode ser usado uma vez.</p><Link href="/login">Voltar para entrar</Link></> :
       <form className="auth-form" onSubmit={request} aria-busy={busy}><p>Informe o e-mail do seu acesso. Enviaremos um link para escolher uma nova senha.</p>
         {error && <p role="alert" className="form-error">{error}</p>}
@@ -27,5 +28,5 @@ export default function ForgotPassword() {
         <button className="primary-button" disabled={busy}>{busy ? "Enviando…" : "Enviar link"}</button>
         <p className="form-hint"><Link href="/login">Voltar para entrar</Link></p>
       </form>}
-  </main>;
+  </AuthShell>;
 }

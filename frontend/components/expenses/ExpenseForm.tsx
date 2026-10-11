@@ -2,13 +2,18 @@
 import { useState, type FormEvent } from "react";
 import { civilDate, frequencies, money, toApiMoney, type Account } from "@/lib/finance";
 import { changeLabels, type InstallmentPreview, type RecurrencePlan } from "@/lib/expenses";
+import { Modal } from "@/components/common/Modal";
+import { ModalActions } from "@/components/common/Ui";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
 import { DetailInputs, ShareInputs, detailsFrom, type Catalogs } from "./DetailInputs";
 
 type Kind = "single" | "recurring" | "installments";
 const kinds: Record<Kind, string> = { single: "Conta avulsa", recurring: "Conta recorrente", installments: "Compra parcelada" };
 
-export function ExpenseForm({ catalogs, accounts, today, canSettle }: { catalogs: Catalogs; accounts: Account[]; today: string; canSettle: boolean }) {
+type Props = { catalogs: Catalogs; accounts: Account[]; today: string; canSettle: boolean; onClose: () => void; onSaved: (message: string) => void };
+
+/** "Nova despesa": the three ways of entering a bill, in one modal with a segmented switch. */
+export function ExpenseModal({ catalogs, accounts, today, canSettle, onClose, onSaved }: Props) {
   const action = useFinanceAction();
   const [kind, setKind] = useState<Kind>("single");
   const [typeCode, setTypeCode] = useState("");
@@ -31,9 +36,11 @@ export function ExpenseForm({ catalogs, accounts, today, canSettle }: { catalogs
   }
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = event.currentTarget; const data = new FormData(form);
+    const data = new FormData(event.currentTarget);
     const details = detailsFrom(data, catalogs, typeCode);
     let saved: unknown;
+    const success = kind === "single" ? (paid ? "Despesa lançada e paga." : "Despesa lançada.")
+      : kind === "recurring" ? "Conta recorrente criada; os próximos vencimentos já aparecem na lista." : "Compra parcelada lançada; cada parcela aparece no mês do seu vencimento.";
     if (kind === "single")
       saved = await action.send("expenses", "POST", {
         details, competence: data.get("competence") ? `${data.get("competence")}-01` : null, dueDate: data.get("dueDate"), amount: toApiMoney(data.get("amount")), version: 0,
@@ -47,13 +54,12 @@ export function ExpenseForm({ catalogs, accounts, today, canSettle }: { catalogs
       saved = await action.send("expense-installments", "POST", {
         details, plan: { total: toApiMoney(data.get("total")), count: Number(data.get("count")), firstDueDate: data.get("firstDueDate"), frequency: data.get("frequency") },
       }, "Compra parcelada lançada; cada parcela aparece no mês do seu vencimento.", true);
-    if (saved) { form.reset(); setTypeCode(""); setPaid(false); setEstimated(false); setInstallments(null); setRecurrence(null); }
+    if (saved) onSaved(success);
   }
 
-  return <form className="data-form" onSubmit={save} key={kind}><h2>Lançar despesa</h2>
-    <div className="segmented" role="tablist" aria-label="Tipo de lançamento">{(Object.keys(kinds) as Kind[]).map(item =>
-      <button key={item} type="button" role="tab" aria-selected={kind === item} onClick={() => choose(item)}>{kinds[item]}</button>)}</div>
-    {action.error && <p className="form-error" role="alert">{action.error}</p>}{action.message && <p role="status">{action.message}</p>}
+  return <Modal title="Nova despesa" onClose={onClose} error={action.error} width="max-w-3xl"><form className="data-form" onSubmit={save} key={kind}>
+    <div><div className="segmented" role="tablist" aria-label="Tipo de lançamento">{(Object.keys(kinds) as Kind[]).map(item =>
+      <button key={item} type="button" role="tab" aria-selected={kind === item} onClick={() => choose(item)}>{kinds[item]}</button>)}</div></div>
     <DetailInputs catalogs={catalogs} behavior={kind} typeCode={typeCode} onType={setTypeCode} />
 
     {kind === "single" && <>
@@ -103,6 +109,6 @@ export function ExpenseForm({ catalogs, accounts, today, canSettle }: { catalogs
     </>}
 
     <ShareInputs key={`${kind}-shares`} people={catalogs.people} percentOnly={kind !== "single"} />
-    <button className="primary-button" disabled={action.busy}>{kind === "single" ? "Lançar despesa" : kind === "recurring" ? "Criar conta recorrente" : "Lançar compra parcelada"}</button>
-  </form>;
+    <ModalActions busy={action.busy} label={kind === "single" ? "Lançar despesa" : kind === "recurring" ? "Criar conta recorrente" : "Lançar compra parcelada"} onCancel={onClose} />
+  </form></Modal>;
 }

@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import Link from "next/link";
-import { House } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { AuthShell } from "@/components/layout/AuthShell";
+
+const label = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]";
 
 export default function Login() {
   const router = useRouter();
@@ -31,22 +34,23 @@ export default function Login() {
     finally { setBusy(false); }
   }
 
-  return <main className="welcome">
-    <section className="welcome-brand" aria-label="Organizali Finanças">
-      <div className="brand"><House aria-hidden="true" /><span>Organizali<span className="brand-subtitle">Finanças da casa</span></span></div>
-      <div className="welcome-message"><h1>Mais clareza para cuidar do que é de todos.</h1><p>Rendas, contas e planos da família em um só lugar.</p></div>
-      <p className="brand-footer">Organização para o dia a dia.</p>
-    </section>
-    <section className="welcome-content">
-      <form className="auth-form" onSubmit={signIn} aria-busy={busy}>
-        <h2>Entrar na sua casa</h2><p className="intro">Use o acesso liberado para você no piloto.</p>
-        {error && <p role="alert" className="form-error">{error}</p>}
-        <label>E-mail<input name="email" type="email" required maxLength={180} autoComplete="username" /></label>
-        <label>Senha<input name="password" type="password" required maxLength={128} autoComplete="current-password" /></label>
-        <button className="primary-button" disabled={busy}>{busy ? "Entrando…" : "Entrar"}</button>
-        <p className="form-hint"><Link href="/forgot-password">Esqueci minha senha</Link></p>
-        <p className="form-hint">Ainda não tem acesso? Combine a liberação com quem organizou o piloto.</p>
-      </form>
-    </section>
-  </main>;
+  return <AuthShell>
+    <form onSubmit={signIn} aria-busy={busy} className="w-full">
+      <p className="font-display mb-1 text-xs font-bold uppercase tracking-[.18em] text-[var(--signal)]">Organizali</p>
+      <p className="hero-title mb-1 text-3xl font-bold text-[var(--text-primary)]">Entrar na sua casa</p>
+      <p className="mb-7 text-sm text-[var(--text-secondary)]">Use o acesso liberado para você no piloto.</p>
+      {error && <p role="alert" className="mb-4 rounded-md border border-[color-mix(in_srgb,var(--critical)_40%,transparent)] bg-[color-mix(in_srgb,var(--critical)_8%,transparent)] px-4 py-3 text-sm text-[var(--critical)]">{error}</p>}
+      <label className="mb-4 block"><span className={label}>E-mail</span>
+        <input name="email" type="email" required maxLength={180} autoComplete="username" className="control bg-[var(--surface)]" /></label>
+      <label className="mb-6 block"><span className={label}>Senha</span>
+        <input name="password" type="password" required maxLength={128} autoComplete="current-password" className="control bg-[var(--surface)]" /></label>
+      <button type="submit" disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-md bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--primary-strong)] disabled:opacity-60">
+        {busy ? "Entrando..." : "Entrar"}{!busy && <ArrowRight size={16} />}
+      </button>
+      <div className="mt-5 flex flex-wrap justify-between gap-2 text-sm">
+        <Link href="/forgot-password" className="font-semibold text-[var(--primary)] hover:underline">Esqueci minha senha</Link>
+        <span className="text-[var(--text-muted)]">Sem acesso? Fale com o titular.</span>
+      </div>
+    </form>
+  </AuthShell>;
 }

@@ -30,6 +30,7 @@ export function FieldPreview({ type }: { type: ExpenseType }) {
         min={field.min ?? undefined} max={field.max ?? undefined} step={field.type === "decimal" ? "any" : undefined} maxLength={field.maxLength ?? (field.type === "text" ? 2000 : undefined)} aria-describedby={errors[field.key] ? `${field.key}-error` : undefined} />}
       {errors[field.key] && <span className="field-error" id={`${field.key}-error`}>{errors[field.key].join(" ")}</span>}
     </label>)}
-    {message && <p role="status">{message}</p>}<button className="primary-button" disabled={busy}>Conferir campos</button>
+    {message && <p role="status">{message}</p>}
+    <div className="modal-actions"><button className="primary-button" disabled={busy}>Conferir campos</button></div>
   </form>;
 }

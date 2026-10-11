@@ -24,7 +24,7 @@ export function useFinanceAction() {
         return null;
       }
       setKey(crypto.randomUUID()); setMessage(success); router.refresh();
-      return body?.data as T;
+      return (body?.data ?? true) as T;
     } catch {
       // Network failure: keep the key so a retry cannot register the same entry twice.
       setError("Servidor indisponível. Tente novamente; o envio repetido não duplica o lançamento.");

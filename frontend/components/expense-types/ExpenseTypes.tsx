@@ -1,55 +1,85 @@
 "use client";
-import { useRouter } from "next/navigation";
+
 import { useState, type FormEvent } from "react";
+import { FlaskConical, Receipt } from "lucide-react";
+import { Modal } from "@/components/common/Modal";
+import { Card, EditButton, Empty, IconAction, ModalActions, NewButton, Notices, PageHeader, Pill } from "@/components/common/Ui";
+import { ListBar, ListFrame, useViewMode } from "@/components/common/ViewSwitch";
+import { useFinanceAction } from "@/components/finance/useFinanceAction";
 import { behaviors, type ExpenseType, type FieldDefinition } from "@/lib/expense-types";
 import type { CatalogItem } from "@/lib/catalogs";
 import { FieldEditor } from "./FieldEditor";
 import { FieldPreview } from "./FieldPreview";
+
 export function ExpenseTypes({ types, categories, canEdit }: { types: ExpenseType[]; categories: CatalogItem[]; canEdit: boolean }) {
-  const router = useRouter();
-  const [selected, setSelected] = useState<ExpenseType | null>(null);
+  const action = useFinanceAction();
+  const [view, chooseView] = useViewMode("organizali.expense-types.view");
+  const [editing, setEditing] = useState<ExpenseType | "new" | null>(null);
   const [fields, setFields] = useState<FieldDefinition[]>([]);
   const [preview, setPreview] = useState<ExpenseType | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  function edit(type: ExpenseType | null) { setSelected(type); setFields(type?.fields ?? []); setError(""); setMessage(""); }
+  const current = editing === "new" ? null : editing;
+  const categoryName = (code: string | null) => code ? categories.find(item => item.code === code)?.name : null;
+
+  function open(type: ExpenseType | "new") { setEditing(type); setFields(type === "new" ? [] : type.fields); }
   async function save(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const data = new FormData(event.currentTarget); setBusy(true); setError(""); setMessage("");
-    try {
-      const response = await fetch(`/api/backend/expense-types${selected ? `/${selected.code}` : ""}`, {
-        method: selected ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-          name: data.get("name"), behavior: data.get("behavior"), defaultCategoryCode: data.get("category") || null,
-          isActive: selected ? data.has("active") : true, version: selected?.version ?? 0,
-          fields: fields.map(field => ({ ...field, options: field.options?.map(value => value.trim()).filter(Boolean) ?? null })),
-        }),
-      });
-      if (response.status === 401) { router.replace("/session-renew"); return; }
-      const body = await response.json().catch(() => null);
-      if (!response.ok) { setError(Object.values(body?.errors ?? {}).flat().join(" ") || body?.detail || "Não foi possível salvar o tipo."); return; }
-      edit(body.data); setMessage("Tipo salvo. As definições anteriores foram preservadas."); router.refresh();
-    } catch { setError("Servidor indisponível. Tente novamente."); }
-    finally { setBusy(false); }
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const saved = await action.send(`expense-types${current ? `/${current.code}` : ""}`, current ? "PUT" : "POST", {
+      name: data.get("name"), behavior: data.get("behavior"), defaultCategoryCode: data.get("category") || null,
+      isActive: current ? data.has("active") : true, version: current?.version ?? 0,
+      fields: fields.map(field => ({ ...field, options: field.options?.map(value => value.trim()).filter(Boolean) ?? null })),
+    }, "Tipo salvo. As definições anteriores foram preservadas.");
+    if (saved) setEditing(null);
   }
-  return <section className="page-content"><h1>Tipos de despesa</h1>
-    <p className="intro">Crie tipos como Água, Luz ou uma compra da casa e escolha quais informações precisam ser preenchidas.</p>
-    <p className="availability">Aqui você prepara os tipos. Lançamentos, parcelas e faturas serão disponibilizados nas próximas etapas do piloto.</p>
-    <div className="type-list">{types.length === 0 && <p>Nenhum tipo cadastrado.</p>}{types.map(type => <article key={type.code}>
-      <div><h2>{type.name}</h2><p>{behaviors[type.behavior]} · Versão {type.version} · {type.isActive ? "Ativo" : "Inativo"}</p></div>
-      <div className="type-actions">{canEdit && <button className="secondary-button" type="button" onClick={() => edit(type)}>Editar tipo</button>}
-        <button className="secondary-button" type="button" onClick={() => setPreview(type)}>Experimentar campos</button></div>
-    </article>)}</div>
-    {preview && <FieldPreview key={`${preview.code}-${preview.version}`} type={preview} />}
-    {canEdit && <><button className="secondary-button" type="button" onClick={() => edit(null)}>Novo tipo</button>
-      <form className="data-form" key={`${selected?.code ?? "new"}-${selected?.version ?? 0}`} onSubmit={save}>
-        <h2>{selected ? `Editar ${selected.name}` : "Novo tipo de despesa"}</h2>
-        {error && <p className="form-error" role="alert">{error}</p>}{message && <p role="status">{message}</p>}
-        <label>Nome<input name="name" required maxLength={160} defaultValue={selected?.name ?? ""} /></label>
-        <label>Como funciona<select name="behavior" defaultValue={selected?.behavior ?? "single"}>{Object.entries(behaviors).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-        <label>Categoria sugerida<select name="category" defaultValue={selected?.defaultCategoryCode ?? ""}><option value="">Sem sugestão</option>
-          {categories.filter(item => item.isActive || item.code === selected?.defaultCategoryCode).map(item => <option key={item.code} value={item.code}>{item.name}</option>)}</select></label>
-        {selected && <label className="checkbox-label"><input type="checkbox" name="active" defaultChecked={selected.isActive} />Tipo ativo</label>}
-        <FieldEditor fields={fields} onChange={setFields} /><button className="primary-button" disabled={busy}>Salvar tipo</button>
-      </form></>}
+
+  const meta = (type: ExpenseType) => `${behaviors[type.behavior]} · ${type.fields.length === 1 ? "1 campo adicional" : `${type.fields.length} campos adicionais`} · versão ${type.version}`;
+  const actions = (type: ExpenseType) => <>
+    <IconAction label={`Experimentar campos de ${type.name}`} onClick={() => setPreview(type)}><FlaskConical size={15} /></IconAction>
+    {canEdit && <EditButton name={type.name} onClick={() => open(type)} />}
+  </>;
+
+  return <section className="page-content">
+    <PageHeader title="Tipos de despesa" description="Água, Luz, uma compra da casa: cada tipo diz como a despesa funciona e quais informações precisam ser preenchidas."
+      action={canEdit && <NewButton label="Novo tipo" onClick={() => open("new")} />} />
+    <Notices error={editing || preview ? undefined : action.error} message={action.message} />
+
+    <ListBar count={types.length} singular="tipo" plural="tipos" view={view} onChange={chooseView} label="Como mostrar os tipos" />
+    {types.length === 0 ? <Empty title={canEdit ? "Nenhum tipo ainda. Crie o primeiro, como Água ou Luz." : "Nenhum tipo cadastrado."} /> :
+      view === "list" ? <ListFrame>{types.map(type => <li key={type.code} className={`type-item flex items-center gap-3 px-3 py-2.5 transition hover:bg-[var(--surface-2)] sm:gap-4 sm:px-4 ${type.isActive ? "" : "opacity-60"}`}>
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[var(--surface-2)] text-[var(--signal)]"><Receipt size={17} /></span>
+        <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{type.name}</span><span className="mt-0.5 block truncate text-xs text-[var(--text-muted)]">{meta(type)}</span></span>
+        {!type.isActive && <Pill tone="muted">Inativo</Pill>}
+        <span className="flex shrink-0 gap-1">{actions(type)}</span>
+      </li>)}</ListFrame> :
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{types.map(type => <div key={type.code} className="type-item"><Card muted={!type.isActive}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0"><p className="flex items-center gap-2 font-semibold"><Receipt size={16} className="shrink-0 text-[var(--signal)]" /><span className="truncate">{type.name}</span></p>
+            <p className="mt-0.5 text-xs text-[var(--text-secondary)]">{behaviors[type.behavior]}</p></div>
+          <div className="flex shrink-0 gap-1">{actions(type)}</div>
+        </div>
+        <dl className="grid gap-y-1.5 text-sm">
+          <div className="flex justify-between gap-3"><dt className="text-[var(--text-muted)]">Categoria sugerida</dt><dd>{categoryName(type.defaultCategoryCode) ?? "Nenhuma"}</dd></div>
+          <div className="flex justify-between gap-3"><dt className="text-[var(--text-muted)]">Campos adicionais</dt><dd className="num">{type.fields.length}</dd></div>
+        </dl>
+        <div className="mt-auto"><Pill tone={type.isActive ? "success" : "muted"}>{type.isActive ? `Ativo · versão ${type.version}` : "Inativo"}</Pill></div>
+      </Card></div>)}</div>}
+
+    {editing && <Modal title={current ? `Editar ${current.name}` : "Novo tipo de despesa"} onClose={() => setEditing(null)} error={action.error}>
+      <form className="data-form" onSubmit={save}>
+        <label>Nome<input name="name" required maxLength={160} defaultValue={current?.name ?? ""} autoComplete="off" /></label>
+        <div className="form-row">
+          <label>Como funciona<select name="behavior" defaultValue={current?.behavior ?? "single"}>{Object.entries(behaviors).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+          <label>Categoria sugerida<select name="category" defaultValue={current?.defaultCategoryCode ?? ""}><option value="">Sem sugestão</option>
+            {categories.filter(item => item.isActive || item.code === current?.defaultCategoryCode).map(item => <option key={item.code} value={item.code}>{item.name}</option>)}</select></label>
+        </div>
+        {current && <label className="checkbox-label"><input type="checkbox" name="active" defaultChecked={current.isActive} />Tipo ativo</label>}
+        <FieldEditor fields={fields} onChange={setFields} />
+        <ModalActions busy={action.busy} label="Salvar tipo" onCancel={() => setEditing(null)} />
+      </form>
+    </Modal>}
+
+    {preview && <Modal title={`Experimentar: ${preview.name}`} onClose={() => setPreview(null)} width="max-w-lg">
+      <FieldPreview key={`${preview.code}-${preview.version}`} type={preview} />
+    </Modal>}
   </section>;
 }

@@ -5,10 +5,12 @@ import { fieldValues } from "@/lib/expenses";
 import type { Card, PurchasePreview } from "@/lib/cards";
 import type { Catalogs } from "@/components/expenses/DetailInputs";
 import { CustomFieldInputs } from "@/components/expenses/DetailInputs";
+import { Modal } from "@/components/common/Modal";
+import { ModalActions } from "@/components/common/Ui";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
 
 /** RF24: purchase on the card with a preview of the invoices; the first invoice can be moved one cycle before saving (D13 premise A06). */
-export function PurchaseForm({ cards, catalogs, today }: { cards: Card[]; catalogs: Catalogs; today: string }) {
+export function PurchaseModal({ cards, catalogs, today, onClose, onSaved }: { cards: Card[]; catalogs: Catalogs; today: string; onClose: () => void; onSaved: (message: string) => void }) {
   const action = useFinanceAction();
   const [typeCode, setTypeCode] = useState("");
   const [preview, setPreview] = useState<PurchasePreview | null>(null);
@@ -23,17 +25,17 @@ export function PurchaseForm({ cards, catalogs, today }: { cards: Card[]; catalo
   }
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = event.currentTarget; const data = new FormData(form);
+    const data = new FormData(event.currentTarget);
     const saved = await action.send("card-purchases", "POST", {
       ...previewPayload(data), buyerPersonCode: data.get("buyer") || null,
       details: { description: data.get("description"), expenseTypeCode: type?.code ?? null, expenseTypeVersion: type?.version ?? null, categoryCode: data.get("category") || null,
         creditorCode: null, paymentMethodCode: null, payerPersonCode: null, fields: type ? fieldValues(data, type.fields) : null, splitMode: null, shares: null },
     }, "Compra lançada. As parcelas já aparecem nas faturas; nenhuma conta foi movimentada.", true);
-    if (saved) { form.reset(); setTypeCode(""); setPreview(null); }
+    if (saved) onSaved("Compra lançada. As parcelas já aparecem nas faturas; nenhuma conta foi movimentada.");
   }
   if (active.length === 0) return null;
-  return <form className="data-form" onSubmit={save}><h2>Lançar compra no cartão</h2>
-    {action.error && <p className="form-error" role="alert">{action.error}</p>}{action.message && <p role="status">{action.message}</p>}
+  return <Modal title="Lançar compra no cartão" onClose={onClose} error={action.error} width="max-w-3xl"><form className="data-form" onSubmit={save}>
+    {preview && action.message && <p role="status">{action.message}</p>}
     <div className="form-row">
       <label>Cartão<select name="card" required onChange={() => setPreview(null)}>{active.map(card => <option key={card.code} value={card.code}>{card.name}</option>)}</select></label>
       <label>Descrição<input name="description" required maxLength={200} placeholder="Mercado, Farmácia, Passagem" /></label>
@@ -60,6 +62,6 @@ export function PurchaseForm({ cards, catalogs, today }: { cards: Card[]; catalo
       <tbody>{preview.items.map(item => <tr key={item.number}><td>{item.number}/{preview.items.length}</td><td>{monthLabel(item.referenceMonth)}</td>
         <td>{civilDate(item.closingDate)}</td><td>{civilDate(item.dueDate)}</td><td className="number">{money(item.amount)}</td></tr>)}</tbody></table></div>}
     <p className="form-hint">A compra não sai da conta bancária agora: ela entra na fatura, e o dinheiro sai uma única vez quando a fatura for paga.</p>
-    <button className="primary-button" disabled={action.busy}>Lançar compra</button>
-  </form>;
+    <ModalActions busy={action.busy} label="Lançar compra" onCancel={onClose} />
+  </form></Modal>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import { AuthShell } from "@/components/layout/AuthShell";
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -27,7 +28,7 @@ export default function Join() {
     } catch { setError("Servidor indisponível. Tente novamente."); }
     finally { setBusy(false); }
   }
-  return <main className="session-message"><h1>{complete ? "Acesso criado" : "Bem-vindo à casa"}</h1>
+  return <AuthShell><h1>{complete ? "Acesso criado" : "Bem-vindo à casa"}</h1>
     {complete ? <><p>Entre com o e-mail que recebeu o convite e a senha que você definiu.</p><Link href="/login">Entrar no Organizali</Link></> :
       <form className="auth-form" onSubmit={accept} aria-busy={busy}><p>Defina sua senha para aceitar o convite. Use de 12 a 128 caracteres.</p>
         {error && <p role="alert" className="form-error">{error}</p>}
@@ -35,5 +36,5 @@ export default function Join() {
         <label>Confirmar senha<input name="confirmation" type="password" minLength={12} maxLength={128} autoComplete="new-password" required /></label>
         <button className="primary-button" disabled={busy}>{busy ? "Criando acesso…" : "Aceitar convite"}</button>
       </form>}
-  </main>;
+  </AuthShell>;
 }

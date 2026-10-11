@@ -1,4 +1,5 @@
 "use client";
+import { AuthShell } from "@/components/layout/AuthShell";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -18,10 +19,10 @@ export default function RenewSession() {
     } catch { setError("Servidor indisponível. Tente novamente."); }
     finally { setBusy(false); }
   }
-  return <main className="session-message"><h1>Continuar no Organizali</h1>
+  return <AuthShell><h1>Continuar no Organizali</h1>
     <p>Renove sua sessão para voltar à casa.</p>
     {error && <p role="alert" className="form-error">{error}</p>}
     <button className="primary-button" disabled={busy} onClick={renew}>{busy ? "Renovando…" : "Continuar"}</button>
     <Link href="/login">Entrar com e-mail e senha</Link>
-  </main>;
+  </AuthShell>;
 }

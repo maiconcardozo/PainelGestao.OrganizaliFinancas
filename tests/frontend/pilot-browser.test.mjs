@@ -109,32 +109,39 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
       await input(session, "input[name=password]", password); await input(session, "input[name=confirmation]", password);
       await session.evaluate("document.querySelector('form').requestSubmit()"); await waitFor(session, "document.body.innerText.includes('Acesso criado')"); await login(session, email);
     }
+    const press = (session, text) => session.evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === ${JSON.stringify(text)}).click()`);
+    const closedModal = "!document.querySelector('[role=dialog]')";
     async function screenshot(session, name) {
       const shot = await session.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
       await writeFile(join(output, name), Buffer.from(shot.data, "base64"));
     }
     const owner = await page(webUrl + "/login"); await login(owner, "owner@pilot.example.test");
     assert.ok(!(await owner.evaluate("document.cookie")).includes("organizali_"), "Session cookies must be HttpOnly");
-    await navigate(owner, "/people"); await waitFor(owner, "!!document.querySelector('input[name=name]')");
+    await navigate(owner, "/people"); await waitFor(owner, "[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Novo morador')");
+    await press(owner, "Novo morador"); await waitFor(owner, "!!document.querySelector('[role=dialog] input[name=name]')");
     await input(owner, "input[name=name]", "Morador sem login"); await owner.evaluate("document.querySelector('form').requestSubmit()");
-    await waitFor(owner, "document.querySelectorAll('.member-row').length === 1");
+    await waitFor(owner, `${closedModal} && document.querySelectorAll('.member-row-item').length === 1`); await screenshot(owner, "moradores-desktop.png");
     await owner.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 800, deviceScaleFactor: 1, mobile: false });
     assert.ok(await owner.evaluate("document.documentElement.scrollWidth <= innerWidth"), "Mobile viewport overflow");
     await screenshot(owner, "moradores-mobile.png");
     await owner.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
-    await navigate(owner, "/members"); await waitFor(owner, "!!document.querySelector('input[name=email]')");
+    await navigate(owner, "/members"); await waitFor(owner, "!!document.querySelector('.member-row-item')");
+    await press(owner, "Convidar pessoa"); await waitFor(owner, "!!document.querySelector('input[name=email]')");
     await input(owner, "input[name=name]", "Editor de teste"); await input(owner, "input[name=email]", "editor@pilot.example.test"); await input(owner, "select[name=roleKey]", "editor");
     await owner.evaluate("document.querySelector('form').requestSubmit()"); await waitFor(owner, "!!document.querySelector('textarea')?.value.includes('/join#token=')");
     const editorLink = await owner.evaluate("document.querySelector('textarea').value");
     const editor = await page("about:blank"); await accept(editor, editorLink, "editor@pilot.example.test");
-    await navigate(editor, "/catalogs/categories"); await waitFor(editor, "!!document.querySelector('input[name=name]')");
-    await input(editor, "input[name=name]", "Moradia"); await editor.evaluate("document.querySelector('form').requestSubmit()"); await waitFor(editor, "document.querySelectorAll('input[name=name]').length === 2");
-    await navigate(editor, "/expense-types"); await waitFor(editor, "!!document.querySelector('input[name=name]')");
+    await navigate(editor, "/catalogs/categories"); await waitFor(editor, "[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Nova categoria')");
+    await press(editor, "Nova categoria"); await waitFor(editor, "!!document.querySelector('input[name=name]')");
+    await input(editor, "input[name=name]", "Moradia"); await editor.evaluate("document.querySelector('form').requestSubmit()");
+    await waitFor(editor, `${closedModal} && document.querySelector('main').innerText.includes('Moradia')`); await screenshot(editor, "categorias-desktop.png");
+    await navigate(editor, "/expense-types"); await waitFor(editor, "[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Novo tipo')");
+    await press(editor, "Novo tipo"); await waitFor(editor, "!!document.querySelector('input[name=name]')");
     await input(editor, "input[name=name]", "Água"); await input(editor, "select[name=behavior]", "recurring");
     await editor.evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent==='Adicionar campo').click()"); await waitFor(editor, "!!document.querySelector('.field-definition input')");
     await input(editor, ".field-definition input", "Instalação"); await editor.evaluate("document.querySelector('.field-definition input[type=checkbox]').click()");
-    await editor.evaluate("document.querySelector('form').requestSubmit()"); await waitFor(editor, "document.querySelectorAll('.type-list article').length === 1");
-    await editor.evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent==='Experimentar campos').click()"); await waitFor(editor, "document.querySelectorAll('form').length === 2");
+    await editor.evaluate("document.querySelector('form').requestSubmit()"); await waitFor(editor, `${closedModal} && document.querySelectorAll('.type-item').length === 1`);
+    await editor.evaluate("document.querySelector('[aria-label^=\"Experimentar campos\"]').click()"); await waitFor(editor, "!!document.querySelector('[role=dialog] form input')");
     assert.equal(await editor.evaluate("document.querySelector('form input').checkValidity()"), false);
     await input(editor, "form input", "12345"); await editor.evaluate("document.querySelector('form').requestSubmit()"); await waitFor(editor, "document.body.innerText.includes('Campos válidos')");
     await screenshot(editor, "tipos-desktop.png");
@@ -143,24 +150,28 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     const reader = await page("about:blank"); await accept(reader, `${webUrl}/join#token=${encodeURIComponent(readerResult.body.data.token)}`, "reader@pilot.example.test");
     await navigate(reader, "/members"); await waitFor(reader, "location.pathname === '/no-permission'");
     await navigate(reader, "/catalogs/categories"); await waitFor(reader, "document.body.innerText.includes('Moradia') || !!document.querySelector('input[value=Moradia]')");
-    assert.equal(await reader.evaluate("[...document.querySelectorAll('button')].some(b=>b.textContent==='Salvar cadastro')"), false);
+    assert.equal(await reader.evaluate("[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Nova categoria' || (b.getAttribute('aria-label') ?? '').startsWith('Editar'))"), false);
     assert.equal(await reader.evaluate("fetch('/api/backend/catalogs/categories',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Denied',isActive:true,version:0,parentCode:null})}).then(r=>r.status)"), 403);
     // M4: contas, transferência, fonte fixa, recebimentos parciais e estorno pelo titular.
     const submit = (session, selector) => session.evaluate(`document.querySelector(${JSON.stringify(selector)}).form.requestSubmit()`);
-    await navigate(editor, "/accounts"); await waitFor(editor, "!!document.querySelector('input[name=openingBalance]')");
+    await navigate(editor, "/accounts"); await waitFor(editor, "!!document.querySelector('.money-summary')");
     for (const [name, balance] of [["Conta corrente", "1.000,00"], ["Poupança", "0,00"]]) {
-      const rows = await editor.evaluate("document.querySelectorAll('.finance-table tbody tr').length");
-      await input(editor, "input[name=name]", name); await input(editor, "input[name=openingBalance]", balance); await submit(editor, "input[name=openingBalance]");
-      await waitFor(editor, `document.querySelectorAll('.finance-table tbody tr').length === ${rows + 1}`);
+      const rows = await editor.evaluate("document.querySelectorAll('.account-item').length");
+      await press(editor, "Nova conta"); await waitFor(editor, "!!document.querySelector('input[name=openingBalance]')");
+      await input(editor, "input[name=name]", name); await input(editor, "input[name=openingBalance]", balance); if (rows === 0) await screenshot(editor, "modal-nova-conta.png"); await submit(editor, "input[name=openingBalance]");
+      await waitFor(editor, `${closedModal} && document.querySelectorAll('.account-item').length === ${rows + 1}`);
     }
-    await waitFor(editor, "!!document.querySelector('select[name=source]')");
+    await waitFor(editor, "[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Transferir')");
+    await press(editor, "Transferir"); await waitFor(editor, "!!document.querySelector('select[name=source]')");
     await input(editor, "input[name=amount]", "500,00"); await submit(editor, "input[name=amount]");
     await waitFor(editor, "document.body.innerText.includes('Transferência registrada')");
     assert.ok((await editor.evaluate("document.querySelector('.money-summary strong').textContent")).includes("1.000,00"), "Transfer must keep the household total");
-    await navigate(editor, "/income"); await waitFor(editor, "!!document.querySelector('input[name=expected]')");
+    await navigate(editor, "/income"); await waitFor(editor, "[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Nova fonte de renda')");
+    await press(editor, "Nova fonte de renda"); await waitFor(editor, "!!document.querySelector('input[name=expected]')");
     await input(editor, "input[name=name]", "Salário"); await input(editor, "input[name=expected]", "4.000,00"); await submit(editor, "input[name=expected]");
     await waitFor(editor, "document.querySelectorAll('.forecast-list li').length === 3");
     for (const amount of ["2.000,00", "1.800,00"]) {
+      await waitFor(editor, closedModal); await press(editor, "Registrar recebimento"); await waitFor(editor, "!!document.querySelector('select[name=receiptSource]')");
       const source = await editor.evaluate("[...document.querySelector('select[name=receiptSource]').options].find(o => o.value).value");
       await input(editor, "select[name=receiptSource]", source); await waitFor(editor, "!!document.querySelector('select[name=receiptForecast]')?.value");
       await input(editor, "input[name=amount]", amount); await submit(editor, "input[name=amount]");
@@ -180,17 +191,19 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
       await screenshot(owner, shot);
     }
     await owner.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
-    await navigate(owner, "/accounts"); await waitFor(owner, "!!document.querySelector('.finance-table')");
+    await navigate(owner, "/accounts"); await waitFor(owner, "!!document.querySelector('.account-item')");
     await owner.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Ver extrato').click()"); await waitFor(owner, "!!document.querySelector('.statement-totals')");
     await screenshot(owner, "contas-desktop.png");
     // M5: conta avulsa, pagamento parcial, prévia de parcelas, estorno pelo titular e largura mobile.
-    await navigate(editor, "/expenses"); await waitFor(editor, "!!document.querySelector('input[name=description]')");
+    await navigate(editor, "/expenses"); await waitFor(editor, "[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Nova despesa')");
+    await press(editor, "Nova despesa"); await waitFor(editor, "!!document.querySelector('input[name=description]')");
     await input(editor, "input[name=description]", "Conta de luz"); await input(editor, "input[name=amount]", "250,00"); await submit(editor, "input[name=amount]");
     await waitFor(editor, "[...document.querySelectorAll('.expense-row strong')].some(e => e.textContent === 'Conta de luz')");
     const luz = "[...document.querySelectorAll('.expense-row')].find(r => r.innerText.includes('Conta de luz'))";
-    await editor.evaluate(`${luz}.querySelector('button').click()`); await waitFor(editor, "!!document.querySelector('.nested-form input[name=amount]')");
-    await input(editor, ".nested-form input[name=amount]", "100,00"); await submit(editor, ".nested-form input[name=amount]");
+    await editor.evaluate(`${luz}.querySelector('button').click()`); await waitFor(editor, "!!document.querySelector('.pay-form input[name=amount]')");
+    await input(editor, ".pay-form input[name=amount]", "100,00"); await submit(editor, ".pay-form input[name=amount]");
     await waitFor(editor, `${luz}?.innerText.includes('Paga em parte') && ${luz}.innerText.includes('150,00')`);
+    await waitFor(editor, closedModal); await press(editor, "Nova despesa"); await waitFor(editor, "!!document.querySelector('.segmented')");
     await editor.evaluate("[...document.querySelectorAll('.segmented button')].find(b => b.textContent === 'Compra parcelada').click()"); await waitFor(editor, "!!document.querySelector('input[name=total]')");
     await input(editor, "input[name=description]", "Cadeira"); await input(editor, "input[name=total]", "100,00");
     await editor.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Ver parcelas').click()");
@@ -212,17 +225,19 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     const householdTotal = async session => { await navigate(session, "/accounts"); await waitFor(session, "!!document.querySelector('.money-summary strong')");
       return Number((await session.evaluate("document.querySelector('.money-summary strong').textContent")).replace(/[^\d,-]/g, "").replace(",", ".")); };
     const before = await householdTotal(editor);
-    await navigate(editor, "/cards"); await waitFor(editor, "!!document.querySelector('input[name=closingDay]')");
+    await navigate(editor, "/cards"); await waitFor(editor, "[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Novo cartão')");
+    await press(editor, "Novo cartão"); await waitFor(editor, "!!document.querySelector('input[name=closingDay]')");
     await input(editor, "input[name=name]", "Visa da casa"); await input(editor, "input[name=creditLimit]", "1.000,00"); await submit(editor, "input[name=closingDay]");
-    await waitFor(editor, "document.body.innerText.includes('Cartão cadastrado') && !!document.querySelector('input[name=total]')");
+    await waitFor(editor, `${closedModal} && document.body.innerText.includes('Cartão cadastrado')`);
+    await press(editor, "Lançar compra"); await waitFor(editor, "!!document.querySelector('input[name=total]')");
     await input(editor, "input[name=description]", "Mercado no cartão"); await input(editor, "input[name=total]", "300,00");
     await editor.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Ver em quais faturas cai').click()");
     await waitFor(editor, "document.querySelector('.data-form caption')?.textContent.includes('1 parcela(s) somando R$')");
     await submit(editor, "input[name=total]"); await waitFor(editor, "document.body.innerText.includes('Compra lançada') && [...document.querySelectorAll('.expense-row')].some(r => r.innerText.includes('300,00'))");
     assert.equal(await householdTotal(editor), before, "A card purchase must not change the household balance");
     await navigate(editor, "/cards"); await waitFor(editor, "[...document.querySelectorAll('button')].some(b => b.textContent === 'Pagar fatura')");
-    await editor.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Pagar fatura').click()"); await waitFor(editor, "!!document.querySelector('.nested-form input[name=amount]')");
-    await submit(editor, ".nested-form input[name=amount]"); await waitFor(editor, "[...document.querySelectorAll('.status-tag')].some(t => t.textContent === 'Paga')");
+    await editor.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent === 'Pagar fatura').click()"); await waitFor(editor, "!!document.querySelector('.pay-form input[name=amount]')");
+    await submit(editor, ".pay-form input[name=amount]"); await waitFor(editor, "[...document.querySelectorAll('.status-tag')].some(t => t.textContent === 'Paga')");
     await screenshot(editor, "cartoes-desktop.png");
     assert.equal(await householdTotal(editor), before - 300, "Paying the invoice reduces cash once");
     await editor.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 800, deviceScaleFactor: 1, mobile: false });
@@ -237,7 +252,7 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     await navigate(reader, "/budget"); await waitFor(reader, "!!document.querySelector('.budget-list')");
     assert.equal(await reader.evaluate("!!document.querySelector('.limit-input input')"), false, "Reader cannot edit the budget");
     await navigate(owner, "/dashboard"); await waitFor(owner, "!!document.querySelector('.projection-chart svg path.balance-line')");
-    assert.ok((await owner.evaluate("document.querySelector('.money-grid').innerText")).includes("Saldo hoje"), "Dashboard KPIs expected");
+    assert.ok((await owner.evaluate("document.querySelector('.money-grid').textContent")).includes("Saldo hoje"), "Dashboard KPIs expected");
     await screenshot(owner, "painel-desktop.png");
     for (const [path, ready] of [["/cash-flow", ".month-bars"], ["/alerts", "h1"], ["/analysis", ".filter-form"]]) {
       await navigate(owner, path); await waitFor(owner, `!!document.querySelector(${JSON.stringify(ready)})`);
@@ -255,6 +270,7 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     await writeFile(join(output, "swagger-dom.html"), await swagger.evaluate("document.documentElement.outerHTML"));
     await waitFor(swagger, "!!document.querySelector('.swagger-ui .opblock') && !!document.querySelector('.global-docs-hero')");
     await screenshot(swagger, "swagger-desktop.png");
+    await owner.evaluate("document.querySelector('aside button[aria-label=Sair]').click()"); await waitFor(owner, "!!document.querySelector('[role=dialog]')");
     await owner.evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Sair de todas')).click()");
     await waitFor(owner, "location.pathname === '/login'");
     await navigate(owner, "/people"); await waitFor(owner, "location.pathname === '/login'");

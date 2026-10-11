@@ -1,6 +1,6 @@
 # Organizali Finanças — implementado e trabalho restante
 
-Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitetura.Global; backend Minimal API, frontend Next.js, Foundation.Base, Dapper em runtime e EF para schema. Um commit por etapa; push acumulado somente ao final. Sem deploy externo.
+Atualizado em 11/10/2026. Projeto particular. Referência: RevendaPRO e Arquitetura.Global; backend Minimal API, frontend Next.js, Foundation.Base, Dapper em runtime e EF para schema. Um commit por etapa; push acumulado somente ao final. Sem deploy externo.
 
 ## O que já funciona
 
@@ -15,6 +15,7 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 - Cartões sem número, compras à vista ou parceladas nas faturas pelos ciclos, prévia com correção de um ciclo, pagamento de fatura que reduz o caixa uma vez, estorno da loja e limite disponível estimado (M6).
 - Painel da casa com saldo real, previsto × realizado, saldo projetado de 60 dias com primeira data de déficit e causas; fluxo de caixa diário e mensal; orçamento por categoria com hierarquia; central de alertas deduplicada; agenda; análise filtrada com o mesmo total no gráfico e na lista (M7).
 - Pilha Docker de produção com HTTPS (Caddy), banco em rede interna, migration em processo único, imagens versionadas por commit, backup cifrado e restauração ensaiada, rotina diária do horizonte com trava, recuperação de senha por SMTP configurável, cabeçalhos de segurança, limites por sessão e logs estruturados (M8).
+- Interface igual ao RevendaPRO (D26): menu recolhível com grupos, tema claro/escuro, cadastros em mosaico ou lista com formulários e ações em modal, telas públicas no layout de login do RevendaPRO.
 - Base técnica, migrations, Swagger e telas integradas; testes em MariaDB efêmero e navegador isolado.
 
 **O piloto está tecnicamente pronto para um servidor com Docker (M4–M8).** Faltam as escolhas de hospedagem, domínio e e-mail (D16), a política de retenção (D17) e o aceite da família piloto. Complementos (M9) e comercialização (M10) não foram iniciados.
@@ -36,6 +37,7 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 | M6 | Cartões e faturas implementados; D13 com premissa A06 | [Entrega](../deliveries/M6.md) |
 | M7 | Painel, fluxo, orçamento, alertas e análise implementados | [Entrega](../deliveries/M7.md); premissas A09–A12 |
 | M8 | Produção e publicação Docker implementadas; D16/D17 e aceite da família piloto pendentes | [Entrega](../deliveries/M8.md) · [Runbook](../operations/runbook.md) |
+| UI | Visual e cadastros iguais ao RevendaPRO (D26) | [Entrega](../deliveries/UI-RevendaPRO.md) |
 | M9 | A implementar | Complementos da V1 |
 | M10 | A implementar; D14 aberta | Comercialização e importação |
 

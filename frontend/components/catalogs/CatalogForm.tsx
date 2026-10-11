@@ -1,49 +1,75 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { CreditCard, FolderTree, Store, Tag, TrendingUp, type LucideIcon } from "lucide-react";
+import { Modal } from "@/components/common/Modal";
+import { Card, EditButton, Empty, ModalActions, NewButton, Notices, PageHeader, Pill } from "@/components/common/Ui";
+import { ListBar, ListFrame, useViewMode } from "@/components/common/ViewSwitch";
+import { useFinanceAction } from "@/components/finance/useFinanceAction";
 import { catalogs, type CatalogKey, type CatalogItem } from "@/lib/catalogs";
 
+const singular: Record<CatalogKey, string> = { categories: "categoria", "income-types": "tipo de renda", creditors: "credor", "payment-methods": "forma de pagamento" };
+const plural: Record<CatalogKey, string> = { categories: "categorias", "income-types": "tipos de renda", creditors: "credores", "payment-methods": "formas de pagamento" };
+const newLabel: Record<CatalogKey, string> = { categories: "Nova categoria", "income-types": "Novo tipo de renda", creditors: "Novo credor", "payment-methods": "Nova forma de pagamento" };
+const icons: Record<CatalogKey, LucideIcon> = { categories: FolderTree, "income-types": TrendingUp, creditors: Store, "payment-methods": CreditCard };
+
 export function CatalogForm({ kind, items, canEdit }: { kind: CatalogKey; items: CatalogItem[]; canEdit: boolean }) {
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  function parentPicker(item?: CatalogItem) {
-    return kind === "categories" && <label>Categoria superior<select name="parentCode" defaultValue={item?.parentCode ?? ""} disabled={!canEdit}>
-      <option value="">Sem categoria superior</option>{items.filter(parent => parent.code !== item?.code && (parent.isActive || parent.code === item?.parentCode))
-        .map(parent => <option key={parent.code} value={parent.code}>{parent.name}</option>)}
-    </select></label>;
+  const action = useFinanceAction();
+  const [view, chooseView] = useViewMode(`organizali.catalog.${kind}.view`);
+  const [editing, setEditing] = useState<CatalogItem | "new" | null>(null);
+  const current = editing === "new" ? null : editing;
+  const Icon = icons[kind] ?? Tag;
+  const parentName = (item: CatalogItem) => item.parentCode ? items.find(parent => parent.code === item.parentCode)?.name : null;
+
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const saved = await action.send(`catalogs/${kind}${current ? `/${current.code}` : ""}`, current ? "PUT" : "POST",
+      { name: data.get("name"), isActive: current ? data.has("isActive") : true, version: current?.version ?? 0, parentCode: data.get("parentCode") || null },
+      "Cadastro salvo.");
+    if (saved) setEditing(null);
   }
-  async function save(event: FormEvent<HTMLFormElement>, item?: CatalogItem) {
-    event.preventDefault(); const form = event.currentTarget; const data = new FormData(form);
-    setBusy(true); setError(""); setMessage("");
-    try {
-      const response = await fetch(`/api/backend/catalogs/${kind}${item ? `/${item.code}` : ""}`, {
-        method: item ? "PUT" : "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: data.get("name"), isActive: item ? data.has("isActive") : true, version: item?.version ?? 0, parentCode: data.get("parentCode") || null }),
-      });
-      if (response.status === 401) { router.replace("/session-renew"); return; }
-      const body = await response.json().catch(() => null);
-      if (!response.ok) { setError(body?.detail ?? "Não foi possível salvar o cadastro."); return; }
-      setMessage("Cadastro salvo."); if (!item) form.reset(); router.refresh();
-    } catch { setError("Servidor indisponível. Tente novamente."); }
-    finally { setBusy(false); }
-  }
-  return <section className="page-content"><h1>{catalogs[kind]}</h1>
+
+  const status = (item: CatalogItem) => <Pill tone={item.isActive ? "success" : "muted"}>{item.isActive ? "Ativo" : "Inativo"}</Pill>;
+
+  return <section className="page-content">
+    <PageHeader title={catalogs[kind]} description="Os nomes usados nos lançamentos da casa. Alterar um nome preserva as versões anteriores para o histórico financeiro."
+      action={canEdit && <NewButton label={newLabel[kind]} onClick={() => setEditing("new")} />} />
     <nav className="catalog-tabs" aria-label="Cadastros financeiros">{Object.entries(catalogs).map(([key, name]) =>
       <Link key={key} href={`/catalogs/${key}`} aria-current={kind === key ? "page" : undefined}>{name}</Link>)}</nav>
-    <p className="intro">Organize os nomes usados nos lançamentos da casa.</p>
-    {error && <p role="alert" className="form-error">{error}</p>}{message && <p role="status">{message}</p>}
-    {canEdit && <form className="data-form" onSubmit={event => void save(event)}><h2>Novo cadastro</h2>
-      <label>Nome<input name="name" required maxLength={160} /></label>{parentPicker()}<button className="primary-button" disabled={busy}>Cadastrar</button></form>}
-    {items.length === 0 ? <div className="empty-state"><h2>Nenhum cadastro por aqui</h2><p>{canEdit ? "Adicione os nomes que fazem sentido para a sua casa." : "Um titular ou editor pode adicionar os cadastros da casa."}</p></div> :
-      <div className="member-list">{items.map(item => <form className="data-form" key={`${item.code}-${item.version}`} onSubmit={event => void save(event, item)}>
-        <label>Nome<input name="name" defaultValue={item.name} readOnly={!canEdit} required maxLength={160} /></label>{parentPicker(item)}
-        <p>{item.isActive ? "Ativo" : "Inativo"}</p>{canEdit && <><label className="checkbox-label"><input type="checkbox" name="isActive" defaultChecked={item.isActive} />Ativo</label>
-          <button className="secondary-button" disabled={busy}>Salvar cadastro</button></>}
-      </form>)}</div>}
-    <p className="form-hint">Inativar preserva o registro. Alterações de nome mantêm as versões anteriores para o histórico financeiro.</p>
+    <Notices error={editing ? undefined : action.error} message={action.message} />
+
+    <ListBar count={items.length} singular={singular[kind]} plural={plural[kind]} view={view} onChange={chooseView} label={`Como mostrar ${plural[kind]}`} />
+    {items.length === 0 ? <Empty title={canEdit ? "Nada cadastrado por aqui. Adicione os nomes que fazem sentido para a sua casa." : "Nada cadastrado. Um titular ou editor pode adicionar os cadastros da casa."} /> :
+      view === "list" ? <ListFrame>{items.map(item => <li key={item.code} className={`flex items-center gap-3 px-3 py-2.5 transition hover:bg-[var(--surface-2)] sm:gap-4 sm:px-4 ${item.isActive ? "" : "opacity-60"}`}>
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[var(--surface-2)] text-[var(--signal)]"><Icon size={17} /></span>
+        <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{item.name}</span>
+          {parentName(item) && <span className="mt-0.5 block truncate text-xs text-[var(--text-muted)]">Dentro de {parentName(item)}</span>}</span>
+        {status(item)}
+        {canEdit && <EditButton name={item.name} onClick={() => setEditing(item)} />}
+      </li>)}</ListFrame> :
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{items.map(item => <Card key={item.code} muted={!item.isActive}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0"><p className="flex items-center gap-2 font-semibold"><Icon size={16} className="shrink-0 text-[var(--signal)]" /><span className="truncate">{item.name}</span></p>
+            {parentName(item) && <p className="mt-0.5 text-xs text-[var(--text-secondary)]">Dentro de {parentName(item)}</p>}</div>
+          {canEdit && <EditButton name={item.name} onClick={() => setEditing(item)} />}
+        </div>
+        <div>{status(item)}</div>
+      </Card>)}</div>}
+
+    <p className="form-hint mt-4">Inativar preserva o registro e os lançamentos que o usam.</p>
+
+    {editing && <Modal title={current ? `Editar ${current.name}` : newLabel[kind]} onClose={() => setEditing(null)} error={action.error} width="max-w-md">
+      <form className="data-form" onSubmit={save}>
+        <label>Nome<input name="name" required maxLength={160} defaultValue={current?.name ?? ""} autoComplete="off" /></label>
+        {kind === "categories" && <label>Categoria superior<select name="parentCode" defaultValue={current?.parentCode ?? ""}>
+          <option value="">Sem categoria superior</option>
+          {items.filter(parent => parent.code !== current?.code && (parent.isActive || parent.code === current?.parentCode)).map(parent => <option key={parent.code} value={parent.code}>{parent.name}</option>)}
+        </select></label>}
+        {current && <label className="checkbox-label"><input type="checkbox" name="isActive" defaultChecked={current.isActive} />Cadastro ativo</label>}
+        <ModalActions busy={action.busy} label={current ? "Salvar" : "Cadastrar"} onCancel={() => setEditing(null)} />
+      </form>
+    </Modal>}
   </section>;
 }

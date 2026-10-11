@@ -8,7 +8,7 @@ import type { CatalogItem } from "@/lib/catalogs";
 import type { ExpenseType } from "@/lib/expense-types";
 import type { Person } from "@/components/households/HouseholdForms";
 import { ExpenseList } from "@/components/expenses/ExpenseList";
-import { ExpenseForm } from "@/components/expenses/ExpenseForm";
+import { ExpensesView } from "@/components/expenses/ExpensesView";
 import { Payments } from "@/components/expenses/Payments";
 import { Recurrences } from "@/components/expenses/Recurrences";
 import { Contributions } from "@/components/expenses/Contributions";
@@ -28,8 +28,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
   const catalogs = { types, categories, creditors, methods, people };
   const canEdit = session.permissions.includes("finance.write");
   const canSettle = session.permissions.includes("payments.settle");
-  return <section className="page-content"><h1>Despesas</h1>
-    <p className="intro">Contas a pagar da casa: o que vence no mês, o que já foi pago e quem é responsável por cada parte.</p>
+  return <ExpensesView catalogs={catalogs} accounts={accounts.accounts} today={list.today} canEdit={canEdit} canSettle={canSettle}>
     <nav className="month-nav" aria-label="Mês das despesas">
       <Link href={`/expenses?month=${addMonths(month, -1)}`} aria-label="Mês anterior"><ChevronLeft aria-hidden="true" size={20} /><span className="nav-text">Anterior</span></Link>
       <strong aria-current="date">{capitalize(monthLabel(month))}</strong>
@@ -42,12 +41,11 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
       <div><dt>Vencidas em aberto</dt><dd className={Number(list.overdue) > 0 ? "alert-figure" : ""}>{money(list.overdue)}</dd></div>
     </dl>
     <ExpenseList items={list.items} accounts={accounts.accounts} catalogs={catalogs} today={list.today} canEdit={canEdit} canSettle={canSettle} />
-    {canEdit && <ExpenseForm catalogs={catalogs} accounts={accounts.accounts} today={list.today} canSettle={canSettle} />}
     <h2>Rateio de {monthLabel(month)}</h2>
     <Contributions data={contributions} />
     <h2>Contas recorrentes</h2>
     <Recurrences recurrences={recurrences} canEdit={canEdit} today={list.today} />
     <h2>Pagamentos recentes</h2>
     <Payments payments={payments} canReverse={session.permissions.includes("payments.reverse")} />
-  </section>;
+  </ExpensesView>;
 }

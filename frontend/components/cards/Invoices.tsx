@@ -3,7 +3,11 @@ import { useState, type FormEvent } from "react";
 import { civilDate, money, monthLabel, type Account } from "@/lib/finance";
 import { invoiceStatus, type Card, type Invoice, type InvoiceDetail, type Purchase } from "@/lib/cards";
 import type { Person } from "@/components/households/HouseholdForms";
-import { PayForm } from "@/components/expenses/ExpenseList";
+import { ShoppingBag } from "lucide-react";
+import { Modal } from "@/components/common/Modal";
+import { Empty, ModalActions } from "@/components/common/Ui";
+import { ListFrame } from "@/components/common/ViewSwitch";
+import { PayModal } from "@/components/expenses/ExpenseList";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
 
 type Props = { cards: Card[]; invoices: Invoice[]; accounts: Account[]; people: Person[]; today: string; canSettle: boolean };
@@ -18,7 +22,7 @@ export function Invoices({ cards, invoices, accounts, people, today, canSettle }
   return <>
     {cards.length > 1 && <label className="inline-select">Cartão<select value={cardCode} onChange={event => setCardCode(event.target.value)}>
       {cards.map(card => <option key={card.code} value={card.code}>{card.name}</option>)}</select></label>}
-    {shown.length === 0 ? <p className="form-hint">Nenhuma fatura com compras neste cartão.</p> :
+    {shown.length === 0 ? <Empty title="Nenhuma fatura com compras neste cartão." /> :
       <ul className="expense-list">{shown.map(invoice => <InvoiceRow key={`${invoice.code}-${invoice.amount}-${invoice.paid}`} invoice={invoice} accounts={accounts}
         people={people} today={today} canSettle={canSettle} />)}</ul>}
   </>;
@@ -49,19 +53,18 @@ function InvoiceRow({ invoice, accounts, people, today, canSettle }: Omit<Props,
         <button type="button" className="secondary-button" aria-expanded={panel === "pay"} onClick={() => setPanel(panel === "pay" ? "" : "pay")}>Pagar fatura</button>}
       <button type="button" className="secondary-button" aria-expanded={panel === "items"} disabled={action.busy} onClick={toggleItems}>Ver compras</button>
     </div>
-    {panel === "pay" && <PayForm expense={{ code: invoice.expenseCode, description: `fatura de ${monthLabel(invoice.referenceMonth)}`, openBalance: invoice.openBalance,
-      payerPersonCode: null, paymentMethodCode: null }} accounts={accounts} people={people} today={today} />}
+    {panel === "pay" && <PayModal expense={{ code: invoice.expenseCode, description: `fatura de ${monthLabel(invoice.referenceMonth)}`, openBalance: invoice.openBalance,
+      payerPersonCode: null, paymentMethodCode: null }} accounts={accounts} people={people} today={today} onClose={() => setPanel("")} />}
     {panel === "items" && detail && <ul className="entry-list compact">{detail.items.map(item => <li key={item.code} className={item.isActive ? "" : "muted-row"}>
       <span>{item.description}{item.kind === "installment" && item.installmentCount > 1 && ` · ${item.installmentNumber}/${item.installmentCount}`}
         <span className="entry-meta">{item.kind === "credit" ? `Estorno: ${item.note}` : `Comprado em ${civilDate(item.purchaseDate)}`}{item.categoryName && ` · ${item.categoryName}`}{!item.isActive && " · cancelada"}</span></span>
       <span className={`number ${item.kind === "credit" ? "positive" : ""}`}>{money(item.amount)}</span></li>)}</ul>}
   </li>;
 }
-
 /** Merchant refund: cancels installments still in open invoices and credits the remainder; there is no bank entry. */
 export function Purchases({ purchases, canEdit }: { purchases: Purchase[]; canEdit: boolean }) {
-  if (purchases.length === 0) return <p className="form-hint">Nenhuma compra nos últimos meses.</p>;
-  return <ul className="entry-list">{purchases.map(purchase => <PurchaseRow key={`${purchase.code}-${purchase.version}`} purchase={purchase} canEdit={canEdit} />)}</ul>;
+  if (purchases.length === 0) return <Empty title="Nenhuma compra nos últimos meses." />;
+  return <ListFrame>{purchases.map(purchase => <PurchaseRow key={`${purchase.code}-${purchase.version}`} purchase={purchase} canEdit={canEdit} />)}</ListFrame>;
 }
 
 function PurchaseRow({ purchase, canEdit }: { purchase: Purchase; canEdit: boolean }) {
@@ -72,17 +75,23 @@ function PurchaseRow({ purchase, canEdit }: { purchase: Purchase; canEdit: boole
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const amount = String(data.get("amount") ?? "").trim();
-    await action.send(`card-purchases/${purchase.code}/refunds`, "POST", { amount: amount ? amount.replace(/\./g, "").replace(",", ".") : null, reason: data.get("reason"), date: null },
-      "Estorno registrado na fatura.", true);
+    if (await action.send(`card-purchases/${purchase.code}/refunds`, "POST", { amount: amount ? amount.replace(/\./g, "").replace(",", ".") : null, reason: data.get("reason"), date: null },
+      "Estorno registrado na fatura.", true)) setOpen(false);
   }
-  return <li className={remaining === 0 ? "muted-row" : ""}>
-    <div><strong>{money(purchase.total)}</strong> · {purchase.description}{purchase.count > 1 && ` em ${purchase.count}x`}
-      <span className="entry-meta">{civilDate(purchase.purchaseDate)} no {purchase.cardName}{purchase.buyerName && ` · ${purchase.buyerName}`}{purchase.categoryName && ` · ${purchase.categoryName}`}</span>
-      {Number(purchase.refunded) > 0 && <span className="entry-meta">Estornado {money(purchase.refunded)}</span>}</div>
-    {action.error && <p className="form-error" role="alert">{action.error}</p>}
-    {canEdit && remaining > 0 && (open
-      ? <form className="inline-form" onSubmit={refund}><label>Valor (vazio = restante)<input name="amount" inputMode="decimal" placeholder={remaining.toFixed(2).replace(".", ",")} /></label>
-        <label>Motivo<input name="reason" required maxLength={300} /></label><button className="secondary-button" disabled={action.busy}>Confirmar estorno</button></form>
-      : <button type="button" className="secondary-button" onClick={() => setOpen(true)}>Estorno da loja</button>)}
+  return <li className={`purchase-item flex flex-wrap items-center gap-3 px-3 py-2.5 transition hover:bg-[var(--surface-2)] sm:gap-4 sm:px-4 ${remaining === 0 ? "opacity-60" : ""}`}>
+    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[var(--surface-2)] text-[var(--signal)]"><ShoppingBag size={17} /></span>
+    <span className="min-w-0 flex-1"><span className="block font-semibold">{purchase.description}{purchase.count > 1 && <span className="font-normal text-[var(--text-secondary)]"> em {purchase.count}x</span>}</span>
+      <span className="mt-0.5 block text-xs text-[var(--text-muted)]">{civilDate(purchase.purchaseDate)} no {purchase.cardName}{purchase.buyerName && ` · ${purchase.buyerName}`}{purchase.categoryName && ` · ${purchase.categoryName}`}
+        {Number(purchase.refunded) > 0 && ` · estornado ${money(purchase.refunded)}`}</span></span>
+    <span className="num shrink-0 text-sm font-semibold">{money(purchase.total)}</span>
+    {canEdit && remaining > 0 && <button type="button" className="secondary-button" onClick={() => setOpen(true)}>Estorno da loja</button>}
+    {open && <Modal title="Estorno da loja" onClose={() => setOpen(false)} error={action.error} width="max-w-md">
+      <form className="data-form" onSubmit={refund}>
+        <p className="form-hint">{purchase.description} de {money(purchase.total)}: as parcelas ainda abertas são canceladas e o restante vira crédito na fatura. Nenhuma conta é movimentada.</p>
+        <label>Valor (vazio = restante)<input name="amount" inputMode="decimal" placeholder={remaining.toFixed(2).replace(".", ",")} /></label>
+        <label>Motivo<input name="reason" required maxLength={300} autoComplete="off" /></label>
+        <ModalActions busy={action.busy} label="Confirmar estorno" onCancel={() => setOpen(false)} />
+      </form>
+    </Modal>}
   </li>;
 }
