@@ -76,6 +76,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             await FinanceAssertions.VerifyAsync(owner, other, reader, connection);
             await ExpenseAssertions.VerifyAsync(owner, other, reader, connection);
             await CardAssertions.VerifyAsync(owner, other, reader, connection);
+            await PlanningAssertions.VerifyAsync(owner, other, reader);
         }
         private static async Task Login(HttpClient client, string email)
         {

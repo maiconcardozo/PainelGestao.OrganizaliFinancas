@@ -54,6 +54,10 @@ Em 10/10/2026 o usuário autorizou concluir todos os marcos até a publicação 
 | A05 | Pagamento pode deixar a conta com saldo negativo (cheque especial); só o saldo aberto da despesa é limite | M5 | Bloquear saída acima do saldo da conta |
 | A06 | D13 sem resposta: cada cartão escolhe a regra; o padrão é a compra do dia do fechamento entrar na **próxima** fatura. A prévia permite mover a primeira parcela um ciclo antes de salvar | M6 | Trocar o padrão para “fatura que fecha no dia” ou responder D13 |
 | A07 | Compras no cartão não são rateadas entre moradores no M6 | M6 | Rateio por percentual nas parcelas, como nas recorrências |
+| A09 | Saldo projetado não inclui renda variável (estimativa pela média) nem renda já atrasada; contas vencidas contam no dia de hoje | M7 | Incluir estimativas rotuladas na projeção |
+| A10 | Comprometido do orçamento inclui valores estimados de recorrências e encargos; o pago do cartão aparece só na fatura | M7 | Orçar só valores confirmados |
+| A11 | Ler, adiar ou resolver alerta exige titular ou editor; o estado vale para toda a casa | M7 | Estado de alerta por usuário |
+| A12 | Filtro por conta na análise considera despesas com pagamento ativo daquela conta; compras no cartão ficam fora desse filtro | M7 | Filtrar pela conta de pagamento da fatura |
 | A08 | Estorno da loja cancela as últimas parcelas ainda abertas que cabem no valor e credita o restante na fatura da data; crédito de fatura já paga fica como saldo negativo dessa fatura | M6 | Transferir crédito automaticamente para a próxima fatura |
 
 ## Regra de tratamento

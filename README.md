@@ -26,11 +26,11 @@ O **Organizali Finanças** é um projeto de SaaS web para quem coordena as finan
 
 A arquitetura segue o **RevendaPRO**, com **Clean Architecture**, **DDD**, **CQRS com MediatR** e **Foundation.Base**. Cada assinatura atende uma casa, com dados compartilhados entre os integrantes e permissões para controlar as alterações.
 
-> **Estado atual:** fundação, acesso, cadastros, contas, rendas, despesas e cartões implementados até M6. 77 testes .NET aprovados com banco descartável e jornada integrada no Chrome. Orçamento, dashboard, alertas e recuperação externa pendentes. [Estado completo](docs/status/PROJECT_STATUS.md) · [Entregas e regras por marco](docs/deliveries/README.md).
+> **Estado atual:** fundação, acesso, cadastros, contas, rendas, despesas, cartões, painel, fluxo de caixa, orçamento e alertas implementados até M7. 85 testes .NET aprovados com banco descartável e jornada integrada no Chrome. Operação de produção, recuperação externa e complementos pendentes. [Estado completo](docs/status/PROJECT_STATUS.md) · [Entregas e regras por marco](docs/deliveries/README.md).
 
 ### ✨ Funcionalidades principais
 
-Escopo do produto: contas e rendas foram entregues no M4, despesas no M5 e cartões no M6; os demais recursos financeiros abaixo estão planejados para M7–M10. O quadro de estado distingue o que já foi implementado.
+Escopo do produto: contas e rendas foram entregues no M4, despesas no M5, cartões no M6 e painel/orçamento/alertas no M7; complementos e comercialização estão planejados para M9–M10. O quadro de estado distingue o que já foi implementado.
 
 - 📊 **Dashboard da casa** — saldo atual, previsto e realizado, vencimentos e ações pendentes.
 - 💸 **Fluxo de caixa** — entradas, saídas e projeção diária e mensal, com alerta de saldo negativo.
@@ -215,7 +215,7 @@ O pipeline ainda não foi criado.
 - **[Plano de testes](docs/testing/test-patterns.md)** — cenários, ferramentas e resultados esperados.
 - **[Regras financeiras](docs/domain/financial-rules.md)** — exemplos para validar cálculos.
 
-**77 testes .NET aprovados**, além dos testes HTTP do Next e jornada integrada no Chrome. Não representam os cenários financeiros futuros nem medição de cobertura. [Evidências M6](docs/testing/m6-cards.md).
+**85 testes .NET aprovados**, além dos testes HTTP do Next e jornada integrada no Chrome. Não representam os cenários financeiros futuros nem medição de cobertura. [Evidências M7](docs/testing/m7-planning.md).
 
 ## 📊 Estado do projeto
 
@@ -244,6 +244,7 @@ O pipeline ainda não foi criado.
 | M4 — contas e rendas | [Contas, transferências, previsões, recebimentos, estornos e média anual](docs/testing/m4-accounts-income.md) |
 | M5 — despesas e liquidação | [Despesas, recorrências, parcelas, pagamentos, encargos, estornos e rateio](docs/testing/m5-expenses.md) |
 | M6 — cartões e faturas | [Cartões, compras, faturas, pagamento único e estorno da loja](docs/testing/m6-cards.md) |
+| M7 — painel e orçamento | [Projeção, fluxo, orçamento, alertas, agenda e análise](docs/testing/m7-planning.md) |
 | M5–M10 | [Trabalho restante](docs/status/PROJECT_STATUS.md) |
 
 ## 📋 Documentação por público

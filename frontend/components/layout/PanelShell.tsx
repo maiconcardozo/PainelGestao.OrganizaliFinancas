@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { CreditCard, House, Landmark, LogOut, Menu, Receipt, UserRound, Users, Settings, Tags, TrendingUp, type LucideIcon } from "lucide-react";
+import { Bell, ChartColumn, ChartLine, CreditCard, House, Landmark, LayoutDashboard, LogOut, Menu, PiggyBank, Receipt, UserRound, Users, Settings, Tags, TrendingUp, type LucideIcon } from "lucide-react";
 import type { Session } from "@/lib/session";
 
 /** RevendaPRO shell structure: sidebar, current screen, identity and content. */
@@ -13,7 +13,7 @@ export function PanelShell({ session, children }: { session: Session; children: 
   const [menuOpen, setMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const icons: Record<string, LucideIcon> = { House, UserRound, Users, Settings, Tags, Landmark, TrendingUp, Receipt, CreditCard };
+  const icons: Record<string, LucideIcon> = { House, UserRound, Users, Settings, Tags, Landmark, TrendingUp, Receipt, CreditCard, LayoutDashboard, ChartLine, PiggyBank, ChartColumn, Bell };
   const items = session.menu.map(item => ({ ...item, Icon: icons[item.icon] ?? House }));
   async function signOut() {
     setBusy(true); setError("");

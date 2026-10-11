@@ -66,12 +66,18 @@ namespace PainelGestao.OrganizaliFinancas.Application.Authentication.Handlers
             if (permissions.Contains("members.manage")) menu.Add(new("members.manage", "Integrantes", "/members", "Users"));
             if (permissions.Contains("household.read"))
             {
-                menu.Add(new("people", "Moradores", "/people", "Users"));
-                menu.Add(new("catalogs", "Cadastros financeiros", "/catalogs", "Tags"));
+                // The dashboard (D18) opens the financial area; registers come after the daily screens.
+                menu.Insert(0, new("dashboard", "Painel", "/dashboard", "LayoutDashboard"));
                 menu.Add(new("accounts", "Contas", "/accounts", "Landmark"));
                 menu.Add(new("income", "Rendas", "/income", "TrendingUp"));
                 menu.Add(new("expenses", "Despesas", "/expenses", "Receipt"));
                 menu.Add(new("cards", "Cartões", "/cards", "CreditCard"));
+                menu.Add(new("cash-flow", "Fluxo de caixa", "/cash-flow", "ChartLine"));
+                menu.Add(new("budget", "Orçamento", "/budget", "PiggyBank"));
+                menu.Add(new("analysis", "Análise", "/analysis", "ChartColumn"));
+                menu.Add(new("alerts", "Alertas", "/alerts", "Bell"));
+                menu.Add(new("people", "Moradores", "/people", "Users"));
+                menu.Add(new("catalogs", "Cadastros financeiros", "/catalogs", "Tags"));
                 menu.Add(new("expense-types", "Tipos de despesa", "/expense-types", "Tags"));
                 menu.Add(new("household-settings", "Configurações da casa", "/household-settings", "Settings"));
             }

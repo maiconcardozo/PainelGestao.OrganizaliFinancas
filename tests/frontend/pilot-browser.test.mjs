@@ -230,6 +230,26 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     assert.ok(await editor.evaluate("document.documentElement.scrollWidth <= innerWidth"), "Mobile viewport overflow on /cards");
     await screenshot(editor, "cartoes-mobile.png");
     await editor.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+    // M7: orçamento salvo pelo editor, painel com projeção, fluxo, alertas e análise; leitor vê sem editar.
+    await navigate(editor, "/budget"); await waitFor(editor, "!!document.querySelector('.limit-input input')");
+    await input(editor, ".limit-input input", "100,00"); await editor.evaluate("document.querySelector('.limit-input input').form.requestSubmit()");
+    await waitFor(editor, "document.body.innerText.includes('Orçamento salvo') && document.body.innerText.includes('Dentro do limite')");
+    await navigate(reader, "/budget"); await waitFor(reader, "!!document.querySelector('.budget-list')");
+    assert.equal(await reader.evaluate("!!document.querySelector('.limit-input input')"), false, "Reader cannot edit the budget");
+    await navigate(owner, "/dashboard"); await waitFor(owner, "!!document.querySelector('.projection-chart svg path.balance-line')");
+    assert.ok((await owner.evaluate("document.querySelector('.money-grid').innerText")).includes("Saldo hoje"), "Dashboard KPIs expected");
+    await screenshot(owner, "painel-desktop.png");
+    for (const [path, ready] of [["/cash-flow", ".month-bars"], ["/alerts", "h1"], ["/analysis", ".filter-form"]]) {
+      await navigate(owner, path); await waitFor(owner, `!!document.querySelector(${JSON.stringify(ready)})`);
+    }
+    await navigate(owner, "/cash-flow"); await waitFor(owner, "!!document.querySelector('.month-bars')"); await screenshot(owner, "fluxo-desktop.png");
+    await owner.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 800, deviceScaleFactor: 1, mobile: false });
+    for (const [path, shot] of [["/dashboard", "painel-mobile.png"], ["/cash-flow", "fluxo-mobile.png"], ["/budget", null], ["/alerts", null], ["/analysis", null]]) {
+      await navigate(owner, path); await waitFor(owner, "!!document.querySelector('h1')");
+      assert.ok(await owner.evaluate("document.documentElement.scrollWidth <= innerWidth"), `Mobile viewport overflow on ${path}`);
+      if (shot) await screenshot(owner, shot);
+    }
+    await owner.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
     const swagger = await page(`${apiUrl}/swagger/index.html`);
     await waitFor(swagger, "!!document.querySelector('.swagger-ui .opblock')");
     await writeFile(join(output, "swagger-dom.html"), await swagger.evaluate("document.documentElement.outerHTML"));
@@ -238,7 +258,7 @@ test("pilot journey through real browser, Next, API and disposable MariaDB", { t
     await owner.evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Sair de todas')).click()");
     await waitFor(owner, "location.pathname === '/login'");
     await navigate(owner, "/people"); await waitFor(owner, "location.pathname === '/login'");
-    await writeFile(join(output, "result.json"), JSON.stringify({ passed: true, household: "synthetic", browser: "Chrome headless isolated profile", database: "disposable MariaDB", checks: ["login", "HttpOnly", "resident without login", "mobile width", "manual invitation", "editor catalogs", "required custom field", "reader route and API denial", "accounts and transfer total", "income forecast 4000 with 2000+1800 receipts", "owner reversal", "mobile accounts/income", "expense partial payment", "installments 100 in 3", "owner payment reversal", "mobile expenses", "card purchase keeps balance", "invoice payment once", "mobile cards", "Swagger", "logout and private route denial"], screenshots: ["moradores-mobile.png", "tipos-desktop.png", "rendas-desktop.png", "rendas-mobile.png", "contas-mobile.png", "contas-desktop.png", "despesas-desktop.png", "despesas-mobile.png", "cartoes-desktop.png", "cartoes-mobile.png", "swagger-desktop.png"] }, null, 2));
+    await writeFile(join(output, "result.json"), JSON.stringify({ passed: true, household: "synthetic", browser: "Chrome headless isolated profile", database: "disposable MariaDB", checks: ["login", "HttpOnly", "resident without login", "mobile width", "manual invitation", "editor catalogs", "required custom field", "reader route and API denial", "accounts and transfer total", "income forecast 4000 with 2000+1800 receipts", "owner reversal", "mobile accounts/income", "expense partial payment", "installments 100 in 3", "owner payment reversal", "mobile expenses", "card purchase keeps balance", "invoice payment once", "mobile cards", "budget by editor", "reader budget read-only", "dashboard projection", "cash flow, alerts and analysis", "mobile planning screens", "Swagger", "logout and private route denial"], screenshots: ["moradores-mobile.png", "tipos-desktop.png", "rendas-desktop.png", "rendas-mobile.png", "contas-mobile.png", "contas-desktop.png", "despesas-desktop.png", "despesas-mobile.png", "cartoes-desktop.png", "cartoes-mobile.png", "painel-desktop.png", "painel-mobile.png", "fluxo-desktop.png", "fluxo-mobile.png", "swagger-desktop.png"] }, null, 2));
   } finally {
     for (const socket of sockets) socket.socket.close();
     if (browser) { await browser.send("Browser.close").catch(() => {}); browser.socket.close(); }

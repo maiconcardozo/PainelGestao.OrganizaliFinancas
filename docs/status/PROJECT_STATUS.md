@@ -13,9 +13,10 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 - Contas com saldo recomposto e extrato; transferências atômicas; fontes de renda fixas ou variáveis com vigência; previsões até o mês atual + 12; recebimentos com ou sem previsão; estornos compensatórios; idempotência; média mensal do ano e comparativo previsto × recebido (M4).
 - Despesas avulsas, recorrentes (fixas ou estimadas, “esta” ou “esta e próximas”) e parceladas com soma exata; pagamentos parciais com juros, multa e desconto separados; cancelamento; estorno de pagamento; rateio por valor ou percentual com acerto sugerido; saldo das contas com as saídas (M5).
 - Cartões sem número, compras à vista ou parceladas nas faturas pelos ciclos, prévia com correção de um ciclo, pagamento de fatura que reduz o caixa uma vez, estorno da loja e limite disponível estimado (M6).
+- Painel da casa com saldo real, previsto × realizado, saldo projetado de 60 dias com primeira data de déficit e causas; fluxo de caixa diário e mensal; orçamento por categoria com hierarquia; central de alertas deduplicada; agenda; análise filtrada com o mesmo total no gráfico e na lista (M7).
 - Base técnica, migrations, Swagger e telas integradas; testes em MariaDB efêmero e navegador isolado.
 
-**Ainda não há orçamento, alertas ou dashboard financeiro.** O saldo atual considera rendas, transferências e pagamentos (inclusive de faturas); compras no cartão só afetam o caixa quando a fatura é paga.
+**O núcleo financeiro do piloto está completo (M4–M7).** Alertas aparecem só na tela (sem e-mail/WhatsApp até D16). Operação de produção, recuperação de senha real e complementos ficam para M8–M10.
 
 ## Entregas e situação
 
@@ -32,26 +33,25 @@ Atualizado em 10/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 | M4 | Contas e rendas implementadas | [Entrega](../deliveries/M4.md); agendador do horizonte fica para M8 |
 | M5 | Despesas e liquidação implementadas | [Entrega](../deliveries/M5.md); premissas A01–A05 a revisar |
 | M6 | Cartões e faturas implementados; D13 com premissa A06 | [Entrega](../deliveries/M6.md) |
-| M7 | A implementar | Dashboard, fluxo, orçamento, agenda, filtros e alertas |
+| M7 | Painel, fluxo, orçamento, alertas e análise implementados | [Entrega](../deliveries/M7.md); premissas A09–A12 |
 | M8 | A implementar; D16/D17 abertas | Segurança operacional, recuperação, homologação e aceite da família piloto |
 | M9 | A implementar | Complementos da V1 |
 | M10 | A implementar; D14 aberta | Comercialização e importação |
 
-## Próximo marco: M7 — painel, fluxo, orçamento e alertas
+## Próximo marco: M8 — piloto completo e publicação Docker
 
-1. Painel da casa: saldo real, previsto × realizado do mês, saldo projetado com origem rastreável e primeira data de déficit.
-2. Fluxo de caixa diário e mensal: saldo inicial, entradas, saídas, saldo final; trecho futuro diferenciado.
-3. Orçamento mensal por categoria (pai agrega filhos sem dupla soma), cópia do mês anterior com revisão, comprometido × pago, sem orçamento × limite zero.
-4. Alertas configuráveis (80%/100%), saldo projetado negativo, vencimentos e faturas próximas, deduplicados por condição/versão; ler, adiar e resolver.
-5. Agenda (vencidos, hoje, 7/30 dias) e filtros por mês, conta, pessoa, categoria e situação com o mesmo total em gráfico e lista.
+1. Configuração de produção: variáveis obrigatórias validadas, segredos fora do repositório, cookies seguros, cabeçalhos de segurança e limites.
+2. Docker Compose de produção com proxy HTTPS, imagens versionadas por commit, usuários sem privilégio, healthchecks e volume persistente do MariaDB.
+3. Migrations no início controlado, rotina diária das previsões e recorrências (horizonte D23) e observabilidade (logs estruturados sem dados sensíveis, correlação).
+4. Backup e restauração ensaiados em banco descartável.
+5. Recuperação de senha com provedor SMTP configurável (D16): sem provedor, o recurso continua indisponível.
 
-Aceite: mostrar a origem do total, excesso de orçamento e primeira data de déficit; mesmo total em gráfico e lista; revisão mobile.
+Aceite: restauração ensaiada; jornada completa verificada nas imagens de produção; nenhuma liberação antecipada por cadastro funcionar.
 
 ## Trabalho restante por marco
 
 | Marco | Funcionalidades e regras essenciais | Aceite |
 |---|---|---|
-| M7 | Saldo real/projetado rastreável, fluxo diário/mensal, previsto/realizado, orçamento por categoria, subcategorias sem dupla soma, alertas configuráveis/deduplicados, agenda e filtros | Mostrar origem do total, excesso de orçamento e primeira data de déficit; mesmo total em gráfico/lista; revisão mobile |
 | M8 | Recuperação real após provedor escolhido, configuração de produção, observabilidade, backup/restauração, segurança, limites, concorrência, jornada completa e política de retenção | Restauração ensaiada e família piloto valida jornada; nenhuma liberação antecipada por cadastro funcionar |
 | M9 | Comprovantes privados, exportações autorizadas, metas, conciliação manual justificada, renegociação vinculada, encerramento/exportação/exclusão, resumo mensal e simulação | Arquivos isolados por casa; reserva não cria renda; simulação não cria obrigação; exclusão segue política aprovada |
 | M10 | Planos/preços/trial/cancelamento após decisão, cobrança automática sandbox, webhook idempotente e eventos fora de ordem; CSV/OFX com prévia | Sem cobrança real em testes; importar somente após confirmação da prévia |
@@ -68,7 +68,7 @@ Aceite: mostrar a origem do total, excesso de orçamento e primeira data de déf
 | RF16–20, RF22, RF41 | Implementados no M5 |
 | RF21 | Estornos de recebimento, transferência (M4) e pagamento (M5) implementados |
 | RF23–25 | Implementados no M6 |
-| RF26–33 | M7 pendente |
+| RF26–33 | Implementados no M7 (alertas sem envio externo) |
 | RF36 | Autoria e históricos implementados nos módulos atuais; auditoria integral e consulta operacional ainda evoluem com os módulos |
 | RF34–35, RF38–40, RF42, RF45–46 | M9 pendente |
 | RF43–44 | M10 pendente |
