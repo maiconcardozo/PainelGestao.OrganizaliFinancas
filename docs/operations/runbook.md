@@ -42,7 +42,7 @@ Os arquivos anexados ficam no volume `organizali_attachments` (montado em `/app/
 
 ## Servidor da rede local
 
-`deploy/compose.lan.yml` e `deploy/Caddyfile.lan` substituem o Caddy público por certificado interno (`local_certs`) e redirecionamento manual da porta HTTP: `docker compose -f deploy/compose.production.yml -f deploy/compose.lan.yml --env-file deploy/.env.production up -d`. Cada aparelho instala a raiz uma vez (`http://<IP>:<porta HTTP>/raiz-organizali.crt`). Os contêineres usam `restart: unless-stopped`: voltam sozinhos após reinício do servidor, mas **não** depois de um `docker compose stop`/`down`; nesse caso, repita o `up -d`.
+`deploy/compose.lan.yml` e `deploy/Caddyfile.lan` substituem o Caddy público por certificado interno (`local_certs`) e redirecionamento manual da porta HTTP: `docker compose -f deploy/compose.production.yml -f deploy/compose.lan.yml --env-file deploy/.env.production up -d`. Cada aparelho instala a raiz uma vez (`http://<IP>:<porta HTTP>/raiz-organizali.crt`). No servidor Windows da casa o build roda por `C:pps\OrganizaliFinancas\deploy.ps1` (zip do commit via `git archive`, expandido sobre a pasta; `ORGANIZALI_VERSION` no `.env.production`); em sessão remota use `DOCKER_CONFIG` apontando para uma configuração sem credential helper e dispare o script por tarefa agendada. Os contêineres usam `restart: unless-stopped`: voltam sozinhos após reinício do servidor, mas **não** depois de um `docker compose stop`/`down`; nesse caso, repita o `up -d`.
 
 ## Atualização
 
