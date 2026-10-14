@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from "react";
 import { Wallet } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
+import { AttachmentsToggle } from "@/components/common/Attachments";
 import { Empty, ModalActions } from "@/components/common/Ui";
 import { ListFrame } from "@/components/common/ViewSwitch";
 import { civilDate, money, monthLabel, toApiMoney, type Account, type Forecast, type IncomeSource, type Receipt } from "@/lib/finance";
@@ -69,13 +70,14 @@ export function ReceiptModal({ accounts, people, sources, forecasts, incomeTypes
   </Modal>;
 }
 
-export function ReceiptList({ receipts, canReverse, onDone }: { receipts: Receipt[]; canReverse: boolean; onDone: (message: string) => void }) {
+export function ReceiptList({ receipts, canReverse, canEdit = false, onDone }: { receipts: Receipt[]; canReverse: boolean; canEdit?: boolean; onDone: (message: string) => void }) {
   if (receipts.length === 0) return <Empty title="Nenhum recebimento registrado neste ano." />;
   return <ListFrame>{receipts.map(receipt => <li key={receipt.code} className={`receipt-item flex flex-wrap items-center gap-3 px-3 py-2.5 sm:gap-4 sm:px-4 ${receipt.isReversed ? "opacity-60" : ""}`}>
     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[var(--surface-2)] text-[var(--success)]"><Wallet size={17} /></span>
     <span className="min-w-0 flex-1"><span className="block font-semibold">{receipt.personName}{receipt.sourceName && <span className="font-normal text-[var(--text-secondary)]"> · {receipt.sourceName}</span>}</span>
       <span className="mt-0.5 block text-xs text-[var(--text-muted)]">{civilDate(receipt.receiptDate)} em {receipt.accountName}{receipt.description && ` · ${receipt.description}`}{receipt.isReversed && ` · Estornado: ${receipt.reversalReason}`}</span></span>
     <span className="num shrink-0 text-sm font-semibold text-[var(--success)]">{money(receipt.amount)}</span>
+    <AttachmentsToggle kind="receipt" target={receipt.code} canEdit={canEdit && !receipt.isReversed} />
     {canReverse && !receipt.isReversed && <ReverseButton path={`receipts/${receipt.code}/reversals`} title="Estornar recebimento" success="Recebimento estornado." onDone={onDone}
       summary={<>{money(receipt.amount)} recebido por {receipt.personName} em {civilDate(receipt.receiptDate)} sai de {receipt.accountName}, e a previsão volta a ficar em aberto.</>} />}
   </li>)}</ListFrame>;

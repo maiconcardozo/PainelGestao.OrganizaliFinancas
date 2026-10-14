@@ -34,6 +34,12 @@ ORGANIZALI_ORIGIN=https://financas.exemplo.com.br ORGANIZALI_EMAIL=<titular> ORG
 
 Na rede local com certificado interno, acrescente `ORGANIZALI_INSECURE=1`. Carregado na casa piloto em 13/10/2026.
 
+O mesmo conjunto está embutido no sistema: uma casa nova recebe o catálogo ao ser provisionada, o titular pode carregá-lo pelo botão **Carregar cadastros padrão** e o operador pode rodar `... run --rm --no-deps -e Pilot__HouseholdCode=<código> -e Pilot__Actor=<operador> migrate --Operation=SeedCatalog`.
+
+## Comprovantes
+
+Os arquivos anexados ficam no volume `organizali_attachments` (montado em `/app/attachments` na API). `deploy/backup.sh` gera um `.tar.gz` desse volume ao lado do dump; restaure com `docker run --rm -v organizali_organizali_attachments:/data alpine sh -c 'cd /data && tar -xzf -' < arquivo.tar.gz` (decifre antes com `openssl enc -d` quando houver senha).
+
 ## Servidor da rede local
 
 `deploy/compose.lan.yml` e `deploy/Caddyfile.lan` substituem o Caddy público por certificado interno (`local_certs`) e redirecionamento manual da porta HTTP: `docker compose -f deploy/compose.production.yml -f deploy/compose.lan.yml --env-file deploy/.env.production up -d`. Cada aparelho instala a raiz uma vez (`http://<IP>:<porta HTTP>/raiz-organizali.crt`). Os contêineres usam `restart: unless-stopped`: voltam sozinhos após reinício do servidor, mas **não** depois de um `docker compose stop`/`down`; nesse caso, repita o `up -d`.

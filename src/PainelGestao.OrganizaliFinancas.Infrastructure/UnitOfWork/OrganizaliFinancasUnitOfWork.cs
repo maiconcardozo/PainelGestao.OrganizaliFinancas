@@ -21,7 +21,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
         Func<IDapperUnitOfWork, IIdempotencyRepository> idempotencyRepositoryFactory,
         Func<IDapperUnitOfWork, IExpenseRepository> expenseRepositoryFactory,
         Func<IDapperUnitOfWork, ICardRepository> cardRepositoryFactory,
-        Func<IDapperUnitOfWork, IPlanningRepository> planningRepositoryFactory)
+        Func<IDapperUnitOfWork, IPlanningRepository> planningRepositoryFactory,
+        Func<IDapperUnitOfWork, IGoalRepository> goalRepositoryFactory,
+        Func<IDapperUnitOfWork, IAttachmentRepository> attachmentRepositoryFactory,
+        Func<IDapperUnitOfWork, IImportRepository> importRepositoryFactory)
         : DapperUnitOfWork(connectionFactory), IUnitOfWork
     {
         private ITenantRepository? _tenantRepository;
@@ -50,5 +53,11 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.UnitOfWork
         public ICardRepository CardRepository => _cardRepository ??= cardRepositoryFactory(this);
         private IPlanningRepository? _planningRepository;
         public IPlanningRepository PlanningRepository => _planningRepository ??= planningRepositoryFactory(this);
+        private IGoalRepository? _goalRepository;
+        public IGoalRepository GoalRepository => _goalRepository ??= goalRepositoryFactory(this);
+        private IAttachmentRepository? _attachmentRepository;
+        public IAttachmentRepository AttachmentRepository => _attachmentRepository ??= attachmentRepositoryFactory(this);
+        private IImportRepository? _importRepository;
+        public IImportRepository ImportRepository => _importRepository ??= importRepositoryFactory(this);
     }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Mail, UserRound, X } from "lucide-react";
+import { KeyRound, Mail, UserRound, X } from "lucide-react";
 import { Confirmation } from "@/components/common/Confirmation";
 import { Modal } from "@/components/common/Modal";
 import { EditButton, Empty, IconAction, ModalActions, NewButton, Notices, PageHeader, Pill } from "@/components/common/Ui";
@@ -20,6 +20,7 @@ export function Members({ initial }: { initial: MembersData }) {
   const [inviteLink, setInviteLink] = useState("");
   const [editing, setEditing] = useState<Member | null>(null);
   const [revoking, setRevoking] = useState<Invitation | null>(null);
+  const [recovery, setRecovery] = useState<{ member: Member; link: string } | null>(null);
 
   async function invite(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,8 +40,12 @@ export function Members({ initial }: { initial: MembersData }) {
     if (await action.send(`members/invitations/${revoking.code}`, "DELETE", undefined, "Convite revogado.")) setRevoking(null);
   }
   function closeInvite() { setInviting(false); setInviteLink(""); }
+  async function createRecoveryLink(member: Member) {
+    const created = await action.send<{ token?: string }>(`members/${member.code}/recovery`, "POST", undefined, "Link de nova senha gerado.");
+    if (created && typeof created === "object" && created.token) setRecovery({ member, link: `${window.location.origin}/reset-password#token=${encodeURIComponent(created.token)}` });
+  }
 
-  const modalOpen = inviting || editing !== null || revoking !== null;
+  const modalOpen = inviting || editing !== null || revoking !== null || recovery !== null;
   return <section className="page-content">
     <PageHeader title="Integrantes" description="Todos compartilham os dados da casa. O perfil define o que cada pessoa pode alterar."
       action={<NewButton label="Convidar pessoa" onClick={() => { setInviteLink(""); setInviting(true); }} />} />
@@ -52,6 +57,7 @@ export function Members({ initial }: { initial: MembersData }) {
       <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{member.name}</span><span className="mt-0.5 block truncate text-xs text-[var(--text-muted)]">{member.email}</span></span>
       <span className="hidden sm:inline-flex"><Pill tone="primary">{member.roleName}</Pill></span>
       {member.isBlocked && <Pill tone="critical">Bloqueado</Pill>}
+      <IconAction label={`Gerar link de nova senha para ${member.name}`} disabled={action.busy || member.isBlocked} onClick={() => void createRecoveryLink(member)}><KeyRound size={15} /></IconAction>
       <EditButton name={`o acesso de ${member.name}`} onClick={() => setEditing(member)} />
     </li>)}</ListFrame>
 
@@ -63,7 +69,7 @@ export function Members({ initial }: { initial: MembersData }) {
         <IconAction label={`Revogar convite de ${invitation.name}`} danger onClick={() => setRevoking(invitation)}><X size={15} /></IconAction>
       </li>)}</ListFrame>}
 
-    <p className="form-hint mt-4">Alterar o acesso encerra as sessões da pessoa. A casa sempre precisa de pelo menos um titular ativo.</p>
+    <p className="form-hint mt-4">Alterar o acesso encerra as sessões da pessoa. A casa sempre precisa de pelo menos um titular ativo. O ícone de chave gera um link de nova senha para quem esqueceu a sua.</p>
 
     {inviting && <Modal title={inviteLink ? "Convite criado" : "Convidar pessoa"} onClose={closeInvite} error={action.error} width="max-w-md">
       {inviteLink ? <div className="data-form">
@@ -87,6 +93,13 @@ export function Members({ initial }: { initial: MembersData }) {
       </form>
     </Modal>}
 
+    {recovery && <Modal title={`Nova senha para ${recovery.member.name}`} onClose={() => setRecovery(null)} width="max-w-md">
+      <div className="data-form">
+        <label>Link de nova senha<textarea readOnly value={recovery.link} onFocus={event => event.currentTarget.select()} /></label>
+        <p className="form-hint">Entregue somente a {recovery.member.name}. O link vale por 24 horas, só pode ser usado uma vez e encerra as sessões abertas da pessoa ao definir a nova senha.</p>
+        <div className="modal-actions"><button type="button" className="primary-button" onClick={() => setRecovery(null)}>Concluir</button></div>
+      </div>
+    </Modal>}
     {revoking && <Confirmation title="Revogar convite" danger busy={action.busy} error={action.error} confirmLabel="Revogar convite"
       message={<>O link enviado para {revoking.email} deixa de funcionar. Você pode convidar de novo depois.</>}
       onConfirm={() => void revoke()} onCancel={() => setRevoking(null)} />}

@@ -15,7 +15,11 @@ async function forward(request: Request, path: string[]) {
   const token = await getAccessToken();
   if (!token) return NextResponse.json({ detail: "Entre novamente." }, { status: 401 });
   const url = new URL(request.url);
-  const headers: Record<string, string> = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  const requestType = request.headers.get("content-type") ?? "";
+  // JSON by default; multipart uploads (receipts, statements) travel untouched with their boundary.
+  const multipart = requestType.startsWith("multipart/form-data");
+  const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+  if (!readOnly) headers["Content-Type"] = multipart ? requestType : "application/json";
   // Financial writes are deduplicated by the API; only a well-formed UUID is forwarded.
   const idempotencyKey = request.headers.get("idempotency-key");
   if (idempotencyKey && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idempotencyKey))
@@ -24,13 +28,14 @@ async function forward(request: Request, path: string[]) {
     const response = await fetch(`${INTERNAL_API_URL}/api/${path.join("/")}${url.search}`, {
       method: request.method,
       headers,
-      body: readOnly ? undefined : await request.text(),
-      cache: "no-store", redirect: "error", signal: AbortSignal.timeout(10000),
+      body: readOnly ? undefined : multipart ? await request.arrayBuffer() : await request.text(),
+      cache: "no-store", redirect: "error", signal: AbortSignal.timeout(multipart ? 60000 : 10000),
     });
-    return new NextResponse(response.status === 204 ? null : await response.arrayBuffer(), {
-      status: response.status,
-      headers: { "Content-Type": response.headers.get("content-type") ?? "application/json", "Cache-Control": "no-store" },
-    });
+    const responseHeaders: Record<string, string> = { "Content-Type": response.headers.get("content-type") ?? "application/json", "Cache-Control": "no-store" };
+    // File downloads keep their name; everything else is JSON.
+    const disposition = response.headers.get("content-disposition");
+    if (disposition) responseHeaders["Content-Disposition"] = disposition;
+    return new NextResponse(response.status === 204 ? null : await response.arrayBuffer(), { status: response.status, headers: responseHeaders });
   } catch {
     return NextResponse.json({ detail: "Servidor indisponível." }, { status: 503 });
   }

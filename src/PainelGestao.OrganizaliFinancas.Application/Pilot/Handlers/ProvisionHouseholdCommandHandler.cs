@@ -17,6 +17,9 @@ namespace PainelGestao.OrganizaliFinancas.Application.Pilot.Handlers
             var pilot = new NewPilot(request.Key, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(),
                 request.HouseholdName.Trim(), request.OwnerName.Trim(), email, hasher.Hash(request.Password), request.Actor);
             var saved = await work.PilotRepository.ProvisionAsync(pilot, cancellationToken);
+            // A new household starts with the standard catalog; repeating the provisioning never re-seeds (the key is found above).
+            if (await work.PilotRepository.FindTenantIdAsync(saved.HouseholdCode, cancellationToken) is int idTenant)
+                await Catalogs.DefaultCatalogSeeder.SeedAsync(work, idTenant, saved.UserCode.ToString(), cancellationToken);
             return VerifyExisting(saved, request, email);
         }
 

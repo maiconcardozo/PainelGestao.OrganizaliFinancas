@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from "react";
 import { Ban, Eye, HandCoins } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
+import { Attachments } from "@/components/common/Attachments";
 import { Empty, ModalActions } from "@/components/common/Ui";
 import { civilDate, monthLabel, money, toApiMoney, type Account } from "@/lib/finance";
 import { adjustmentKinds, statusLabels, type Expense, type ExpenseDetail } from "@/lib/expenses";
@@ -146,6 +147,7 @@ function DetailPanel({ detail, catalogs, canEdit, canSettle }: { detail: Expense
     {detail.payments.length > 0 && <><h3>Pagamentos</h3><ul className="entry-list compact">{detail.payments.map(item =>
       <li key={item.paymentCode} className={item.isReversed ? "muted-row" : ""}><span>{civilDate(item.paymentDate)} · {item.accountName}{item.isReversed && " · estornado"}</span>
         <span className="number">{money(item.amount)}</span></li>)}</ul></>}
+    <Attachments kind="expense" target={expense.code} canEdit={canEdit} />
     {action.error && <p className="form-error" role="alert">{action.error}</p>}{action.message && <p role="status">{action.message}</p>}
     {editable && <form className="data-form nested-form" onSubmit={edit}><h3>{expense.recurrenceCode ? "Alterar somente esta ocorrência" : "Alterar despesa"}</h3>
       <div className="form-row">

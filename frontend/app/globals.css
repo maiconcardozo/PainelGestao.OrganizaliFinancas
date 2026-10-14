@@ -2128,3 +2128,15 @@ a {
   margin-top: 0.25rem;
   color: #fff;
 }
+
+/* Ajuda: tutorial rendered from Markdown inside the panel. */
+.help-content h2 { margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+.help-content h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.help-content h3 { margin-top: 1.25rem; }
+.help-table th, .help-table td { white-space: normal; vertical-align: top; }
+
+/* Comprovantes e importação de extrato. */
+.attachments { display: grid; gap: 0.5rem; margin-top: 1rem; }
+.attachments .entry-list li { align-items: center; }
+.import-table select, .import-table input { width: 100%; min-width: 0; font-size: 0.8125rem; padding: 0.3rem 0.45rem; }
+.import-table td { vertical-align: top; }

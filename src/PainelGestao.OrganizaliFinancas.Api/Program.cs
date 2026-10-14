@@ -30,6 +30,7 @@ app.MapFinanceEndpoints();
 app.MapExpenseEndpoints();
 app.MapCardEndpoints();
 app.MapPlanningEndpoints();
+app.MapComplementEndpoints();
 
 app.Run();
 

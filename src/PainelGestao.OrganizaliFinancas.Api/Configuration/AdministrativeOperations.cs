@@ -39,6 +39,13 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                         config["Reason"] ?? "", config["Actor"] ?? ""));
                     Console.WriteLine("Situação da assinatura atualizada.");
                     break;
+                case "SeedCatalog":
+                    var pilot = scope.ServiceProvider.GetRequiredService<Domain.Interfaces.IUnitOfWork>();
+                    var idTenant = await pilot.PilotRepository.FindTenantIdAsync(Guid.Parse(config["HouseholdCode"] ?? ""), CancellationToken.None)
+                        ?? throw new InvalidOperationException("Casa não encontrada.");
+                    var seeded = await Application.Catalogs.DefaultCatalogSeeder.SeedAsync(pilot, idTenant, config["Actor"] is { Length: > 0 } seedActor ? seedActor : "operator:catalog", CancellationToken.None);
+                    Console.WriteLine(JsonSerializer.Serialize(seeded));
+                    break;
                 case "RollHorizon":
                     var roll = await mediator.Send(new Application.Planning.RollHorizonCommand(config["Actor"] is { Length: > 0 } actor ? actor : "operator:horizon"));
                     Console.WriteLine(JsonSerializer.Serialize(roll));

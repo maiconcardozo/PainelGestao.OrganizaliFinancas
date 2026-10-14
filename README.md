@@ -43,7 +43,8 @@ Escopo do produto: contas e rendas foram entregues no M4, despesas no M5, cartõ
 - 🎯 **Orçamento por categoria** — limites, consumo, saldo restante e excesso em reais.
 - 🔔 **Alertas financeiros** — estouro de orçamento, déficit futuro, contas vencidas e renda atrasada.
 - 🛡️ **Permissões e auditoria** — controle de edição, histórico e isolamento entre casas.
-- 📁 **Evolução da V1** — comprovantes, exportações, metas de reserva e simulações.
+- 📎 **Comprovantes, metas e importação** — anexos privados, metas de reserva por conta e importação de extrato OFX/CSV com prévia.
+- 📁 **Evolução da V1** — exportações, conciliação, renegociação e simulações.
 
 ## 🛠️ Tecnologias
 

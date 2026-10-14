@@ -46,6 +46,6 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
     <h2>Contas recorrentes</h2>
     <Recurrences recurrences={recurrences} canEdit={canEdit} today={list.today} />
     <h2>Pagamentos recentes</h2>
-    <Payments payments={payments} canReverse={session.permissions.includes("payments.reverse")} />
+    <Payments payments={payments} canReverse={session.permissions.includes("payments.reverse")} canEdit={canEdit} />
   </ExpensesView>;
 }

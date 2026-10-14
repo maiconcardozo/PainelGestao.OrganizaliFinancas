@@ -39,6 +39,11 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                 return Results.NoContent();
             }).WithSummary("Altera perfil ou bloqueia acesso, revogando sessões. Preserva o último titular.")
                 .Produces(204).ProducesProblem(400).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
+            group.MapPost("/{code:guid}/recovery", async (Guid code, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
+                Results.Json(new SuccessDetails<InvitationDto>(201, "Link gerado", "Entregue o link à pessoa; ele vale por 24 horas e só pode ser usado uma vez.", context.Request.Path,
+                    await mediator.Send(new CreateRecoveryLinkCommand(user.SessionIdentity(), code), ct)), statusCode: 201))
+                .WithSummary("Titular gera link de nova senha para um integrante, sem depender de e-mail.")
+                .Produces<SuccessDetails<InvitationDto>>(201).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
             group.MapDelete("/invitations/{code:guid}", async (Guid code, ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
             {
                 await mediator.Send(new RevokeInvitationCommand(user.SessionIdentity(), code), ct);

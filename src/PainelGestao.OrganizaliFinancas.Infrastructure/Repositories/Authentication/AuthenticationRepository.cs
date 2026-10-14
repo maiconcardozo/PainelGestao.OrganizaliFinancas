@@ -26,6 +26,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Authentica
         public void AddRecovery(User user, string hash, DateTime expiresAt) =>
             work.AddPendingWrite(AuthenticationSql.AddRecovery,
                 new { Code=Guid.CreateVersion7(), IdUser=user.Id, user.SessionVersion, Hash=hash, ExpiresAt=expiresAt });
+        public void UpdatePassword(User user, string passwordHash) =>
+            work.AddPendingWrite(AuthenticationSql.ResetPassword, new { IdUser=user.Id, user.IdTenant, PasswordHash=passwordHash, Actor=user.Code.ToString() });
         public void ResetPassword(User user, string recoveryHash, string passwordHash)
         {
             work.AddPendingWrite(AuthenticationSql.ResetPassword, new

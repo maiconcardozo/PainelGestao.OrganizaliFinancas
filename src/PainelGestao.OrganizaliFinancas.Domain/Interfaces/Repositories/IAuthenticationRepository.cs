@@ -12,5 +12,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         void RevokeSessions(int idUser, int idTenant, string actor);
         void AddRecovery(User user, string hash, DateTime expiresAt);
         void ResetPassword(User user, string recoveryHash, string passwordHash);
+        /// <summary>Stores the new hash and bumps the session version without consuming a recovery token.</summary>
+        void UpdatePassword(User user, string passwordHash);
     }
 }

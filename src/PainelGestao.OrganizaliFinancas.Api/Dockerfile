@@ -8,6 +8,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:8080
 COPY --from=build /app/publish .
+# Private receipts live on a volume mounted here; the folder must belong to the unprivileged user before the switch.
+RUN mkdir -p /app/attachments && chown app:app /app/attachments
 USER app
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "PainelGestao.OrganizaliFinancas.Api.dll"]

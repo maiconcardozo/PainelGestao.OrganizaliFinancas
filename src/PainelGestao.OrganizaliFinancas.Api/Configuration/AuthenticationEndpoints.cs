@@ -7,6 +7,7 @@ using PainelGestao.OrganizaliFinancas.Shared.Constants;
 
 namespace PainelGestao.OrganizaliFinancas.Api.Configuration
 {
+    public sealed record ChangePasswordPayload(string CurrentPassword, string NewPassword);
     public static class AuthenticationEndpoints
     {
         private static (Guid UserCode, int IdTenant, int Version) Identity(ClaimsPrincipal principal) =>
@@ -43,6 +44,14 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                 return Results.Ok(new SuccessDetails<SessionDto>(200,"Sessão","Usuário autenticado.",context.Request.Path,
                     await mediator.Send(new GetSessionQuery(identity.UserCode,identity.IdTenant,identity.Version),ct)));
             }).RequireAuthorization().WithSummary("Consulta a sessão atual.").Produces<SuccessDetails<SessionDto>>().ProducesProblem(401);
+            group.MapPost("/change-password", async (ChangePasswordPayload payload, IMediator mediator, ClaimsPrincipal principal, CancellationToken ct) =>
+            {
+                var identity=Identity(principal);
+                await mediator.Send(new ChangePasswordCommand(identity.UserCode,identity.IdTenant,identity.Version,payload.CurrentPassword,payload.NewPassword),ct);
+                return Results.NoContent();
+            }).RequireAuthorization().RequireRateLimiting("authentication").WithSummary("Troca a própria senha e encerra todas as sessões.")
+                .WithDescription("| Propriedade | Tipo | Descrição |\n|---|---|---|\n| currentPassword | string | Senha atual. |\n| newPassword | string | Nova senha, de 12 a 128 caracteres. |")
+                .Produces(204).ProducesProblem(400).ProducesProblem(401);
             group.MapPost("/recovery", async (RequestRecoveryCommand command, IMediator mediator, HttpContext context, CancellationToken ct) =>
             {
                 await mediator.Send(command,ct);

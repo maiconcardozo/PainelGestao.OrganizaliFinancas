@@ -18,6 +18,15 @@ namespace PainelGestao.OrganizaliFinancas.Application.Authentication.Validators
     {
         public RequestRecoveryValidator() { RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(180); }
     }
+    public class ChangePasswordValidator : AbstractValidator<ChangePasswordCommand>
+    {
+        public ChangePasswordValidator()
+        {
+            RuleFor(x => x.CurrentPassword).NotEmpty().MaximumLength(128).WithMessage("Informe a senha atual.");
+            RuleFor(x => x.NewPassword).NotEmpty().MinimumLength(12).MaximumLength(128).WithMessage("A nova senha precisa ter de 12 a 128 caracteres.");
+            RuleFor(x => x.NewPassword).NotEqual(x => x.CurrentPassword).WithMessage("A nova senha precisa ser diferente da atual.");
+        }
+    }
     public class ResetPasswordValidator : AbstractValidator<ResetPasswordCommand>
     {
         public ResetPasswordValidator()

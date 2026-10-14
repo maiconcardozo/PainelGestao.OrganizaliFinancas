@@ -40,6 +40,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Configuration
             services.AddScoped<Func<IDapperUnitOfWork, IIncomeRepository>>(_ => work => new Repositories.Income.IncomeRepository(work));
             services.AddScoped<Func<IDapperUnitOfWork, IPlanningRepository>>(_ => work => new Repositories.Planning.PlanningRepository(work));
             services.AddScoped<Func<IDapperUnitOfWork, ICardRepository>>(_ => work => new Repositories.Cards.CardRepository(work));
+            services.AddScoped<Func<IDapperUnitOfWork, IGoalRepository>>(_ => work => new Repositories.Complements.GoalRepository(work));
+            services.AddScoped<Func<IDapperUnitOfWork, IAttachmentRepository>>(_ => work => new Repositories.Complements.AttachmentRepository(work));
+            services.AddScoped<Func<IDapperUnitOfWork, IImportRepository>>(_ => work => new Repositories.Complements.ImportRepository(work));
+            services.AddSingleton<Domain.Interfaces.Services.IAttachmentStorage, Services.FileSystemAttachmentStorage>();
             services.AddScoped<Func<IDapperUnitOfWork, IExpenseRepository>>(_ => work => new Repositories.Expenses.ExpenseRepository(work));
             services.AddScoped<Func<IDapperUnitOfWork, IIdempotencyRepository>>(_ => work => new Repositories.Accounts.IdempotencyRepository(work));
             services.AddSingleton(provider => provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<OrganizaliFinancasSettings>>().Value);

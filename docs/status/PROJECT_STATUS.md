@@ -38,14 +38,15 @@ Atualizado em 11/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 | M7 | Painel, fluxo, orçamento, alertas e análise implementados | [Entrega](../deliveries/M7.md); premissas A09–A12 |
 | M8 | Produção e publicação Docker implementadas; D16/D17 e aceite da família piloto pendentes | [Entrega](../deliveries/M8.md) · [Runbook](../operations/runbook.md) |
 | UI | Visual e cadastros iguais ao RevendaPRO (D26) | [Entrega](../deliveries/UI-RevendaPRO.md) |
-| M9 | A implementar | Complementos da V1 |
-| M10 | A implementar; D14 aberta | Comercialização e importação |
+| M9 | Parcial: metas (RF38) e comprovantes (RF34) implementados | [Entrega](../deliveries/M9-M10-complementos.md); faltam RF35, RF39, RF40, RF42, RF45, RF46 |
+| M10 | Parcial: importação CSV/OFX (RF44) implementada; D14 aberta | [Entrega](../deliveries/M9-M10-complementos.md); falta RF43 |
 
 ## Piloto na rede local (13/10/2026)
 
 - Pilha publicada no servidor Windows da casa (Docker, `deploy/compose.lan.yml` + `deploy/Caddyfile.lan`, certificado interno) em https://192.168.1.7:3300, versão `9cc1be5`. Casa piloto provisionada e ativa; moradores cadastrados pelo titular.
 - Cadastros iniciais carregados pela API com `deploy/seed-catalogs.py`: 69 categorias em 15 grupos, 15 tipos de renda, 29 credores, 9 formas de pagamento e 47 tipos de despesa (45 ativos) com campos e categoria padrão. Os quatro tipos criados pelo titular foram enriquecidos; dois duplicados ficaram inativos.
 - [Tutorial de uso](../product/tutorial.md) escrito com os rótulos reais da interface.
+- 14/10/2026: [complementos](../deliveries/M9-M10-complementos.md) implementados e publicados na LAN: Ajuda dentro do sistema, catálogo padrão pelo próprio sistema (provisionamento, operação `SeedCatalog` e botão na tela), Primeiros passos em Minha casa, troca de senha e link de nova senha gerado pelo titular, metas de reserva (RF38), comprovantes (RF34) e importação de extrato OFX/CSV com prévia (RF44).
 
 ## Próximos passos
 
@@ -75,8 +76,10 @@ Atualizado em 11/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 | RF23–25 | Implementados no M6 |
 | RF26–33 | Implementados no M7 (alertas sem envio externo) |
 | RF36 | Autoria e históricos implementados nos módulos atuais; auditoria integral e consulta operacional ainda evoluem com os módulos |
-| RF34–35, RF38–40, RF42, RF45–46 | M9 pendente |
-| RF43–44 | M10 pendente |
+| RF34, RF38 | Implementados (comprovantes e metas de reserva) |
+| RF35, RF39–40, RF42, RF45–46 | M9 pendente |
+| RF44 | Implementado (importação OFX/CSV com prévia) |
+| RF43 | M10 pendente |
 
 Os 22 [requisitos não funcionais](../requirements/non-functional.md) continuam como gates de implementação e homologação. Build, isolamento, transações e sessão já têm evidências; capacidade, disponibilidade, recuperação operacional, acessibilidade ampla e segurança externa não estão homologadas.
 

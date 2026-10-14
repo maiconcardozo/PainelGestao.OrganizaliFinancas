@@ -30,6 +30,12 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                     .WithSummary($"Edita ou inativa registro de {label.ToLowerInvariant()}, preservando versões anteriores.")
                     .Produces<SuccessDetails<CatalogItemDto>>().ProducesProblem(400).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
             }
+            endpoints.MapPost("/api/catalogs/defaults", async (ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
+                Results.Ok(new SuccessDetails<DefaultCatalogResultDto>(200, "Catálogo padrão", "Cadastros padrão conferidos; só o que faltava foi criado.", context.Request.Path,
+                    await mediator.Send(new SeedDefaultCatalogCommand(user.SessionIdentity()), ct))))
+                .WithTags("Categorias").RequireAuthorization()
+                .WithSummary("Carrega o catálogo padrão (categorias, tipos de renda, credores, formas de pagamento e tipos de despesa) sem duplicar nomes. Titular ou editor.")
+                .Produces<SuccessDetails<DefaultCatalogResultDto>>().ProducesProblem(403);
             return endpoints;
         }
     }

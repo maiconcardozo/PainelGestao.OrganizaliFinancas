@@ -42,6 +42,7 @@ services:
       Mail__Password: ${ORGANIZALI_SMTP_PASSWORD:-}
       Mail__From: ${ORGANIZALI_SMTP_FROM:-}
       Mail__AppOrigin: "${ORGANIZALI_PUBLIC_ORIGIN:?Defina ORGANIZALI_PUBLIC_ORIGIN com a origem pública https}"
+      OrganizaliFinancas__AttachmentsPath: /app/attachments
     depends_on:
       database:
         condition: service_healthy
@@ -55,6 +56,8 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+    volumes:
+      - organizali_attachments:/app/attachments
     networks: [data, app]
 
   frontend:
@@ -102,5 +105,6 @@ networks:
 
 volumes:
   organizali_data:
+  organizali_attachments:
   caddy_data:
   caddy_config:

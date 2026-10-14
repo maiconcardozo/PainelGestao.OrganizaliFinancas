@@ -23,3 +23,5 @@ Cada documento registra objetivo, funcionalidades, regras de negócio, validaç�
 - [Interface igual ao RevendaPRO](UI-RevendaPRO.md)
 
 Próximas entregas devem usar a mesma estrutura, atualizar o [quadro consolidado](../status/PROJECT_STATUS.md) e registrar um commit por etapa. Não marcar futuro como entregue nem apresentar seletor como mecanismo financeiro implementado.
+
+- [Complementos da V1 e apoio ao piloto (14/10/2026)](M9-M10-complementos.md): Ajuda no sistema, catálogo padrão, primeiros passos, senha sem e-mail, metas, comprovantes e importação de extrato.

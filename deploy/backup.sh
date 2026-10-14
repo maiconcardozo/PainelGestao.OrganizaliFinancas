@@ -18,4 +18,14 @@ else
   dump | gzip > "$file"
   gzip -t "$file"
 fi
+# Comprovantes (volume privado da API): um tar por backup, cifrado com a mesma senha quando houver.
+attachments="$BACKUP_DIR/organizali-attachments-$(date -u +%Y%m%dT%H%M%SZ).tar.gz"
+tar_volume() { docker run --rm -v "$(compose config --format json | python3 -c 'import json,sys;print(json.load(sys.stdin)["name"])' 2>/dev/null || echo organizali)_organizali_attachments:/data:ro" alpine tar -czf - -C /data .; }
+if [ -n "$passphrase" ]; then
+  attachments="$attachments.enc"
+  tar_volume | BACKUP_PASSPHRASE="$passphrase" openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:BACKUP_PASSPHRASE > "$attachments" || true
+else
+  tar_volume > "$attachments" || true
+fi
 echo "$file"
+echo "$attachments"

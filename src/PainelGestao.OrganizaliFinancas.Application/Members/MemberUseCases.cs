@@ -18,6 +18,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Members
     public sealed record UpdateMemberCommand(SessionIdentity Identity, Guid Code, UpdateMemberPayload Payload) : IRequest;
     public sealed record RevokeInvitationCommand(SessionIdentity Identity, Guid Code) : IRequest;
     public sealed record AcceptInvitationCommand(AcceptInvitationPayload Payload) : IRequest;
+    /// <summary>Owner-issued password reset link for a member, for households without an e-mail provider.</summary>
+    public sealed record CreateRecoveryLinkCommand(SessionIdentity Identity, Guid Code) : IRequest<InvitationDto>;
 
     public class InviteMemberValidator : AbstractValidator<InviteMemberCommand>
     {
@@ -93,6 +95,22 @@ namespace PainelGestao.OrganizaliFinancas.Application.Members
             var actor = await HouseholdAccess.RequireAsync(work, request.Identity, "members.manage", ct);
             work.MemberRepository.RevokeInvitation(actor.IdTenant, request.Code, actor.Code.ToString());
             return true;
+        }, ct);
+    }
+    public class CreateRecoveryLinkHandler(IUnitOfWork work, ITokenService tokens) : IRequestHandler<CreateRecoveryLinkCommand, InvitationDto>
+    {
+        public Task<InvitationDto> Handle(CreateRecoveryLinkCommand request, CancellationToken ct) => work.ExecuteInTransactionAsync(async () =>
+        {
+            await work.MemberRepository.LockHouseholdAsync(request.Identity.IdTenant, ct);
+            var actor = await HouseholdAccess.RequireAsync(work, request.Identity, "members.manage", ct);
+            var member = await work.MemberRepository.FindUserAsync(actor.IdTenant, request.Code, ct)
+                ?? throw new NotFoundException("Integrante não encontrado.");
+            if (member.IsBlocked) throw new ConflictException("Desbloqueie o acesso antes de gerar o link.");
+            var (value, hash, _) = tokens.CreateRefreshToken();
+            // Handed over in person by the owner, so it lasts longer than the e-mailed link; still one use only.
+            var expires = DateTime.UtcNow.AddHours(24);
+            work.AuthenticationRepository.AddRecovery(member, hash, expires);
+            return new InvitationDto(member.Code, value, expires);
         }, ct);
     }
     public class AcceptInvitationHandler(IUnitOfWork work, ITokenService tokens, IPasswordHasher hasher) : IRequestHandler<AcceptInvitationCommand>

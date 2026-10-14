@@ -72,8 +72,10 @@ namespace PainelGestao.OrganizaliFinancas.Application.Authentication.Handlers
                 menu.Add(new("income", "Rendas", "/income", "TrendingUp"));
                 menu.Add(new("expenses", "Despesas", "/expenses", "Receipt"));
                 menu.Add(new("cards", "Cartões", "/cards", "CreditCard"));
+                menu.Add(new("imports", "Importar extrato", "/imports", "Upload"));
                 menu.Add(new("cash-flow", "Fluxo de caixa", "/cash-flow", "ChartLine"));
                 menu.Add(new("budget", "Orçamento", "/budget", "PiggyBank"));
+                menu.Add(new("goals", "Metas", "/goals", "Target"));
                 menu.Add(new("analysis", "Análise", "/analysis", "ChartColumn"));
                 menu.Add(new("alerts", "Alertas", "/alerts", "Bell"));
                 menu.Add(new("people", "Moradores", "/people", "Users"));
@@ -81,6 +83,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Authentication.Handlers
                 menu.Add(new("expense-types", "Tipos de despesa", "/expense-types", "Tags"));
                 menu.Add(new("household-settings", "Configurações da casa", "/household-settings", "Settings"));
             }
+            menu.Add(new("help", "Ajuda", "/help", "CircleHelp"));
             return new(user.Code, user.Name, user.Email, roles, permissions, menu.ToArray());
         }
     }
@@ -97,6 +100,20 @@ namespace PainelGestao.OrganizaliFinancas.Application.Authentication.Handlers
             await work.CommitAsync(cancellationToken);
             await delivery.DeliverAsync(user.Email, value, cancellationToken);
         }
+    }
+    public class ChangePasswordHandler(IUnitOfWork work, IPasswordHasher hasher) : IRequestHandler<ChangePasswordCommand>
+    {
+        public Task Handle(ChangePasswordCommand request, CancellationToken cancellationToken) =>
+            work.ExecuteInTransactionAsync(async () =>
+            {
+                var user = await work.AuthenticationRepository.FindAuthorizedAsync(request.UserCode, request.IdTenant, request.Version, cancellationToken)
+                    ?? throw new UnauthenticatedException("Sessão expirada. Entre novamente.");
+                if (!hasher.Verify(user.PasswordHash, request.CurrentPassword))
+                    throw new InputValidationException(new Dictionary<string, string[]> { ["CurrentPassword"] = ["A senha atual não confere."] });
+                // The session version advances with the hash, so every open session (including this one) is closed.
+                work.AuthenticationRepository.UpdatePassword(user, hasher.Hash(request.NewPassword));
+                return true;
+            }, cancellationToken);
     }
     public class ResetPasswordHandler(IUnitOfWork work, ITokenService tokens, IPasswordHasher hasher)
         : IRequestHandler<ResetPasswordCommand>

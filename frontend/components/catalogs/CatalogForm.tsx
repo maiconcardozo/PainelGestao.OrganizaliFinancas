@@ -41,7 +41,10 @@ export function CatalogForm({ kind, items, canEdit }: { kind: CatalogKey; items:
     <Notices error={editing ? undefined : action.error} message={action.message} />
 
     <ListBar count={items.length} singular={singular[kind]} plural={plural[kind]} view={view} onChange={chooseView} label={`Como mostrar ${plural[kind]}`} />
-    {items.length === 0 ? <Empty title={canEdit ? "Nada cadastrado por aqui. Adicione os nomes que fazem sentido para a sua casa." : "Nada cadastrado. Um titular ou editor pode adicionar os cadastros da casa."} /> :
+    {items.length === 0 ? <Empty title={canEdit ? "Nada cadastrado por aqui. Adicione os nomes que fazem sentido para a sua casa ou carregue o conjunto padrão." : "Nada cadastrado. Um titular ou editor pode adicionar os cadastros da casa."}
+      action={canEdit && <button type="button" className="secondary-button" disabled={action.busy}
+        onClick={() => void action.send("catalogs/defaults", "POST", undefined, "Cadastros padrão carregados: categorias, tipos de renda, credores, formas de pagamento e tipos de despesa.")}>
+        {action.busy ? "Carregando…" : "Carregar cadastros padrão"}</button>} /> :
       view === "list" ? <ListFrame>{items.map(item => <li key={item.code} className={`flex items-center gap-3 px-3 py-2.5 transition hover:bg-[var(--surface-2)] sm:gap-4 sm:px-4 ${item.isActive ? "" : "opacity-60"}`}>
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[var(--surface-2)] text-[var(--signal)]"><Icon size={17} /></span>
         <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{item.name}</span>

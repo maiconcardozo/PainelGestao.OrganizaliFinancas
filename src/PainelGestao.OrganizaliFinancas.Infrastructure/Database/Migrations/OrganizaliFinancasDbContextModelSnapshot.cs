@@ -280,6 +280,101 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.ToTable("AlertState", (string)null);
                 });
 
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.Attachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<Guid>("Code")
+                        .HasColumnType("char(36)")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)")
+                        .HasColumnOrder(7);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(13);
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(17);
+
+                    b.Property<DateTime>("DtCreated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(12);
+
+                    b.Property<DateTime?>("DtDeleted")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(16);
+
+                    b.Property<DateTime?>("DtUpdated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(14);
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnOrder(6);
+
+                    b.Property<int>("IdTenant")
+                        .HasColumnType("int")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnOrder(11);
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)")
+                        .HasColumnOrder(10);
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(8);
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)")
+                        .HasColumnOrder(9);
+
+                    b.Property<Guid>("TargetCode")
+                        .HasColumnType("char(36)")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("TargetKind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnOrder(4);
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(15);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IdTenant", "TargetKind", "TargetCode");
+
+                    b.ToTable("Attachment", (string)null);
+                });
+
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.BudgetLimit", b =>
                 {
                     b.Property<int>("Id")
@@ -1344,6 +1439,91 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .IsUnique();
 
                     b.ToTable("IdempotencyRecord", (string)null);
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.ImportBatch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("AppliedCount")
+                        .HasColumnType("int")
+                        .HasColumnOrder(8);
+
+                    b.Property<Guid>("Code")
+                        .HasColumnType("char(36)")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(12);
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(16);
+
+                    b.Property<DateTime>("DtCreated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(11);
+
+                    b.Property<DateTime?>("DtDeleted")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(15);
+
+                    b.Property<DateTime?>("DtUpdated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(13);
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("Format")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnOrder(6);
+
+                    b.Property<int>("IdFinancialAccount")
+                        .HasColumnType("int")
+                        .HasColumnOrder(4);
+
+                    b.Property<int>("IdTenant")
+                        .HasColumnType("int")
+                        .HasColumnOrder(3);
+
+                    b.Property<int>("IgnoredCount")
+                        .HasColumnType("int")
+                        .HasColumnOrder(9);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnOrder(10);
+
+                    b.Property<int>("LineCount")
+                        .HasColumnType("int")
+                        .HasColumnOrder(7);
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(14);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IdTenant", "IdFinancialAccount");
+
+                    b.ToTable("ImportBatch", (string)null);
                 });
 
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.IncomeForecast", b =>
@@ -3121,6 +3301,93 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.ToTable("Role", (string)null);
                 });
 
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.SavingsGoal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<Guid>("Code")
+                        .HasColumnType("char(36)")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(12);
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(16);
+
+                    b.Property<DateTime>("DtCreated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(11);
+
+                    b.Property<DateTime?>("DtDeleted")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(15);
+
+                    b.Property<DateTime?>("DtUpdated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnOrder(13);
+
+                    b.Property<int>("IdFinancialAccount")
+                        .HasColumnType("int")
+                        .HasColumnOrder(4);
+
+                    b.Property<int>("IdTenant")
+                        .HasColumnType("int")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)")
+                        .HasColumnOrder(8);
+
+                    b.Property<decimal>("TargetAmount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("decimal(19,2)")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime?>("TargetDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(7);
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(14);
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int")
+                        .HasColumnOrder(9);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IdTenant", "IdFinancialAccount");
+
+                    b.HasIndex("IdTenant", "IsActive");
+
+                    b.ToTable("SavingsGoal", (string)null);
+                });
+
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.Subscription", b =>
                 {
                     b.Property<int>("Id")
@@ -3580,6 +3847,73 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.ToTable("UserRole", (string)null);
                 });
 
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Infrastructure.Persistence.Mappings.ImportLineRow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("decimal(19,2)");
+
+                    b.Property<Guid>("Code")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("DtCreated")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<int>("IdImportBatch")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdTenant")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("LineDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("ResultCode")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IdTenant", "Fingerprint");
+
+                    b.HasIndex("IdTenant", "IdImportBatch");
+
+                    b.ToTable("ImportLine", (string)null);
+                });
+
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.AccountMovement", b =>
                 {
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.FinancialAccount", null)
@@ -3624,6 +3958,15 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                 });
 
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.AlertState", b =>
+                {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.Attachment", b =>
                 {
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Tenant", null)
                         .WithMany()
@@ -3788,6 +4131,16 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Tenant", null)
                         .WithMany()
                         .HasForeignKey("IdTenant")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.ImportBatch", b =>
+                {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.FinancialAccount", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdFinancialAccount")
+                        .HasPrincipalKey("IdTenant", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -4114,6 +4467,16 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.SavingsGoal", b =>
+                {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.FinancialAccount", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdFinancialAccount")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.Subscription", b =>
                 {
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Tenant", null)
@@ -4178,6 +4541,16 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("IdTenant", "IdUser")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Infrastructure.Persistence.Mappings.ImportLineRow", b =>
+                {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.ImportBatch", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdImportBatch")
                         .HasPrincipalKey("IdTenant", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();

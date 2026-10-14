@@ -31,7 +31,7 @@ export function IncomeView({ summary, forecasts, receipts, sources, people, acco
     <IncomeOverview summary={summary} />
     <Forecasts forecasts={forecasts} canEdit={canEdit} />
     <h2>Recebimentos do ano</h2>
-    <ReceiptList receipts={receipts} canReverse={canReverse} onDone={setNotice} />
+    <ReceiptList receipts={receipts} canReverse={canReverse} canEdit={canEdit} onDone={setNotice} />
     <MonthlyComparison summary={summary} />
     <h2>Fontes de renda</h2>
     <IncomeSourceList sources={sources} canEdit={canEdit} onEdit={setSource} />

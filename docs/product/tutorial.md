@@ -1,12 +1,13 @@
 # Tutorial — como usar o Organizali Finanças
 
-Guia para quem vai usar o sistema no dia a dia da casa. Os nomes de telas, botões e campos aparecem aqui exatamente como estão na interface. Atualizado em 13/10/2026 (versão `9cc1be5`).
+Guia para quem vai usar o sistema no dia a dia da casa. Os nomes de telas, botões e campos aparecem aqui exatamente como estão na interface. Este mesmo texto fica dentro do sistema, no menu **Ajuda**. Atualizado em 14/10/2026.
 
 ## 1. Entrar no sistema
 
 - **Endereço na rede de casa:** https://192.168.1.7:3300. O navegador precisa confiar no certificado da casa; se aparecer aviso de "não seguro", baixe uma vez http://192.168.1.7:3301/raiz-organizali.crt e instale como autoridade raiz confiável (Windows: abrir o arquivo → Instalar Certificado → Usuário Atual → Autoridades de Certificação Raiz Confiáveis; Android: Configurações → Segurança → Instalar certificado → Certificado CA; iPhone: instalar o perfil e ativar em Ajustes → Geral → Sobre → Ajustes de Confiança de Certificado). Depois disso o aviso some e o navegador oferece salvar a senha.
 - Na tela **Entrar na sua casa**, informe **E-mail** e **Senha** e clique em **Entrar**. A primeira tela é **Minha casa**, com atalhos para as telas principais.
-- **Esqueci minha senha** só funciona quando o envio de e-mail estiver configurado; enquanto não estiver, a tela avisa e o titular pode gerar um novo acesso.
+- **Trocar senha**: em **Casa → Minha conta → Trocar senha**, informe a senha atual e a nova (12 a 128 caracteres). Depois da troca todas as sessões são encerradas e você entra de novo.
+- **Esqueceu a senha?** O envio por e-mail ainda não está configurado. Um titular abre **Integrantes**, clica no ícone de chave ao lado do seu nome e gera um **Link de nova senha**, que vale por 24 horas e só pode ser usado uma vez.
 - **Sair** (rodapé do menu ou menu do usuário) encerra todas as sessões abertas, inclusive no celular.
 - O botão de tema na barra superior alterna claro e escuro. No celular, o menu abre pelo botão **Abrir menu**.
 
@@ -28,13 +29,13 @@ Quem não pode agir simplesmente não vê os botões. Se abrir uma tela proibida
 | Grupo | Telas |
 |---|---|
 | Visão geral | Painel, Minha casa |
-| Dinheiro | Contas, Rendas, Despesas, Cartões |
-| Planejamento | Fluxo de caixa, Orçamento, Análise, Alertas |
-| Casa | Minha conta, Integrantes (só titular), Moradores, Cadastros financeiros, Tipos de despesa, Configurações da casa |
+| Dinheiro | Contas, Rendas, Despesas, Cartões, Importar extrato |
+| Planejamento | Fluxo de caixa, Orçamento, Metas, Análise, Alertas |
+| Casa | Minha conta, Integrantes (só titular), Moradores, Cadastros financeiros, Tipos de despesa, Configurações da casa, Ajuda |
 
 ## 2. Preparar a casa (uma vez)
 
-Faça nesta ordem. Os passos 3 e 4 já estão prontos na casa piloto.
+A tela **Minha casa** mostra o quadro **Primeiros passos** enquanto algo ainda falta: cada item tem o botão **Abrir** e some quando estiver feito. Faça nesta ordem. Os passos 3 e 4 já estão prontos na casa piloto; numa casa nova, o botão **Carregar cadastros padrão** (em Primeiros passos ou em Cadastros financeiros) cria o conjunto inicial de uma vez.
 
 ### 2.1 Moradores (titular)
 
@@ -69,7 +70,11 @@ Mudou o salário? Edite a fonte: isso cria uma **nova vigência** a partir da da
 
 **Dinheiro → Cartões → Novo cartão.** Informe **Apelido**, **Titular** (morador), **Dia do fechamento**, **Dia do vencimento**, **Limite (opcional)** e a regra para compra feita no dia do fechamento. Nunca informe o número nem o código de segurança do cartão.
 
-### 2.7 Orçamento do mês (titular ou editor)
+### 2.7 Metas de reserva (titular ou editor)
+
+**Planejamento → Metas → Nova meta.** Informe **Nome** (Reserva de emergência, Viagem), **Valor alvo**, **Prazo (opcional)** e a **Conta onde a reserva fica**. O progresso da meta é o saldo dessa conta: para a meta andar, transfira dinheiro para ela em **Contas → Transferir**. Com prazo, a tela mostra quanto guardar por mês. Reservar não cria renda nem despesa.
+
+### 2.8 Orçamento do mês (titular ou editor)
 
 **Planejamento → Orçamento.** Digite um **Limite** nas categorias que quer controlar e clique em **Salvar orçamento**. Vazio significa sem orçamento; zero é um limite real. No mês seguinte, **Copiar limites de [mês anterior]** preenche tudo para revisão.
 
@@ -111,7 +116,21 @@ Na lista de despesas, clique em **Pagar**. Informe **Conta de saída**, **Data d
 - **Ver compras** lista os itens da fatura. **Estorno da loja** cancela as parcelas ainda abertas e transforma o restante em crédito na fatura.
 - O **Disponível** é uma estimativa a partir do que foi lançado aqui e pode diferir do banco.
 
-### 3.6 Transferir entre contas
+### 3.6 Comprovantes
+
+Em **Despesas → Detalhes** há o bloco **Comprovantes** com o botão **Anexar arquivo**: PDF ou foto (JPG, PNG, WEBP, HEIC) de até 10 MB, até 20 por lançamento. Nas listas **Pagamentos recentes** e **Recebimentos do ano**, o ícone de clipe abre os comprovantes daquela linha. Clique no nome do arquivo para abrir; o ícone de lixeira remove. Os arquivos ficam guardados de forma privada no servidor da casa.
+
+### 3.7 Importar o extrato do banco
+
+**Dinheiro → Importar extrato.** Escolha a **Conta do extrato** e o **Arquivo (OFX ou CSV)** exportado do internet banking e clique em **Ler o extrato**. Nada é gravado nesse momento: aparece a prévia com cada linha e a **Situação**:
+
+- **Nova**: ainda não existe no sistema.
+- **Possível duplicado**: já há um movimento com a mesma data e valor nessa conta; vem marcado como Ignorar.
+- **Já importada**: a linha veio de um arquivo anterior; também vem como Ignorar.
+
+Em **O que fazer** escolha, para cada linha: **Ignorar**; **Entrada de renda** (informe quem recebeu e, se quiser, o tipo de renda); **Despesa já paga** (ajuste a descrição e a categoria; a despesa e o pagamento são criados juntos); ou **Pagar despesa existente** (escolha a conta já lançada; o sistema sugere quando o valor e a data batem). Depois clique em **Confirmar importação**. Tudo é gravado de uma vez ou nada é gravado, e o histórico fica em **Importações anteriores**. Importar o mesmo arquivo de novo não duplica.
+
+### 3.8 Transferir entre contas
 
 **Dinheiro → Contas → Transferir** (aparece com duas ou mais contas ativas). Transferência não é renda nem despesa: o saldo total da casa não muda. Tarifa bancária deve ser lançada como despesa à parte. **Ver extrato** mostra os movimentos de cada conta por período.
 
@@ -137,7 +156,8 @@ Na lista de despesas, clique em **Pagar**. Informe **Conta de saída**, **Data d
 | Todo dia ou quando algo acontece | Registrar o que foi pago (**Pagar**), o que entrou (**Registrar recebimento**) e as compras no cartão (**Lançar compra**). |
 | Quando a conta chega | Abrir **Detalhes** da despesa estimada e confirmar o valor real. |
 | Toda semana | Olhar o **Painel**: agenda, alertas e saldo projetado. |
-| Virada do mês | **Orçamento → Copiar limites**, revisar, salvar; conferir o **Rateio** do mês e os acertos entre moradores; pagar a fatura do cartão. |
+| Virada do mês | **Orçamento → Copiar limites**, revisar, salvar; conferir o **Rateio** do mês e os acertos entre moradores; pagar a fatura do cartão; conferir as **Metas**. |
+| Quando baixar o extrato | **Importar extrato** para conferir o que faltou lançar e marcar como pago o que já saiu da conta. |
 | Mudou algo fixo | Editar a fonte de renda (nova vigência) ou a conta recorrente (**Salvar esta e próximas**). |
 
 ## 7. Regras que surpreendem

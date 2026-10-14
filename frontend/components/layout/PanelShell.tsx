@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   Bell, ChartColumn, ChartLine, ChevronDown, CircleHelp, CreditCard, House, Landmark, LayoutDashboard, LogOut, Menu, Moon,
-  PanelLeft, PiggyBank, Receipt, Settings, Sun, Tags, TrendingUp, UserRound, Users, X, type LucideIcon,
+  PanelLeft, PiggyBank, Receipt, Settings, Sun, Tags, Target, TrendingUp, Upload, UserRound, Users, X, type LucideIcon,
 } from "lucide-react";
 import { Confirmation } from "@/components/common/Confirmation";
 import type { Session } from "@/lib/session";
@@ -13,7 +13,7 @@ import type { Session } from "@/lib/session";
 type MenuItem = Session["menu"][number];
 
 const ICONS: Record<string, LucideIcon> = {
-  House, UserRound, Users, Settings, Tags, Landmark, TrendingUp, Receipt, CreditCard, LayoutDashboard, ChartLine, PiggyBank, ChartColumn, Bell,
+  House, UserRound, Users, Settings, Tags, Landmark, TrendingUp, Receipt, CreditCard, LayoutDashboard, ChartLine, PiggyBank, ChartColumn, Bell, CircleHelp, Target, Upload,
 };
 
 /**
@@ -22,8 +22,8 @@ const ICONS: Record<string, LucideIcon> = {
  */
 const GROUPS: { name: string; keys: string[] }[] = [
   { name: "Visão geral", keys: ["dashboard", "household"] },
-  { name: "Dinheiro", keys: ["accounts", "income", "expenses", "cards"] },
-  { name: "Planejamento", keys: ["cash-flow", "budget", "analysis", "alerts"] },
+  { name: "Dinheiro", keys: ["accounts", "income", "expenses", "cards", "imports"] },
+  { name: "Planejamento", keys: ["cash-flow", "budget", "goals", "analysis", "alerts"] },
   { name: "Casa", keys: [] },
 ];
 

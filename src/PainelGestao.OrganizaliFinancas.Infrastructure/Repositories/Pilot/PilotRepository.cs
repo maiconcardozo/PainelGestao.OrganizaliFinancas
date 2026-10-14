@@ -20,6 +20,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Pilot
                     new CommandDefinition(query.GetSql(), query, transaction, cancellationToken: cancellationToken)), cancellationToken);
         }
 
+        public Task<int?> FindTenantIdAsync(Guid householdCode, CancellationToken cancellationToken) =>
+            work.ExecuteReadAsync((connection, transaction) => connection.QuerySingleOrDefaultAsync<int?>(new CommandDefinition(
+                "SELECT Id FROM Tenant WHERE Code=@HouseholdCode", new { HouseholdCode = householdCode }, transaction, cancellationToken: cancellationToken)), cancellationToken);
+
         public async Task<IReadOnlyList<int>> ActiveHouseholdIdsAsync(CancellationToken cancellationToken) =>
             (await work.ExecuteReadAsync((connection, transaction) => connection.QueryAsync<int>(new CommandDefinition(PilotSql.ActiveHouseholds,
                 new { Status = (int)SubscriptionStatus.Active }, transaction, cancellationToken: cancellationToken)), cancellationToken)).ToArray();
