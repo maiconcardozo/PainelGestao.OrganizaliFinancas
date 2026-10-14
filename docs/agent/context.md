@@ -1,8 +1,8 @@
 # Contexto para continuidade
 
-## Estado vigente — 10/10/2026
+## Estado vigente — 13/10/2026
 
-M4 concluído: contas, extrato, transferências, fontes de renda fixas/variáveis com vigência, previsões (mês atual + 12), recebimentos, estornos, idempotência e média anual por meses fechados (D22–D25). Próximo M5: despesas e liquidação. D13/D14/D16/D17 abertas. Cada marco exige documento com regras de negócio e atualização de status. [Estado completo](../status/PROJECT_STATUS.md) · [Entregas](../deliveries/README.md). Commit por etapa; sem push intermediário.
+M1–M8 e UI RevendaPRO concluídos. Piloto rodando na LAN (servidor Windows 192.168.1.7, Docker, https://192.168.1.7:3300, versão 9cc1be5; operação por PowerShell Remoting, detalhes em operations/runbook.md). Cadastros iniciais carregados na casa piloto por `deploy/seed-catalogs.py`; tutorial de uso em product/tutorial.md. Contas, fontes de renda e cartões da família ainda por cadastrar. Próximo: definir com o usuário as features (M9/M10 ou complementos pedidos). D13/D14/D16/D17 abertas. Cada marco exige documento com regras de negócio e atualização de status. [Estado completo](../status/PROJECT_STATUS.md) · [Entregas](../deliveries/README.md). Commit por etapa; sem push intermediário.
 
 ## Histórico de execução
 

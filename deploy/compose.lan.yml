@@ -1,0 +1,10 @@
+# Servidor da LAN (192.168.1.7): troca o Caddyfile de produção pelo da rede local.
+# Uso: docker compose -f deploy/compose.production.yml -f deploy/compose.lan.yml --env-file deploy/.env.production up -d
+services:
+  proxy:
+    environment:
+      ORGANIZALI_PUBLIC_ORIGIN: ${ORGANIZALI_PUBLIC_ORIGIN}
+    volumes:
+      - ./Caddyfile.lan:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config

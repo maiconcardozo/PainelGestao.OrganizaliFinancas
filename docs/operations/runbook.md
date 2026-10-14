@@ -23,6 +23,21 @@ A API roda a rotina diária do horizonte (D23) com trava no banco, segura com ma
    `docker compose -f deploy/compose.production.yml --env-file deploy/.env.production run --rm --no-deps -e Pilot__Key=<uuid> -e "Pilot__HouseholdName=<casa>" -e "Pilot__OwnerName=<titular>" -e Pilot__Email=<e-mail> -e "Pilot__Password=<senha>" -e Pilot__Actor=<operador> migrate --Operation=ProvisionHousehold`
    e ative com `--Operation=ChangeSubscriptionStatus` (`Pilot__HouseholdCode`, `Pilot__Status=Active`, `Pilot__Reason`). Repetir o provisionamento com a mesma chave não duplica a casa.
 
+## Cadastros iniciais da casa
+
+`deploy/seed-catalogs.py` carrega pela API, com o login do titular, um conjunto pronto de categorias com subcategorias, tipos de renda, credores, formas de pagamento e tipos de despesa parametrizados (campos e categoria padrão). Compara pelo nome e só cria o que falta; nunca apaga nem inativa. Sem `--apply` apenas lista o que faltaria.
+
+```bash
+ORGANIZALI_ORIGIN=https://financas.exemplo.com.br ORGANIZALI_EMAIL=<titular> ORGANIZALI_PASSWORD=<senha> \
+  python -I deploy/seed-catalogs.py --apply
+```
+
+Na rede local com certificado interno, acrescente `ORGANIZALI_INSECURE=1`. Carregado na casa piloto em 13/10/2026.
+
+## Servidor da rede local
+
+`deploy/compose.lan.yml` e `deploy/Caddyfile.lan` substituem o Caddy público por certificado interno (`local_certs`) e redirecionamento manual da porta HTTP: `docker compose -f deploy/compose.production.yml -f deploy/compose.lan.yml --env-file deploy/.env.production up -d`. Cada aparelho instala a raiz uma vez (`http://<IP>:<porta HTTP>/raiz-organizali.crt`). Os contêineres usam `restart: unless-stopped`: voltam sozinhos após reinício do servidor, mas **não** depois de um `docker compose stop`/`down`; nesse caso, repita o `up -d`.
+
 ## Atualização
 
 Backup → `deploy/publish.sh` na nova versão → trocar `ORGANIZALI_VERSION` → `up -d` (o `migrate` aplica as migrations uma vez, com trava, antes da API) → conferir `https://<domínio>/api/health` → jornada de fumaça (entrar, painel, uma despesa). DDL do MariaDB não é transacional: se a migration falhar, restaure o backup ou corrija para a frente; não repita às cegas. Voltar só a imagem exige confirmar que o schema anterior é compatível.

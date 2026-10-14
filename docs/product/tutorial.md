@@ -1,0 +1,153 @@
+# Tutorial — como usar o Organizali Finanças
+
+Guia para quem vai usar o sistema no dia a dia da casa. Os nomes de telas, botões e campos aparecem aqui exatamente como estão na interface. Atualizado em 13/10/2026 (versão `9cc1be5`).
+
+## 1. Entrar no sistema
+
+- **Endereço na rede de casa:** https://192.168.1.7:3300. O navegador precisa confiar no certificado da casa; se aparecer aviso de "não seguro", baixe uma vez http://192.168.1.7:3301/raiz-organizali.crt e instale como autoridade raiz confiável (Windows: abrir o arquivo → Instalar Certificado → Usuário Atual → Autoridades de Certificação Raiz Confiáveis; Android: Configurações → Segurança → Instalar certificado → Certificado CA; iPhone: instalar o perfil e ativar em Ajustes → Geral → Sobre → Ajustes de Confiança de Certificado). Depois disso o aviso some e o navegador oferece salvar a senha.
+- Na tela **Entrar na sua casa**, informe **E-mail** e **Senha** e clique em **Entrar**. A primeira tela é **Minha casa**, com atalhos para as telas principais.
+- **Esqueci minha senha** só funciona quando o envio de e-mail estiver configurado; enquanto não estiver, a tela avisa e o titular pode gerar um novo acesso.
+- **Sair** (rodapé do menu ou menu do usuário) encerra todas as sessões abertas, inclusive no celular.
+- O botão de tema na barra superior alterna claro e escuro. No celular, o menu abre pelo botão **Abrir menu**.
+
+### Perfis
+
+| O que a pessoa pode fazer | Titular | Editor | Leitor |
+|---|---|---|---|
+| Ver todas as telas e abrir extratos, detalhes e compras | sim | sim | sim |
+| Lançar e editar contas, rendas, despesas, cartões, cadastros e tipos de despesa | sim | sim | não |
+| Pagar despesas e faturas, registrar juros, multa, desconto e ajuste | sim | sim | não |
+| Orçamento, preferências de alerta e ações sobre alertas | sim | sim | não |
+| **Estornar** pagamentos, recebimentos e transferências | sim | não | não |
+| Moradores, Configurações da casa e Integrantes (convites) | sim | não | não |
+
+Quem não pode agir simplesmente não vê os botões. Se abrir uma tela proibida, aparece "Acesso não permitido".
+
+### Menu
+
+| Grupo | Telas |
+|---|---|
+| Visão geral | Painel, Minha casa |
+| Dinheiro | Contas, Rendas, Despesas, Cartões |
+| Planejamento | Fluxo de caixa, Orçamento, Análise, Alertas |
+| Casa | Minha conta, Integrantes (só titular), Moradores, Cadastros financeiros, Tipos de despesa, Configurações da casa |
+
+## 2. Preparar a casa (uma vez)
+
+Faça nesta ordem. Os passos 3 e 4 já estão prontos na casa piloto.
+
+### 2.1 Moradores (titular)
+
+**Casa → Moradores → Novo morador.** Morador é quem participa das contas, com ou sem login: cada um pode ter rendas, pagar despesas e receber parte de um rateio. Para retirar alguém, edite e desmarque **Morador ativo**; nada é apagado.
+
+### 2.2 Contas (titular ou editor)
+
+**Dinheiro → Contas → Nova conta.** Cadastre cada lugar onde o dinheiro fica: conta corrente, poupança, carteira. Informe **Nome**, **Data de abertura** e **Saldo nessa data**, que é o saldo real do dia em que a casa começa a usar o sistema. A partir daí o saldo é calculado pelos lançamentos; depois do primeiro movimento a data e o saldo inicial ficam travados.
+
+### 2.3 Cadastros financeiros (já carregados)
+
+**Casa → Cadastros financeiros** tem quatro abas: **Categorias**, **Tipos de renda**, **Credores** e **Formas de pagamento**. São as listas que aparecem nos lançamentos. A casa piloto já tem 69 categorias organizadas em grupos (Moradia, Alimentação, Transporte, Saúde, Educação, Lazer e cultura, Cuidados pessoais, Pets, Dívidas e financiamentos, Impostos e taxas, Seguros, Presentes e doações, Profissional, Reserva e investimentos e Outros gastos), 15 tipos de renda, 29 credores e 9 formas de pagamento.
+
+- Uma categoria pode ficar "Dentro de" outra pelo campo **Categoria superior**; no orçamento a categoria superior soma as filhas.
+- Para acrescentar um nome, use **Nova categoria**, **Novo credor**, etc. Para tirar da lista, edite e desmarque **Cadastro ativo**. Lançamentos antigos continuam com o nome que tinham.
+
+### 2.4 Tipos de despesa (já carregados)
+
+**Casa → Tipos de despesa.** Cada tipo diz **Como funciona** a despesa (Conta avulsa, Conta recorrente, Compra parcelada ou Cartão), sugere uma categoria e pode pedir informações extras ao lançar: a Conta de luz pede o consumo em kWh, o Combustível pede litros e quilometragem, o Empréstimo pede o banco e os juros ao mês. Há 45 tipos ativos, entre eles Aluguel, Condomínio, Energia, Conta de água, Gás, Internet, Telefone celular, IPTU, IPVA e licenciamento, Supermercado, Combustível, Plano de saúde, Farmácia, Mensalidade escolar, Alimentação Escolar, Empréstimo, Financiamento, Compra parcelada, Compra no cartão, Seguro, Simples Nacional e Despesa avulsa.
+
+- Na tela **Nova despesa**, cada aba mostra só os tipos com o mesmo "Como funciona". Em **Lançar compra** aparecem só os tipos "Cartão".
+- O ícone de frasco **Experimentar campos** permite testar as regras de um tipo sem criar despesa.
+- Alterar um tipo cria uma nova versão; despesas antigas guardam a versão com que foram lançadas.
+
+### 2.5 Fontes de renda (titular ou editor)
+
+**Dinheiro → Rendas → Nova fonte de renda.** Para cada renda esperada: **Morador**, **Nome** (Salário, Pró-labore, Aluguel), **Como é o valor** (base fixa ou varia todo mês), **Líquido esperado**, **Bruto (opcional)**, **Periodicidade**, **Tipo de renda** e **Primeiro recebimento**. Ao salvar, o sistema gera as previsões até o mês atual mais 12. Renda variável (comissão) não tem valor previsto: a previsão usa a média do ano.
+
+Mudou o salário? Edite a fonte: isso cria uma **nova vigência** a partir da data escolhida e preserva as previsões já recebidas.
+
+### 2.6 Cartões (titular ou editor)
+
+**Dinheiro → Cartões → Novo cartão.** Informe **Apelido**, **Titular** (morador), **Dia do fechamento**, **Dia do vencimento**, **Limite (opcional)** e a regra para compra feita no dia do fechamento. Nunca informe o número nem o código de segurança do cartão.
+
+### 2.7 Orçamento do mês (titular ou editor)
+
+**Planejamento → Orçamento.** Digite um **Limite** nas categorias que quer controlar e clique em **Salvar orçamento**. Vazio significa sem orçamento; zero é um limite real. No mês seguinte, **Copiar limites de [mês anterior]** preenche tudo para revisão.
+
+## 3. O dia a dia
+
+### 3.1 Lançar uma despesa
+
+**Dinheiro → Despesas → Nova despesa.** Escolha a aba:
+
+- **Conta avulsa**: uma conta só. **Descrição**, **Tipo de despesa**, **Categoria**, **Credor**, **Forma de pagamento**, **Quem costuma pagar**, **Valor** e **Vencimento**. Se já pagou, marque **Já foi paga** e informe **Conta de saída** e **Data do pagamento**; o pagamento é gravado junto.
+- **Conta recorrente**: aluguel, água, luz, internet. Informe **Valor**, **Periodicidade** e **Primeiro vencimento**. Para contas cujo valor muda, marque **Valor estimado (confirmo quando a conta chegar, ex.: água e luz)**: a despesa aparece como "Estimada" até você confirmar o valor real em **Detalhes**. **Ver próximos vencimentos** mostra a prévia antes de salvar. Os vencimentos são gerados até o mês atual mais 12.
+- **Compra parcelada**: **Valor total**, **Parcelas** (2 a 120), **Primeiro vencimento** e **Intervalo**. **Ver parcelas** mostra a divisão; os centavos que sobram vão para a última parcela. Cada parcela vira uma despesa no mês do seu vencimento.
+
+**Dividir entre moradores**: aparece quando a casa tem dois ou mais moradores ativos. Na conta avulsa a divisão é **Por percentual** ou **Por valor**; nas recorrentes e parceladas, só por percentual. Deixe em branco quem não participa. Isso define quem é **responsável**; quem **pagou** é informado no pagamento. A tela **Rateio de [mês]** mostra o acerto sugerido entre moradores ("Fulano repassa para Beltrano"). O acerto é só uma sugestão: não cria despesa nem renda.
+
+### 3.2 Pagar
+
+Na lista de despesas, clique em **Pagar**. Informe **Conta de saída**, **Data do pagamento**, **Quem pagou** e **Valor pago agora** (já vem com o saldo devido). Pagar menos deixa o restante em aberto ("Paga em parte"). Juros, multa e desconto são campos separados e pedem **Justificativa dos encargos ou desconto**. Só o pagamento tira dinheiro da conta; a despesa sozinha não muda saldo nenhum.
+
+### 3.3 Corrigir, cancelar, estornar
+
+- **Detalhes** mostra valor original, encargos, pago e em aberto. Ali dá para **Alterar despesa** (descrição, categoria, valor, vencimento, competência e responsáveis) e **Registrar encargo, desconto ou ajuste**. Depois de um pagamento, o valor original fica travado: corrija com juros, multa, desconto ou ajuste (aceita valor negativo).
+- Em uma despesa que veio de recorrente, **Detalhes** altera "somente esta ocorrência". Para mudar as próximas (valor novo do aluguel, por exemplo), use o lápis em **Contas recorrentes**: **Ver o que muda** mostra a prévia e **Salvar esta e próximas** aplica a partir da data escolhida. Para encerrar uma recorrência, desmarque **Recorrência ativa**.
+- **Cancelar despesa** exige motivo e só funciona sem pagamento ativo. Despesa paga por engano: o titular estorna o pagamento primeiro, em **Pagamentos recentes → Estornar**, com **Motivo do estorno**. O estorno devolve o dinheiro à conta e reabre a despesa.
+- **Atualizar vencimentos** avança as recorrências até o mês atual mais 12. O servidor faz isso todo dia sozinho; o botão serve para adiantar.
+
+### 3.4 Registrar uma renda
+
+**Dinheiro → Rendas → Registrar recebimento.** Informe **Quem recebeu**, **Fonte de renda** (ou "Entrada avulsa, sem fonte"), **Previsão atendida** (a mais antiga em aberto já vem escolhida), **Conta de destino**, **Data em que entrou** e **Valor recebido**.
+
+- Entrou mais que o previsto: lance o valor inteiro; a diferença aparece no **Comparativo** como valor acima do previsto.
+- Entrou menos e não vai entrar o resto: **Encerrar com valor menor** com o motivo, para a previsão parar de contar o que falta.
+- **Atualizar previsões** avança o horizonte das fontes. Recebimento errado: o titular usa **Estornar** em **Recebimentos do ano**.
+
+### 3.5 Cartão de crédito
+
+- **Lançar compra**: **Cartão**, **Descrição**, **Tipo de despesa** (tipos "Cartão"), **Categoria**, **Quem comprou**, **Valor total**, **Parcelas** (1 a 120) e **Data da compra**. **Ver em quais faturas cai** mostra fatura, fechamento e vencimento de cada parcela e permite mover a primeira parcela uma fatura antes ou depois. A compra não sai da conta bancária: entra na fatura.
+- **Pagar fatura** usa a mesma janela de pagamento das despesas. É o único momento em que o dinheiro sai da conta, uma vez só. A fatura também aparece em **Despesas** como "Fatura do cartão".
+- **Ver compras** lista os itens da fatura. **Estorno da loja** cancela as parcelas ainda abertas e transforma o restante em crédito na fatura.
+- O **Disponível** é uma estimativa a partir do que foi lançado aqui e pode diferir do banco.
+
+### 3.6 Transferir entre contas
+
+**Dinheiro → Contas → Transferir** (aparece com duas ou mais contas ativas). Transferência não é renda nem despesa: o saldo total da casa não muda. Tarifa bancária deve ser lançada como despesa à parte. **Ver extrato** mostra os movimentos de cada conta por período.
+
+## 4. Acompanhar
+
+- **Painel**: **Saldo hoje**, **Recebido no mês**, **Despesas pagas** e **Saldo em [data]** projetado. O gráfico **Saldo projetado nos próximos 60 dias** parte do saldo real, soma as rendas fixas previstas e desconta contas e faturas em aberto; se ficar negativo, a tela diz em que dia e quais contas levam ao déficit. A **Agenda** agrupa Vencidos, Hoje, Próximos 7 dias e Até 30 dias. Cada número é um link para a tela que o explica.
+- **Fluxo de caixa**: entradas e saídas **Mês a mês** (cinco meses atrás, seis à frente; o futuro aparece tracejado como "Previsto") e **Dia a dia** do mês escolhido.
+- **Orçamento**: para cada categoria, o comprometido (despesas da competência, inclusive as parcelas do cartão na fatura do mês), o pago e a situação: "Dentro do limite", "Perto do limite" (80%), "No limite" (100%) ou "Passou do limite", com o excesso em reais.
+- **Análise**: despesas do mês filtradas por **Categoria**, **Morador responsável**, **Conta que pagou** e **Situação**, com o mesmo total no gráfico e na lista.
+- **Alertas**: orçamento perto ou acima do limite, saldo projetado negativo, contas e faturas vencidas ou perto do vencimento, renda atrasada e valores estimados a confirmar. **Marcar como lido**, **Adiar 7 dias** ou **Resolver**; o alerta volta sozinho se a situação mudar. Em **Quando avisar**, ajuste os percentuais do orçamento e a antecedência dos vencimentos.
+
+## 5. Pessoas e acesso
+
+- **Integrantes** (só titular): quem tem login. **Convidar pessoa** pede **Nome**, **E-mail** e **Perfil** (Titular, Editor ou Leitor) e gera um **Link do convite** válido por 48 horas. O sistema não envia e-mail: copie o link e mande para a pessoa, que abre **Bem-vindo à casa**, define a senha e entra. Para mudar o perfil ou bloquear, use o lápis ("Acesso de [nome]"). A casa sempre precisa de pelo menos um titular ativo.
+- **Moradores** e **Integrantes** são cadastros diferentes: um morador pode não ter login (uma criança), e um integrante pode não ser morador (um contador com perfil Leitor).
+- **Configurações da casa** (titular): **Fuso horário** e **Data de início de uso**. Idioma e moeda são fixos.
+- **Minha conta** mostra nome e e-mail do acesso.
+
+## 6. Rotina sugerida
+
+| Quando | O que fazer |
+|---|---|
+| Todo dia ou quando algo acontece | Registrar o que foi pago (**Pagar**), o que entrou (**Registrar recebimento**) e as compras no cartão (**Lançar compra**). |
+| Quando a conta chega | Abrir **Detalhes** da despesa estimada e confirmar o valor real. |
+| Toda semana | Olhar o **Painel**: agenda, alertas e saldo projetado. |
+| Virada do mês | **Orçamento → Copiar limites**, revisar, salvar; conferir o **Rateio** do mês e os acertos entre moradores; pagar a fatura do cartão. |
+| Mudou algo fixo | Editar a fonte de renda (nova vigência) ou a conta recorrente (**Salvar esta e próximas**). |
+
+## 7. Regras que surpreendem
+
+- **Despesa não é saída de dinheiro.** O saldo da conta só muda no pagamento, no recebimento, na transferência e no estorno.
+- **Nada é apagado.** Cadastros são inativados; despesas são canceladas com motivo; pagamentos, recebimentos e transferências são estornados pelo titular com motivo. O histórico fica.
+- **Estimado** é um valor provisório que conta na projeção e no orçamento até ser confirmado.
+- **Compra no cartão conta no mês da fatura**, não no dia da compra. A fatura não aparece na Análise como despesa, para não somar duas vezes.
+- **Transferência entre contas da casa** não é renda nem despesa e não entra no fluxo de caixa.
+- **O acerto do rateio** é uma sugestão de repasse entre moradores; se for feito entre contas da casa, registre como transferência.
+- **Renda variável e renda atrasada** não entram no saldo projetado; só rendas fixas previstas.
+- **Valores** aceitam os formatos "1.250,50" e "1250.50". Datas de recebimento, pagamento e transferência não podem ser futuras.
+- **Enviar de novo não duplica**: se a rede falhar ao salvar, repita; o sistema reconhece o mesmo lançamento.

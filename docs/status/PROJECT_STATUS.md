@@ -41,10 +41,16 @@ Atualizado em 11/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 | M9 | A implementar | Complementos da V1 |
 | M10 | A implementar; D14 aberta | Comercialização e importação |
 
+## Piloto na rede local (13/10/2026)
+
+- Pilha publicada no servidor Windows da casa (Docker, `deploy/compose.lan.yml` + `deploy/Caddyfile.lan`, certificado interno) em https://192.168.1.7:3300, versão `9cc1be5`. Casa piloto provisionada e ativa; moradores cadastrados pelo titular.
+- Cadastros iniciais carregados pela API com `deploy/seed-catalogs.py`: 69 categorias em 15 grupos, 15 tipos de renda, 29 credores, 9 formas de pagamento e 47 tipos de despesa (45 ativos) com campos e categoria padrão. Os quatro tipos criados pelo titular foram enriquecidos; dois duplicados ficaram inativos.
+- [Tutorial de uso](../product/tutorial.md) escrito com os rótulos reais da interface.
+
 ## Próximos passos
 
-1. **Usuário:** responder D16 (servidor, domínio, provedor SMTP), D17 (retenção/exclusão) e revisar as premissas A01–A15; validar a jornada com a família piloto.
-2. **Publicar:** preencher `deploy/.env.production`, rodar `deploy/publish.sh` e subir a pilha conforme o [runbook](../operations/runbook.md).
+1. **Usuário:** responder D16 (servidor, domínio, provedor SMTP), D17 (retenção/exclusão) e revisar as premissas A01–A15; validar a jornada com a família piloto (contas, fontes de renda e cartões ainda não cadastrados).
+2. **Publicar fora da LAN:** preencher `deploy/.env.production` com domínio e certificado público, rodar `deploy/publish.sh` e subir a pilha conforme o [runbook](../operations/runbook.md).
 3. **M9 — complementos da V1:** comprovantes privados, exportações, metas de reserva, conciliação manual, renegociação, encerramento/exportação/exclusão (depende de D17), resumo mensal e simulação.
 4. **M10:** comercialização (depende de D14) e importação CSV/OFX.
 

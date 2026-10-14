@@ -1,0 +1,36 @@
+# Servidor da rede local (sem domínio público): HTTPS com a autoridade interna do Caddy.
+# Cada aparelho instala a raiz uma vez (http://<IP>:<porta HTTP>/raiz-organizali.crt); sem ela o
+# navegador mostra aviso de certificado e não oferece salvar a senha.
+# Sem HSTS: gravado para um IP, ele trancaria o acesso se um dia a raiz mudasse.
+{
+	local_certs
+	# O redirecionamento é feito à mão no bloco :80, porque a raiz precisa sair por HTTP.
+	auto_https disable_redirects
+	# Quem abre um IP não manda SNI; sem isto o Caddy não acha o certificado e a conexão cai.
+	default_sni {$ORGANIZALI_SITE_ADDRESS}
+}
+
+:80 {
+	handle /raiz-organizali.crt {
+		root * /data/caddy/pki/authorities/local
+		rewrite * /root.crt
+		header Content-Type "application/x-x509-ca-cert"
+		header Content-Disposition "attachment; filename=raiz-organizali.crt"
+		file_server
+	}
+	handle {
+		redir {$ORGANIZALI_PUBLIC_ORIGIN}{uri} permanent
+	}
+}
+
+{$ORGANIZALI_SITE_ADDRESS} {
+	tls internal
+	encode zstd gzip
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	reverse_proxy frontend:3100
+}

@@ -132,6 +132,8 @@ PainelGestao.OrganizaliFinancas/
 
 ## 🚀 Primeiros passos
 
+**Vai usar o sistema?** **[Tutorial de uso](docs/product/tutorial.md)** — entrar, preparar a casa, lançar, pagar, acompanhar e a rotina sugerida.
+
 **Comece pelo produto e siga para o planejamento técnico:**
 
 1. **[Escopo completo](docs/product/scope.md)** — módulos, limites e jornada da família.

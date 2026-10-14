@@ -4,6 +4,8 @@ Escopo v0.1 para revisão, preparado antes do desenvolvimento. Organização bas
 
 **Acompanhamento:** [estado completo](status/PROJECT_STATUS.md) · [entregas e regras por marco](deliveries/README.md).
 
+**Para quem usa o sistema:** [tutorial de uso](product/tutorial.md), com telas, botões, ordem de preparação da casa e rotina sugerida.
+
 ## Ordem de leitura
 
 1. [Escopo completo](product/scope.md)
