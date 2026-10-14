@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ACCESS_COOKIE, REFRESH_COOKIE, INTERNAL_API_URL } from "./config";
 
@@ -15,7 +15,9 @@ export async function getAccessToken(): Promise<string | undefined> {
 export async function requireSession(): Promise<Session> {
   const token = await getAccessToken();
   const signIn = async () => {
-    if ((await cookies()).has(REFRESH_COOKIE)) redirect("/session-renew");
+    // The proxy already tried a silent renewal; this screen renews once more and comes back to the same page.
+    const path = (await headers()).get("x-pathname") ?? "";
+    if ((await cookies()).has(REFRESH_COOKIE)) redirect(`/session-renew${path.startsWith("/") ? `?next=${encodeURIComponent(path)}` : ""}`);
     redirect("/login");
   };
   if (!token) return signIn();

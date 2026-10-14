@@ -11,9 +11,11 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Authentication
             " WHERE u.Email=@Email AND u.IsActive=1 AND u.IsBlocked=0";
         public const string FindAuthorized = "SELECT u.* " + ActiveUser +
             " WHERE u.Code=@UserCode AND u.IdTenant=@IdTenant AND u.SessionVersion=@Version AND u.IsActive=1 AND u.IsBlocked=0";
+        /// <summary>A rotated token stays usable for 60 s so parallel renewals from one browser (tabs, prefetches) do not knock the user out.</summary>
         public const string LockRefresh = "SELECT u.* " + ActiveUser + " " + """
             JOIN RefreshToken r ON r.IdUser=u.Id AND r.SessionVersion=u.SessionVersion
-            WHERE r.TokenHash=@Hash AND r.IsActive=1 AND r.RevokedAt IS NULL AND r.ExpiresAt>UTC_TIMESTAMP(6)
+            WHERE r.TokenHash=@Hash AND r.ExpiresAt>UTC_TIMESTAMP(6)
+                AND (r.RevokedAt IS NULL OR r.RevokedAt>UTC_TIMESTAMP(6)-INTERVAL 60 SECOND)
                 AND u.IsActive=1 AND u.IsBlocked=0 FOR UPDATE
             """;
         public const string LockRecovery = "SELECT u.* " + ActiveUser + " " + """

@@ -48,6 +48,7 @@ Atualizado em 11/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 - [Tutorial de uso](../product/tutorial.md) escrito com os rótulos reais da interface.
 - 14/10/2026: [complementos](../deliveries/M9-M10-complementos.md) implementados e publicados na LAN: Ajuda dentro do sistema, catálogo padrão pelo próprio sistema (provisionamento, operação `SeedCatalog` e botão na tela), Primeiros passos em Minha casa, troca de senha e link de nova senha gerado pelo titular, metas de reserva (RF38), comprovantes (RF34) e importação de extrato OFX/CSV com prévia (RF44).
 - 14/10/2026 (tarde): titular cadastrou 5 cartões e 13 compras de teste. [Excluir e editar em cartões](../deliveries/Cartoes-excluir-editar.md): ativar/desativar e excluir cartão, editar e excluir compra (premissa A16); as compras de teste foram excluídas pela API nova e os cartões mantidos. A conta de teste da fumaça ficou inativa com saldo zero.
+- 14/10/2026 (tarde): reclamação de "cai para o login" resolvida: [sessão renovada sozinha](../deliveries/Sessao-renovacao-automatica.md) pelo proxy do Next, acesso de 60 min, sessão de 30 dias e tolerância de 60 s a renovações paralelas.
 
 ## Próximos passos
 

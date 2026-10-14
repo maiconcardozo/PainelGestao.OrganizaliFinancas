@@ -64,3 +64,4 @@ Com `ORGANIZALI_SMTP_HOST`, `ORGANIZALI_SMTP_FROM` e `ORGANIZALI_PUBLIC_ORIGIN`,
 - Logs: `docker compose -f deploy/compose.production.yml --env-file deploy/.env.production logs -f api`.
 - Limites: 600 requisições/min por sessão (`Jobs__ApiRequestsPerMinute`) e 10 tentativas de login/min por endereço; o endereço real vem do proxy (`X-Forwarded-For`) e só é aceito da rede interna.
 - Rotação da chave JWT: trocar `ORGANIZALI_JWT_KEY` e reiniciar a API encerra todas as sessões.
+- Sessão: o acesso vale `ORGANIZALI_ACCESS_MINUTES` (padrão 60, máximo 60) e a sessão `ORGANIZALI_SESSION_DAYS` (padrão 30, máximo 30) de uso contínuo. O frontend renova sozinho quando o acesso vence (`frontend/proxy.ts`); a pessoa só volta ao login se ficar esse tempo sem usar, sair em outro aparelho ou trocar a senha.

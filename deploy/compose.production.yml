@@ -30,6 +30,8 @@ services:
     environment: &api-environment
       ASPNETCORE_ENVIRONMENT: Production
       Jwt__Key: ${ORGANIZALI_JWT_KEY:?Defina ORGANIZALI_JWT_KEY com pelo menos 32 caracteres}
+      Jwt__AccessTokenMinutes: ${ORGANIZALI_ACCESS_MINUTES:-60}
+      Jwt__RefreshTokenDays: ${ORGANIZALI_SESSION_DAYS:-30}
       OrganizaliFinancas__ConnectionString: Server=database;Database=organizali;User=organizali;Password=${ORGANIZALI_DB_PASSWORD};Connection Timeout=5
       Jobs__HorizonEnabled: "true"
       Jobs__TrustedProxyNetworks__0: 172.16.0.0/12
