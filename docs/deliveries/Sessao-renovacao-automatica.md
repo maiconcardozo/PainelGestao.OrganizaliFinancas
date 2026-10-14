@@ -24,7 +24,8 @@ O acesso (token JWT no cookie `organizali_access`) valia 15 minutos. Vencido, qu
 ## Validação e reprodução
 
 - `dotnet build` aprovado; frontend `tsc`, `eslint` e `next build` aprovados (`ƒ Proxy` presente na saída do build).
-- Servidor da LAN: ver seção de validação ao final (fumaça pela API: página carregada sem o cookie de acesso devolve 200 e novos cookies; segunda renovação com o mesmo token dentro de 60 s aceita; token inventado recusado com cookies limpos).
+- Servidor da LAN (versão `cfe690c`, 14/10/2026): fumaça pela API com a conta piloto aprovada: cookies de login com acesso de 60 min e sessão de 30 dias; página `/cards` sem o cookie de acesso devolve 200 com a tela (sem passar por "Continuar") e dois cookies novos, com o refresh token rotacionado; chamada a `/api/backend/cards` sem o cookie de acesso também renova; o token rotacionado há segundos ainda é aceito; token inventado apaga os cookies e leva direto ao login.
+- Duas correções no caminho: o Next ignora um cabeçalho `cookie` vazio no override da requisição (o cookie passou a ser removido) e aplica à requisição os cookies esvaziados pelo proxy, por isso `requireSession` passou a exigir valor não vazio em vez de `has`. A renovação ganhou limite próprio (60/min) porque a fumaça repetida esbarrou no limite de 10/min do login.
 
 ## Continuidade
 
