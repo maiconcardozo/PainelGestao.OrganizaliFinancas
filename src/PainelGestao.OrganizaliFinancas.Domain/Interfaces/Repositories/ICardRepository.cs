@@ -35,7 +35,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         public Guid? ExpenseTypeCode { get; init; } public int? ExpenseTypeVersion { get; init; } public string FieldValuesJson { get; init; } = "{}"; public int Version { get; init; }
     }
     /// <summary>What stands in the way of removing a card: purchases still registered and invoices with a payment, adjustment, share or receipt.</summary>
-    public sealed record CardUsage(int Purchases, int LockedInvoices);
+    public sealed record CardUsage { public int Purchases { get; init; } public int LockedInvoices { get; init; } }
 
     public interface ICardRepository
     {
