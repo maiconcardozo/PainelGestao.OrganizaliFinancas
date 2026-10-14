@@ -43,7 +43,7 @@ Atualizado em 11/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 
 ## Piloto na rede local (13/10/2026)
 
-- Pilha publicada no servidor Windows da casa (Docker, `deploy/compose.lan.yml` + `deploy/Caddyfile.lan`, certificado interno) em https://192.168.1.7:3300, versão `9cc1be5`. Casa piloto provisionada e ativa; moradores cadastrados pelo titular.
+- Pilha publicada no servidor Windows da casa (Docker, `deploy/compose.lan.yml` + `deploy/Caddyfile.lan`, certificado interno) em https://192.168.1.7:3300, versão `1eb0951` (14/10/2026). Casa piloto provisionada e ativa; moradores cadastrados pelo titular.
 - Cadastros iniciais carregados pela API com `deploy/seed-catalogs.py`: 69 categorias em 15 grupos, 15 tipos de renda, 29 credores, 9 formas de pagamento e 47 tipos de despesa (45 ativos) com campos e categoria padrão. Os quatro tipos criados pelo titular foram enriquecidos; dois duplicados ficaram inativos.
 - [Tutorial de uso](../product/tutorial.md) escrito com os rótulos reais da interface.
 - 14/10/2026: [complementos](../deliveries/M9-M10-complementos.md) implementados e publicados na LAN: Ajuda dentro do sistema, catálogo padrão pelo próprio sistema (provisionamento, operação `SeedCatalog` e botão na tela), Primeiros passos em Minha casa, troca de senha e link de nova senha gerado pelo titular, metas de reserva (RF38), comprovantes (RF34) e importação de extrato OFX/CSV com prévia (RF44).

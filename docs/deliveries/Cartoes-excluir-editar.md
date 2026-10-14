@@ -39,7 +39,8 @@ Frontend: `components/common/ConfirmModal.tsx` (confirmação destrutiva reutili
 
 - `dotnet build` e testes de unidade: novo `UpdateDetails_ChangesDescriptionOnlyAndKeepsAmountDateAndInstallments` em `CardScheduleTests`.
 - Frontend: `tsc`, `eslint` e `next build` aprovados.
-- Servidor da LAN: deploy do commit desta entrega e fumaça pela API com a conta piloto (ver seção de validação no final do documento de estado).
+- Servidor da LAN (versão `1eb0951`, 14/10/2026): fumaça pela API com a conta piloto aprovada: 13 compras de teste excluídas, nenhuma compra ou fatura restante, 5 cartões mantidos com comprometido zero; cartão temporário criado, exclusão recusada com compra lançada (409), compra editada (descrição, categoria e comprador; valor e parcelas iguais; versão avançou), edição com versão velha recusada (409), compra excluída com as 3 faturas removidas, cartão desativado pelo clique e depois excluído. Página Cartões renderizada. A primeira publicação (`9cedca6`) falhou ao excluir cartão porque o Dapper não materializava as contagens BIGINT no registro posicional `CardUsage`; corrigido em `1eb0951`.
+- A trava de exclusão por fatura paga não foi exercitada no servidor (pagar deixaria uma fatura permanente na casa piloto); a regra está no SQL `PurchasePaidInvoices` e no `InvoiceLocked`.
 
 ## Limitações e pendências
 
