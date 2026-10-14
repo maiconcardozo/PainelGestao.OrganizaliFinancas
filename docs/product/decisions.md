@@ -63,6 +63,7 @@ Em 10/10/2026 o usuário autorizou concluir todos os marcos até a publicação 
 | A13 | HTTPS pelo Caddy com certificado automático (ACME) informado por e-mail; `internal` só para teste local | M8 | Trocar o proxy ou usar certificado próprio |
 | A14 | Recuperação de senha por SMTP genérico configurável; sem provedor o recurso responde indisponível | M8 | Integrar API de um provedor escolhido em D16 |
 | A15 | Imagens construídas localmente com tag do commit; envio a registro e deploy só com registro/servidor definidos pelo usuário | M8 | Configurar `ORGANIZALI_REGISTRY` e o servidor |
+| A16 | Cartão e compra no cartão podem ser excluídos fisicamente só enquanto nada financeiro depende deles (cartão: sem compras e sem fatura com pagamento, ajuste, rateio ou comprovante; compra: nenhuma fatura com suas parcelas recebeu pagamento). Com pagamento registrado, o caminho é desativar o cartão ou estornar a compra | Cartões 14/10 | Exclusão lógica com histórico ou permitir excluir com estorno automático |
 
 ## Regra de tratamento
 

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentValidation;
 using MediatR;
 using PainelGestao.OrganizaliFinancas.Application.Authentication.Services;
@@ -24,7 +25,9 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
     public sealed record PurchasePreviewDto(string Total, IReadOnlyList<PurchasePreviewItemDto> Items);
     public sealed record PurchasePayload(Guid CardCode, Guid? BuyerPersonCode, ExpenseDetailsPayload Details, DateOnly PurchaseDate, string Total, int Count, int FirstInvoiceShift);
     public sealed record PurchaseDto(Guid Code, Guid CardCode, string CardName, string Description, DateOnly PurchaseDate, string Total, int Count, string Refunded,
-        Guid? CategoryCode, string? CategoryName, Guid? BuyerPersonCode, string? BuyerName, int Version);
+        Guid? CategoryCode, string? CategoryName, Guid? BuyerPersonCode, string? BuyerName, Guid? ExpenseTypeCode, int? ExpenseTypeVersion, JsonElement Fields, int Version);
+    /// <summary>Only the description of the purchase changes; amount, date and installments are fixed once the items are in the invoices.</summary>
+    public sealed record UpdatePurchasePayload(Guid? BuyerPersonCode, ExpenseDetailsPayload Details, int Version);
     public sealed record RefundPayload(string? Amount, string Reason, DateOnly? Date);
 
     public sealed record ListCardsQuery(SessionIdentity Identity) : IRequest<IReadOnlyList<CardDto>>;
@@ -35,6 +38,9 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
     public sealed record CreatePurchaseCommand(SessionIdentity Identity, Guid Key, PurchasePayload Payload) : IRequest<PurchaseDto>;
     public sealed record ListPurchasesQuery(SessionIdentity Identity, DateOnly? From, DateOnly? To) : IRequest<IReadOnlyList<PurchaseDto>>;
     public sealed record RefundPurchaseCommand(SessionIdentity Identity, Guid Key, Guid Code, RefundPayload Payload) : IRequest<PurchaseDto>;
+    public sealed record UpdatePurchaseCommand(SessionIdentity Identity, Guid Code, UpdatePurchasePayload Payload) : IRequest<PurchaseDto>;
+    public sealed record DeletePurchaseCommand(SessionIdentity Identity, Guid Code) : IRequest;
+    public sealed record DeleteCardCommand(SessionIdentity Identity, Guid Code) : IRequest;
 
     public class SaveCardValidator : AbstractValidator<SaveCardCommand>
     {
@@ -76,6 +82,15 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
                 .SetValidator(new PurchasePreviewValidator()).OverridePropertyName("Payload");
         }
     }
+    public class UpdatePurchaseValidator : AbstractValidator<UpdatePurchaseCommand>
+    {
+        public UpdatePurchaseValidator()
+        {
+            RuleFor(x => x.Payload.Details).NotNull().SetValidator(new SingleExpenseDetailsValidator());
+            RuleFor(x => x.Payload.Details.Shares).Must(shares => shares is null || shares.Length == 0).When(x => x.Payload.Details is not null)
+                .WithMessage("Compras no cartão ainda não são divididas entre moradores.");
+        }
+    }
     public class RefundPurchaseValidator : AbstractValidator<RefundPurchaseCommand>
     {
         public RefundPurchaseValidator()
@@ -102,7 +117,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
                 Money.Format(x.Adjustments), Money.Format(x.Paid), Money.Format(open), status, open > 0 && due < today, x.ItemCount);
         }
         public static PurchaseDto Purchase(PurchaseRecord x) => new(x.Code, x.CardCode, x.CardName, x.Description, DateOnly.FromDateTime(x.PurchaseDate),
-            Money.Format(x.TotalAmount), x.InstallmentCount, Money.Format(x.RefundedAmount), x.CategoryCode, x.CategoryName, x.BuyerPersonCode, x.BuyerName, x.Version);
+            Money.Format(x.TotalAmount), x.InstallmentCount, Money.Format(x.RefundedAmount), x.CategoryCode, x.CategoryName, x.BuyerPersonCode, x.BuyerName,
+            x.ExpenseTypeCode, x.ExpenseTypeVersion, ExpenseMapper.Fields(x.FieldValuesJson), x.Version);
     }
 
     /// <summary>Finds or creates the invoices of the planned cycles, each with its backing obligation, inside the caller's transaction.</summary>
@@ -158,6 +174,27 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
                 return created.Code;
             }, ct);
             return CardMapper.Card((await work.CardRepository.ListCardsAsync(request.Identity.IdTenant, ct)).Single(x => x.Code == code));
+        }
+    }
+    /// <summary>A card leaves only when nothing depends on it: no purchases and no invoice with payment, adjustment, share or receipt. Invoices left empty go with it.</summary>
+    public class DeleteCardHandler(IUnitOfWork work) : IRequestHandler<DeleteCardCommand>
+    {
+        public async Task Handle(DeleteCardCommand request, CancellationToken ct)
+        {
+            await work.ExecuteInTransactionAsync(async () =>
+            {
+                await work.MemberRepository.LockHouseholdAsync(request.Identity.IdTenant, ct);
+                var user = await HouseholdAccess.RequireAsync(work, request.Identity, "finance.write", ct);
+                var card = await work.CardRepository.FindCardAsync(user.IdTenant, request.Code, ct) ?? throw new NotFoundException("Cartão não encontrado.");
+                var usage = await work.CardRepository.GetCardUsageAsync(user.IdTenant, card.Id, ct);
+                if (usage.Purchases > 0)
+                    throw new ConflictException($"O cartão {card.Name} tem {usage.Purchases} compra(s) lançada(s). Exclua as compras antes ou apenas desative o cartão.");
+                if (usage.LockedInvoices > 0)
+                    throw new ConflictException($"O cartão {card.Name} tem fatura com pagamento, ajuste ou comprovante registrado. Desative o cartão em vez de excluir.");
+                work.CardRepository.RemoveEmptyInvoices(user.IdTenant, card.Id);
+                work.CardRepository.RemoveCard(user.IdTenant, card.Id);
+                return true;
+            }, ct);
         }
     }
     public class ListInvoicesHandler(IUnitOfWork work) : IRequestHandler<ListInvoicesQuery, IReadOnlyList<InvoiceDto>>
@@ -235,6 +272,53 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
                 return purchase.Code;
             }, ct);
             return CardMapper.Purchase((await work.CardRepository.GetPurchaseAsync(request.Identity.IdTenant, code, ct))!);
+        }
+    }
+    public class UpdatePurchaseHandler(IUnitOfWork work) : IRequestHandler<UpdatePurchaseCommand, PurchaseDto>
+    {
+        public async Task<PurchaseDto> Handle(UpdatePurchaseCommand request, CancellationToken ct)
+        {
+            await work.ExecuteInTransactionAsync(async () =>
+            {
+                await work.MemberRepository.LockHouseholdAsync(request.Identity.IdTenant, ct);
+                var user = await HouseholdAccess.RequireAsync(work, request.Identity, "finance.write", ct);
+                var payload = request.Payload;
+                var purchase = await work.CardRepository.FindPurchaseAsync(user.IdTenant, request.Code, ct) ?? throw new NotFoundException("Compra não encontrada.");
+                if (purchase.Version != payload.Version) throw new ConflictException("Compra alterada. Atualize a página antes de salvar.");
+                int? idBuyer = null;
+                if (payload.BuyerPersonCode is Guid buyerCode)
+                {
+                    var buyer = await work.HouseholdRepository.FindPersonAsync(user.IdTenant, buyerCode, ct) ?? throw new NotFoundException("Morador não encontrado nesta casa.");
+                    if (!buyer.IsActive && buyer.Id != purchase.IdBuyerPerson) throw new ConflictException("Escolha um morador ativo.");
+                    idBuyer = buyer.Id;
+                }
+                var previous = new ObligationDetails(purchase.Description, purchase.IdExpenseType, purchase.ExpenseTypeVersion, purchase.IdCategory, null, null, null, purchase.FieldValuesJson, null);
+                var resolved = await ExpenseDetailsResolver.ResolveAsync(work, user.IdTenant, payload.Details, "card", previous, ct);
+                purchase.UpdateDetails(resolved.Details, idBuyer, user.Code.ToString());
+                work.CardRepository.UpdatePurchaseDetails(purchase);
+                return true;
+            }, ct);
+            return CardMapper.Purchase((await work.CardRepository.GetPurchaseAsync(request.Identity.IdTenant, request.Code, ct))!);
+        }
+    }
+    /// <summary>Removes the purchase and its installments from the invoices; refused once any of those invoices received a payment, so the cash history stays whole.</summary>
+    public class DeletePurchaseHandler(IUnitOfWork work) : IRequestHandler<DeletePurchaseCommand>
+    {
+        public async Task Handle(DeletePurchaseCommand request, CancellationToken ct)
+        {
+            await work.ExecuteInTransactionAsync(async () =>
+            {
+                await work.MemberRepository.LockHouseholdAsync(request.Identity.IdTenant, ct);
+                var user = await HouseholdAccess.RequireAsync(work, request.Identity, "finance.write", ct);
+                var purchase = await work.CardRepository.FindPurchaseAsync(user.IdTenant, request.Code, ct) ?? throw new NotFoundException("Compra não encontrada.");
+                if (await work.CardRepository.PurchaseHasPaidInvoiceAsync(user.IdTenant, purchase.Id, ct))
+                    throw new ConflictException("Uma fatura com esta compra já recebeu pagamento. Estorne o pagamento antes ou registre um estorno da loja.");
+                var actor = user.Code.ToString();
+                work.CardRepository.RemovePurchase(user.IdTenant, purchase.Id);
+                work.CardRepository.RecalculateCardInvoices(user.IdTenant, purchase.IdCreditCard, actor);
+                work.CardRepository.RemoveEmptyInvoices(user.IdTenant, purchase.IdCreditCard);
+                return true;
+            }, ct);
         }
     }
     public class ListPurchasesHandler(IUnitOfWork work) : IRequestHandler<ListPurchasesQuery, IReadOnlyList<PurchaseDto>>

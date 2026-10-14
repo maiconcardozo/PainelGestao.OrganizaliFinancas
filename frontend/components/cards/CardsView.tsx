@@ -32,11 +32,11 @@ export function CardsView({ cards, invoices, purchases, accounts, people, catalo
       <div><dt>Comprometido nos cartões</dt><dd>{money(committed)}</dd></div>
       <div><dt>Próxima fatura a pagar</dt><dd>{nextDue ? money(nextDue.openBalance) : "—"}</dd>{nextDue && <dd className="figure-note">{nextDue.cardName}</dd>}</div>
     </dl>}
-    <CardList cards={cards} canEdit={canEdit} onEdit={setEditing} />
+    <CardList cards={cards} canEdit={canEdit} onEdit={setEditing} onDone={done} />
     <h2>Faturas</h2>
     <Invoices cards={cards} invoices={invoices} accounts={accounts} people={people} today={today} canSettle={canSettle} />
     <h2>Compras recentes</h2>
-    <Purchases purchases={purchases} canEdit={canEdit} />
+    <Purchases purchases={purchases} catalogs={catalogs} canEdit={canEdit} onDone={done} />
     {editing && <CardModal card={editing === "new" ? null : editing} people={people} onClose={() => setEditing(null)} onSaved={done} />}
     {buying && <PurchaseModal cards={cards} catalogs={catalogs} today={today} onClose={() => setBuying(false)} onSaved={done} />}
   </section>;

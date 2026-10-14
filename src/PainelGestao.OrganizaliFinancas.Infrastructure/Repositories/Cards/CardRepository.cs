@@ -23,6 +23,9 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Cards
             Single<CreditCard>(CardSql.FindCardById, new { IdTenant = idTenant, Id = id }, ct);
         public void AddCard(CreditCard card) => new DapperRepository<CreditCard>(work).Add(card);
         public void UpdateCard(CreditCard card) => work.AddPendingWrite(CardSql.UpdateCard, card);
+        public async Task<CardUsage> GetCardUsageAsync(int idTenant, int idCard, CancellationToken ct) =>
+            (await Single<CardUsage>(CardSql.CardUsage, new { IdTenant = idTenant, IdCard = idCard }, ct))!;
+        public void RemoveCard(int idTenant, int idCard) => work.AddPendingWrite(CardSql.RemoveCard, new { IdTenant = idTenant, IdCard = idCard });
 
         public Task<IReadOnlyList<InvoiceRecord>> ListInvoicesAsync(int idTenant, Guid? cardCode, DateTime fromMonth, DateTime toMonth, CancellationToken ct) =>
             List<InvoiceRecord>(CardSql.Invoices, new { IdTenant = idTenant, CardCode = cardCode, From = fromMonth, To = toMonth }, ct);
@@ -59,5 +62,20 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Cards
             work.AddPendingWrite(CardSql.DeactivateItem, new { IdTenant = idTenant, Code = itemCode, Actor = actor });
         public void RecalculateInvoice(int idTenant, Guid invoiceCode, string actor) =>
             work.AddPendingWrite(CardSql.RecalculateInvoice, new { IdTenant = idTenant, InvoiceCode = invoiceCode, Actor = actor });
+        public void RecalculateCardInvoices(int idTenant, int idCard, string actor) =>
+            work.AddPendingWrite(CardSql.RecalculateCardInvoices, new { IdTenant = idTenant, IdCard = idCard, Actor = actor });
+        public async Task<bool> PurchaseHasPaidInvoiceAsync(int idTenant, int idPurchase, CancellationToken ct) =>
+            await Single<int>(CardSql.PurchasePaidInvoices, new { IdTenant = idTenant, IdPurchase = idPurchase }, ct) > 0;
+        public void UpdatePurchaseDetails(CardPurchase purchase) => work.AddPendingWrite(CardSql.UpdatePurchaseDetails, purchase);
+        public void RemovePurchase(int idTenant, int idPurchase)
+        {
+            work.AddPendingWrite(CardSql.RemovePurchaseItems, new { IdTenant = idTenant, IdPurchase = idPurchase });
+            work.AddPendingWrite(CardSql.RemovePurchase, new { IdTenant = idTenant, IdPurchase = idPurchase });
+        }
+        public void RemoveEmptyInvoices(int idTenant, int idCard)
+        {
+            work.AddPendingWrite(CardSql.RemoveEmptyInvoiceObligations, new { IdTenant = idTenant, IdCard = idCard });
+            work.AddPendingWrite(CardSql.RemoveEmptyInvoices, new { IdTenant = idTenant, IdCard = idCard });
+        }
     }
 }

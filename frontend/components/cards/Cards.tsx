@@ -1,34 +1,37 @@
 "use client";
-import { type FormEvent } from "react";
-import { CreditCard } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { CreditCard, Power, PowerOff, Trash2 } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
-import { Card as Tile, EditButton, Empty, Figure, ModalActions, Pill } from "@/components/common/Ui";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
+import { Card as Tile, EditButton, Empty, Figure, IconAction, ModalActions, Pill } from "@/components/common/Ui";
 import { ListBar, ListFrame, useViewMode } from "@/components/common/ViewSwitch";
 import { money, toApiMoney } from "@/lib/finance";
 import type { Card } from "@/lib/cards";
 import type { Person } from "@/components/households/HouseholdForms";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
 
+type ListProps = { cards: Card[]; canEdit: boolean; onEdit: (card: Card) => void; onDone: (message: string) => void };
+
 /** RF23: the household's cards, as a RevendaPRO mosaic or list. The card number is never shown or asked. */
-export function CardList({ cards, canEdit, onEdit }: { cards: Card[]; canEdit: boolean; onEdit: (card: Card) => void }) {
+export function CardList({ cards, canEdit, onEdit, onDone }: ListProps) {
   const [view, chooseView] = useViewMode("organizali.cards.view");
   const limitHint = (card: Card) => card.creditLimit ? `Disponível ${money(card.available)} de ${money(card.creditLimit)}` : "Sem limite informado";
   return <>
     <ListBar count={cards.length} singular="cartão" plural="cartões" view={view} onChange={chooseView} label="Como mostrar os cartões" />
     {cards.length === 0 ? <Empty title={canEdit ? "Nenhum cartão ainda. Cadastre pelo apelido, com os dias de fechamento e vencimento; o número do cartão não é necessário." : "Nenhum cartão cadastrado. Um titular ou editor pode cadastrar os cartões."} /> :
-      view === "list" ? <ListFrame>{cards.map(card => <li key={card.code} className={`card-item flex items-center gap-3 px-3 py-2.5 transition hover:bg-[var(--surface-2)] sm:gap-4 sm:px-4 ${card.isActive ? "" : "opacity-60"}`}>
+      view === "list" ? <ListFrame>{cards.map(card => <li key={`${card.code}-${card.version}`} className={`card-item flex items-center gap-3 px-3 py-2.5 transition hover:bg-[var(--surface-2)] sm:gap-4 sm:px-4 ${card.isActive ? "" : "opacity-60"}`}>
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[var(--surface-2)] text-[var(--signal)]"><CreditCard size={17} /></span>
-        <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{card.name}</span>
+        <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{card.name}{!card.isActive && <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">inativo</span>}</span>
           <span className="mt-0.5 block truncate text-xs text-[var(--text-muted)]">{card.holderName} · fecha dia {card.closingDay}, vence dia {card.dueDay}</span></span>
         <span className="hidden shrink-0 text-right sm:block"><span className="num block text-sm font-semibold">{money(card.committed)}</span>
           <span className="block text-xs text-[var(--text-muted)]">{limitHint(card)}</span></span>
-        {canEdit && <EditButton name={card.name} onClick={() => onEdit(card)} />}
+        {canEdit && <CardActions card={card} onEdit={() => onEdit(card)} onDone={onDone} />}
       </li>)}</ListFrame> :
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{cards.map(card => <div key={card.code} className="card-item"><Tile muted={!card.isActive}>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{cards.map(card => <div key={`${card.code}-${card.version}`} className="card-item"><Tile muted={!card.isActive}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0"><p className="flex items-center gap-2 font-semibold"><CreditCard size={16} className="shrink-0 text-[var(--signal)]" /><span className="truncate">{card.name}</span></p>
             <p className="mt-0.5 text-xs text-[var(--text-secondary)]">{card.holderName}</p></div>
-          {canEdit && <EditButton name={card.name} onClick={() => onEdit(card)} />}
+          {canEdit && <CardActions card={card} onEdit={() => onEdit(card)} onDone={onDone} />}
         </div>
         <Figure label="Comprometido" value={money(card.committed)} hint={limitHint(card)} />
         <dl className="grid gap-y-1.5 text-sm">
@@ -39,6 +42,39 @@ export function CardList({ cards, canEdit, onEdit }: { cards: Card[]; canEdit: b
       </Tile></div>)}</div>}
     {cards.some(card => card.creditLimit) && <p className="form-hint mt-3">O disponível é uma estimativa a partir das compras lançadas aqui e pode diferir do banco.</p>}
   </>;
+}
+
+/**
+ * Edit, activate/deactivate and delete, the same on the tile and on the row.
+ * Deactivating keeps invoices and history; deleting is refused by the API while the card has purchases or a paid invoice.
+ */
+function CardActions({ card, onEdit, onDone }: { card: Card; onEdit: () => void; onDone: (message: string) => void }) {
+  const action = useFinanceAction();
+  const [dialog, setDialog] = useState<"" | "delete" | "error">("");
+  async function toggle() {
+    const message = card.isActive ? `${card.name} desativado. Ele não recebe novas compras; as faturas e o histórico continuam.` : `${card.name} ativado.`;
+    const saved = await action.send(`cards/${card.code}`, "PUT", {
+      holderPersonCode: card.holderPersonCode, name: card.name, closingDay: card.closingDay, dueDay: card.dueDay, creditLimit: card.creditLimit,
+      closingDayRule: card.closingDayRule, isActive: !card.isActive, version: card.version,
+    }, message);
+    if (saved) onDone(message); else setDialog("error");
+  }
+  async function remove() {
+    const message = `${card.name} excluído.`;
+    if (await action.send(`cards/${card.code}`, "DELETE", undefined, message)) { setDialog(""); onDone(message); }
+  }
+  return <span className="flex shrink-0 items-center">
+    <EditButton name={card.name} onClick={onEdit} />
+    <IconAction label={card.isActive ? `Desativar ${card.name}` : `Ativar ${card.name}`} disabled={action.busy} onClick={() => void toggle()}>
+      {card.isActive ? <PowerOff size={15} /> : <Power size={15} />}</IconAction>
+    <IconAction label={`Excluir ${card.name}`} danger disabled={action.busy} onClick={() => setDialog("delete")}><Trash2 size={15} /></IconAction>
+    {dialog === "delete" && <ConfirmModal title={`Excluir ${card.name}`} label="Excluir cartão" busy={action.busy} error={action.error} onConfirm={() => void remove()} onClose={() => setDialog("")}>
+      <p className="text-sm">O cartão some da lista de vez. Isso só é possível sem compras lançadas e sem fatura paga; nesses casos, prefira <strong>desativar</strong>, que mantém faturas e histórico.</p>
+    </ConfirmModal>}
+    {dialog === "error" && <Modal title="Não foi possível alterar o cartão" onClose={() => setDialog("")} error={action.error} width="max-w-md">
+      <div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setDialog("")}>Fechar</button></div>
+    </Modal>}
+  </span>;
 }
 
 export function CardModal({ card, people, onClose, onSaved }: { card: Card | null; people: Person[]; onClose: () => void; onSaved: (message: string) => void }) {

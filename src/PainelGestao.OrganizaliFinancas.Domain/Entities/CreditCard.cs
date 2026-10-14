@@ -106,6 +106,15 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
             UpdateAuditInfo(actor);
         }
         public bool IsFullyRefunded() => RefundedAmount == TotalAmount;
+        /// <summary>Only what describes the purchase changes; amount, date and installments stay, so the invoices are untouched.</summary>
+        public void UpdateDetails(ObligationDetails details, int? idBuyer, string actor)
+        {
+            var normalized = details.Normalized();
+            (Description, IdExpenseType, ExpenseTypeVersion, IdCategory, FieldValuesJson, IdBuyerPerson) =
+                (normalized.Description, normalized.IdExpenseType, normalized.ExpenseTypeVersion, normalized.IdCategory, normalized.FieldValuesJson, idBuyer);
+            Version++;
+            UpdateAuditInfo(actor);
+        }
     }
 
     /// <summary>Installment or merchant credit (negative) inside one invoice, recognized in the invoice's reference month.</summary>

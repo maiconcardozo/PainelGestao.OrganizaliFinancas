@@ -51,5 +51,19 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Unit
             purchase.Refund(250m, "test");
             purchase.IsFullyRefunded().Should().BeTrue();
         }
+
+        [Fact]
+        public void UpdateDetails_ChangesDescriptionOnlyAndKeepsAmountDateAndInstallments()
+        {
+            var card = CreditCard.Create(Person.Create(1, "Ana", "test"), "Visa", 25, 5, null, "next", "test");
+            var purchase = CardPurchase.Create(card, null, new ObligationDetails("Mercado", null, null, null, null, null, null, "{}", null), new DateOnly(2026, 10, 10), 300m, 3, "test");
+            purchase.UpdateDetails(new ObligationDetails("  Mercado do mês ", null, null, 7, null, null, null, "{}", null), 2, "editor");
+            purchase.Description.Should().Be("Mercado do mês");
+            purchase.IdCategory.Should().Be(7);
+            purchase.IdBuyerPerson.Should().Be(2);
+            purchase.Version.Should().Be(1);
+            (purchase.TotalAmount, purchase.InstallmentCount, purchase.PurchaseDate).Should().Be((300m, 3, new DateTime(2026, 10, 10)));
+            ((Action)(() => purchase.UpdateDetails(new ObligationDetails(" ", null, null, null, null, null, null, "{}", null), null, "editor"))).Should().Throw<ArgumentException>();
+        }
     }
 }

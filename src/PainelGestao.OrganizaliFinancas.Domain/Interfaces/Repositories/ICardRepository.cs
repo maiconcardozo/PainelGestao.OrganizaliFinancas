@@ -32,8 +32,10 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         public Guid Code { get; init; } public Guid CardCode { get; init; } public string CardName { get; init; } = string.Empty; public string Description { get; init; } = string.Empty;
         public DateTime PurchaseDate { get; init; } public decimal TotalAmount { get; init; } public int InstallmentCount { get; init; } public decimal RefundedAmount { get; init; }
         public Guid? CategoryCode { get; init; } public string? CategoryName { get; init; } public Guid? BuyerPersonCode { get; init; } public string? BuyerName { get; init; }
-        public Guid? ExpenseTypeCode { get; init; } public int Version { get; init; }
+        public Guid? ExpenseTypeCode { get; init; } public int? ExpenseTypeVersion { get; init; } public string FieldValuesJson { get; init; } = "{}"; public int Version { get; init; }
     }
+    /// <summary>What stands in the way of removing a card: purchases still registered and invoices with a payment, adjustment, share or receipt.</summary>
+    public sealed record CardUsage(int Purchases, int LockedInvoices);
 
     public interface ICardRepository
     {
@@ -42,6 +44,9 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         Task<CreditCard?> FindCardByIdAsync(int idTenant, int id, CancellationToken ct);
         void AddCard(CreditCard card);
         void UpdateCard(CreditCard card);
+        Task<CardUsage> GetCardUsageAsync(int idTenant, int idCard, CancellationToken ct);
+        /// <summary>Hard delete; only valid after <see cref="RemoveEmptyInvoices"/> left the card without invoices.</summary>
+        void RemoveCard(int idTenant, int idCard);
 
         Task<IReadOnlyList<InvoiceRecord>> ListInvoicesAsync(int idTenant, Guid? cardCode, DateTime fromMonth, DateTime toMonth, CancellationToken ct);
         Task<InvoiceRecord?> GetInvoiceAsync(int idTenant, Guid code, CancellationToken ct);
@@ -60,5 +65,13 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         void DeactivateItem(int idTenant, Guid itemCode, string actor);
         /// <summary>The invoice obligation amount is always recomputed from its active items, after the item writes of the transaction.</summary>
         void RecalculateInvoice(int idTenant, Guid invoiceCode, string actor);
+        void RecalculateCardInvoices(int idTenant, int idCard, string actor);
+        /// <summary>True when an invoice holding an item of the purchase received a payment, reversed or not.</summary>
+        Task<bool> PurchaseHasPaidInvoiceAsync(int idTenant, int idPurchase, CancellationToken ct);
+        void UpdatePurchaseDetails(CardPurchase purchase);
+        /// <summary>Deletes the purchase and every item of it; the caller recalculates the card's invoices afterwards.</summary>
+        void RemovePurchase(int idTenant, int idPurchase);
+        /// <summary>Deletes the card's invoices (with their obligations) that no longer have items, payments, adjustments, shares or receipts.</summary>
+        void RemoveEmptyInvoices(int idTenant, int idCard);
     }
 }

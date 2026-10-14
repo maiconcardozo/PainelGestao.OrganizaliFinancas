@@ -3,12 +3,15 @@ import { useState, type FormEvent } from "react";
 import { civilDate, money, monthLabel, type Account } from "@/lib/finance";
 import { invoiceStatus, type Card, type Invoice, type InvoiceDetail, type Purchase } from "@/lib/cards";
 import type { Person } from "@/components/households/HouseholdForms";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Trash2 } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
-import { Empty, ModalActions } from "@/components/common/Ui";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
+import { EditButton, Empty, IconAction, ModalActions } from "@/components/common/Ui";
 import { ListFrame } from "@/components/common/ViewSwitch";
 import { PayModal } from "@/components/expenses/ExpenseList";
+import type { Catalogs } from "@/components/expenses/DetailInputs";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
+import { PurchaseEditModal } from "./PurchaseForm";
 
 type Props = { cards: Card[]; invoices: Invoice[]; accounts: Account[]; people: Person[]; today: string; canSettle: boolean };
 
@@ -61,22 +64,28 @@ function InvoiceRow({ invoice, accounts, people, today, canSettle }: Omit<Props,
       <span className={`number ${item.kind === "credit" ? "positive" : ""}`}>{money(item.amount)}</span></li>)}</ul>}
   </li>;
 }
-/** Merchant refund: cancels installments still in open invoices and credits the remainder; there is no bank entry. */
-export function Purchases({ purchases, canEdit }: { purchases: Purchase[]; canEdit: boolean }) {
+type PurchasesProps = { purchases: Purchase[]; catalogs: Catalogs; canEdit: boolean; onDone: (message: string) => void };
+
+/** Recent purchases with edit, delete and the merchant refund (cancels open installments and credits the rest; no bank entry). */
+export function Purchases({ purchases, catalogs, canEdit, onDone }: PurchasesProps) {
   if (purchases.length === 0) return <Empty title="Nenhuma compra nos últimos meses." />;
-  return <ListFrame>{purchases.map(purchase => <PurchaseRow key={`${purchase.code}-${purchase.version}`} purchase={purchase} canEdit={canEdit} />)}</ListFrame>;
+  return <ListFrame>{purchases.map(purchase => <PurchaseRow key={`${purchase.code}-${purchase.version}`} purchase={purchase} catalogs={catalogs} canEdit={canEdit} onDone={onDone} />)}</ListFrame>;
 }
 
-function PurchaseRow({ purchase, canEdit }: { purchase: Purchase; canEdit: boolean }) {
+function PurchaseRow({ purchase, catalogs, canEdit, onDone }: Omit<PurchasesProps, "purchases"> & { purchase: Purchase }) {
   const action = useFinanceAction();
-  const [open, setOpen] = useState(false);
+  const [dialog, setDialog] = useState<"" | "refund" | "edit" | "delete">("");
   const remaining = Number(purchase.total) - Number(purchase.refunded);
   async function refund(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const amount = String(data.get("amount") ?? "").trim();
     if (await action.send(`card-purchases/${purchase.code}/refunds`, "POST", { amount: amount ? amount.replace(/\./g, "").replace(",", ".") : null, reason: data.get("reason"), date: null },
-      "Estorno registrado na fatura.", true)) setOpen(false);
+      "Estorno registrado na fatura.", true)) setDialog("");
+  }
+  async function remove() {
+    const message = `Compra "${purchase.description}" excluída. As parcelas saíram das faturas.`;
+    if (await action.send(`card-purchases/${purchase.code}`, "DELETE", undefined, message)) { setDialog(""); onDone(message); }
   }
   return <li className={`purchase-item flex flex-wrap items-center gap-3 px-3 py-2.5 transition hover:bg-[var(--surface-2)] sm:gap-4 sm:px-4 ${remaining === 0 ? "opacity-60" : ""}`}>
     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[var(--surface-2)] text-[var(--signal)]"><ShoppingBag size={17} /></span>
@@ -84,13 +93,22 @@ function PurchaseRow({ purchase, canEdit }: { purchase: Purchase; canEdit: boole
       <span className="mt-0.5 block text-xs text-[var(--text-muted)]">{civilDate(purchase.purchaseDate)} no {purchase.cardName}{purchase.buyerName && ` · ${purchase.buyerName}`}{purchase.categoryName && ` · ${purchase.categoryName}`}
         {Number(purchase.refunded) > 0 && ` · estornado ${money(purchase.refunded)}`}</span></span>
     <span className="num shrink-0 text-sm font-semibold">{money(purchase.total)}</span>
-    {canEdit && remaining > 0 && <button type="button" className="secondary-button" onClick={() => setOpen(true)}>Estorno da loja</button>}
-    {open && <Modal title="Estorno da loja" onClose={() => setOpen(false)} error={action.error} width="max-w-md">
+    {canEdit && <span className="flex shrink-0 items-center gap-1">
+      {remaining > 0 && <button type="button" className="secondary-button" onClick={() => setDialog("refund")}>Estorno da loja</button>}
+      <EditButton name={purchase.description} onClick={() => setDialog("edit")} />
+      <IconAction label={`Excluir ${purchase.description}`} danger disabled={action.busy} onClick={() => setDialog("delete")}><Trash2 size={15} /></IconAction>
+    </span>}
+    {dialog === "edit" && <PurchaseEditModal purchase={purchase} catalogs={catalogs} onClose={() => setDialog("")} onSaved={message => { setDialog(""); onDone(message); }} />}
+    {dialog === "delete" && <ConfirmModal title="Excluir compra" label="Excluir compra" busy={action.busy} error={action.error} onConfirm={() => void remove()} onClose={() => setDialog("")}>
+      <p className="text-sm">{purchase.description} de {money(purchase.total)}{purchase.count > 1 && ` em ${purchase.count}x`}: as parcelas saem das faturas e a compra some do histórico.
+        Se uma fatura com esta compra já foi paga, a exclusão é recusada; nesse caso use o estorno da loja.</p>
+    </ConfirmModal>}
+    {dialog === "refund" && <Modal title="Estorno da loja" onClose={() => setDialog("")} error={action.error} width="max-w-md">
       <form className="data-form" onSubmit={refund}>
         <p className="form-hint">{purchase.description} de {money(purchase.total)}: as parcelas ainda abertas são canceladas e o restante vira crédito na fatura. Nenhuma conta é movimentada.</p>
         <label>Valor (vazio = restante)<input name="amount" inputMode="decimal" placeholder={remaining.toFixed(2).replace(".", ",")} /></label>
         <label>Motivo<input name="reason" required maxLength={300} autoComplete="off" /></label>
-        <ModalActions busy={action.busy} label="Confirmar estorno" onCancel={() => setOpen(false)} />
+        <ModalActions busy={action.busy} label="Confirmar estorno" onCancel={() => setDialog("")} />
       </form>
     </Modal>}
   </li>;

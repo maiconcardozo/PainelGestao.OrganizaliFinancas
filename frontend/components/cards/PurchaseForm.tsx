@@ -2,7 +2,7 @@
 import { useState, type FormEvent } from "react";
 import { civilDate, money, monthLabel, toApiMoney } from "@/lib/finance";
 import { fieldValues } from "@/lib/expenses";
-import type { Card, PurchasePreview } from "@/lib/cards";
+import type { Card, Purchase, PurchasePreview } from "@/lib/cards";
 import type { Catalogs } from "@/components/expenses/DetailInputs";
 import { CustomFieldInputs } from "@/components/expenses/DetailInputs";
 import { Modal } from "@/components/common/Modal";
@@ -63,5 +63,39 @@ export function PurchaseModal({ cards, catalogs, today, onClose, onSaved }: { ca
         <td>{civilDate(item.closingDate)}</td><td>{civilDate(item.dueDate)}</td><td className="number">{money(item.amount)}</td></tr>)}</tbody></table></div>}
     <p className="form-hint">A compra não sai da conta bancária agora: ela entra na fatura, e o dinheiro sai uma única vez quando a fatura for paga.</p>
     <ModalActions busy={action.busy} label="Lançar compra" onCancel={onClose} />
+  </form></Modal>;
+}
+
+/** Edits what describes the purchase. Amount, date and installments stay fixed because the items are already in the invoices. */
+export function PurchaseEditModal({ purchase, catalogs, onClose, onSaved }: { purchase: Purchase; catalogs: Catalogs; onClose: () => void; onSaved: (message: string) => void }) {
+  const action = useFinanceAction();
+  const [typeCode, setTypeCode] = useState(purchase.expenseTypeCode ?? "");
+  const type = catalogs.types.find(item => item.code === typeCode);
+  const message = "Compra atualizada. Valor, data e parcelas não mudaram.";
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const saved = await action.send(`card-purchases/${purchase.code}`, "PUT", {
+      buyerPersonCode: data.get("buyer") || null, version: purchase.version,
+      details: { description: data.get("description"), expenseTypeCode: type?.code ?? null, expenseTypeVersion: type?.version ?? null, categoryCode: data.get("category") || null,
+        creditorCode: null, paymentMethodCode: null, payerPersonCode: null, fields: type ? fieldValues(data, type.fields) : null, splitMode: null, shares: null },
+    }, message);
+    if (saved) onSaved(message);
+  }
+  return <Modal title={`Editar ${purchase.description}`} onClose={onClose} error={action.error}><form className="data-form" onSubmit={save}>
+    <div className="form-row">
+      <label>Descrição<input name="description" required maxLength={200} defaultValue={purchase.description} /></label>
+      <label>Tipo de despesa<select name="expenseType" value={typeCode} onChange={event => setTypeCode(event.target.value)}><option value="">Sem tipo</option>
+        {catalogs.types.filter(item => item.behavior === "card" && (item.isActive || item.code === purchase.expenseTypeCode)).map(item => <option key={item.code} value={item.code}>{item.name}</option>)}</select></label>
+    </div>
+    {type && <CustomFieldInputs key={`${type.code}-${type.version}`} fields={type.fields} values={type.code === purchase.expenseTypeCode ? purchase.fields : undefined} />}
+    <div className="form-row">
+      <label>Categoria<select name="category" defaultValue={purchase.categoryCode ?? ""} key={type?.code ?? "none"}><option value="">Sem categoria</option>
+        {catalogs.categories.filter(item => item.isActive || item.code === purchase.categoryCode).map(item => <option key={item.code} value={item.code}>{item.name}</option>)}</select></label>
+      <label>Quem comprou<select name="buyer" defaultValue={purchase.buyerPersonCode ?? ""}><option value="">Não informado</option>
+        {catalogs.people.filter(person => person.isActive || person.code === purchase.buyerPersonCode).map(person => <option key={person.code} value={person.code}>{person.name}</option>)}</select></label>
+    </div>
+    <p className="form-hint">{money(purchase.total)} em {purchase.count}x, comprado em {civilDate(purchase.purchaseDate)} no {purchase.cardName}. Para mudar valor, data ou parcelas, exclua a compra e lance de novo.</p>
+    <ModalActions busy={action.busy} label="Salvar compra" onCancel={onClose} />
   </form></Modal>;
 }

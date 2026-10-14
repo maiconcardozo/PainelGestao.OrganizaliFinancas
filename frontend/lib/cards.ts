@@ -6,7 +6,8 @@ export type CardItem = { code: string; purchaseCode: string; description: string
   installmentCount: number; amount: string; categoryName: string | null; isActive: boolean; note: string | null };
 export type InvoiceDetail = { invoice: Invoice; items: CardItem[] };
 export type Purchase = { code: string; cardCode: string; cardName: string; description: string; purchaseDate: string; total: string; count: number; refunded: string;
-  categoryCode: string | null; categoryName: string | null; buyerPersonCode: string | null; buyerName: string | null; version: number };
+  categoryCode: string | null; categoryName: string | null; buyerPersonCode: string | null; buyerName: string | null; expenseTypeCode: string | null;
+  expenseTypeVersion: number | null; fields: Record<string, unknown>; version: number };
 export type PurchasePreview = { total: string; items: { number: number; referenceMonth: string; closingDate: string; dueDate: string; amount: string }[] };
 
 export const invoiceStatus: Record<Invoice["status"], string> = { open: "Aberta", closed: "Fechada", partial: "Paga em parte", paid: "Paga", credit: "Com crédito" };

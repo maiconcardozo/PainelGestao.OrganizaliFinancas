@@ -70,6 +70,8 @@ Mudou o salário? Edite a fonte: isso cria uma **nova vigência** a partir da da
 
 **Dinheiro → Cartões → Novo cartão.** Informe **Apelido**, **Titular** (morador), **Dia do fechamento**, **Dia do vencimento**, **Limite (opcional)** e a regra para compra feita no dia do fechamento. Nunca informe o número nem o código de segurança do cartão.
 
+Em cada cartão há três ícones: **Editar** (lápis), **Ativar/Desativar** (energia) e **Excluir** (lixeira). Desativar é o caminho normal para um cartão que não se usa mais: ele deixa de receber compras, mas as faturas e o histórico continuam. Excluir apaga o cartão de vez e só funciona sem compras lançadas e sem fatura paga.
+
 ### 2.7 Metas de reserva (titular ou editor)
 
 **Planejamento → Metas → Nova meta.** Informe **Nome** (Reserva de emergência, Viagem), **Valor alvo**, **Prazo (opcional)** e a **Conta onde a reserva fica**. O progresso da meta é o saldo dessa conta: para a meta andar, transfira dinheiro para ela em **Contas → Transferir**. Com prazo, a tela mostra quanto guardar por mês. Reservar não cria renda nem despesa.
@@ -114,6 +116,7 @@ Na lista de despesas, clique em **Pagar**. Informe **Conta de saída**, **Data d
 - **Lançar compra**: **Cartão**, **Descrição**, **Tipo de despesa** (tipos "Cartão"), **Categoria**, **Quem comprou**, **Valor total**, **Parcelas** (1 a 120) e **Data da compra**. **Ver em quais faturas cai** mostra fatura, fechamento e vencimento de cada parcela e permite mover a primeira parcela uma fatura antes ou depois. A compra não sai da conta bancária: entra na fatura.
 - **Pagar fatura** usa a mesma janela de pagamento das despesas. É o único momento em que o dinheiro sai da conta, uma vez só. A fatura também aparece em **Despesas** como "Fatura do cartão".
 - **Ver compras** lista os itens da fatura. **Estorno da loja** cancela as parcelas ainda abertas e transforma o restante em crédito na fatura.
+- Em **Compras recentes**, o lápis **edita** descrição, tipo, categoria e quem comprou (valor, data e parcelas não mudam: para isso, exclua e lance de novo). A lixeira **exclui** a compra e tira as parcelas das faturas; se uma fatura com essa compra já foi paga, a exclusão é recusada e o caminho é o estorno da loja.
 - O **Disponível** é uma estimativa a partir do que foi lançado aqui e pode diferir do banco.
 
 ### 3.6 Comprovantes

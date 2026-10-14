@@ -13,6 +13,29 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Cards
             """;
         public const string FindCard = "SELECT * FROM CreditCard WHERE IdTenant=@IdTenant AND Code=@Code";
         public const string FindCardById = "SELECT * FROM CreditCard WHERE IdTenant=@IdTenant AND Id=@Id";
+        /// <summary>An invoice is locked when its obligation has a payment (even reversed), an adjustment, a share or an active receipt.</summary>
+        private const string InvoiceLocked = """
+            EXISTS (SELECT 1 FROM PaymentAllocation a WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id)
+            OR EXISTS (SELECT 1 FROM ObligationAdjustment j WHERE j.IdTenant=o.IdTenant AND j.IdObligation=o.Id)
+            OR EXISTS (SELECT 1 FROM ObligationShare s WHERE s.IdTenant=o.IdTenant AND s.IdObligation=o.Id)
+            OR EXISTS (SELECT 1 FROM Attachment t WHERE t.IdTenant=o.IdTenant AND t.TargetKind='expense' AND t.TargetCode=o.Code AND t.IsActive=1)
+            """;
+        public const string CardUsage = $"""
+            SELECT (SELECT COUNT(*) FROM CardPurchase p WHERE p.IdTenant=@IdTenant AND p.IdCreditCard=@IdCard) Purchases,
+                (SELECT COUNT(*) FROM CardInvoice i JOIN Obligation o ON o.IdCardInvoice=i.Id AND o.IdTenant=i.IdTenant
+                    WHERE i.IdTenant=@IdTenant AND i.IdCreditCard=@IdCard AND ({InvoiceLocked})) LockedInvoices
+            """;
+        public const string RemoveCard = "DELETE FROM CreditCard WHERE IdTenant=@IdTenant AND Id=@IdCard";
+        public const string RemoveEmptyInvoiceObligations = $"""
+            DELETE o FROM Obligation o JOIN CardInvoice i ON i.Id=o.IdCardInvoice AND i.IdTenant=o.IdTenant
+            WHERE o.IdTenant=@IdTenant AND i.IdCreditCard=@IdCard
+                AND NOT EXISTS (SELECT 1 FROM CardItem x WHERE x.IdTenant=i.IdTenant AND x.IdCardInvoice=i.Id) AND NOT ({InvoiceLocked})
+            """;
+        public const string RemoveEmptyInvoices = """
+            DELETE i FROM CardInvoice i WHERE i.IdTenant=@IdTenant AND i.IdCreditCard=@IdCard
+                AND NOT EXISTS (SELECT 1 FROM Obligation o WHERE o.IdTenant=i.IdTenant AND o.IdCardInvoice=i.Id)
+                AND NOT EXISTS (SELECT 1 FROM CardItem x WHERE x.IdTenant=i.IdTenant AND x.IdCardInvoice=i.Id)
+            """;
         public const string UpdateCard = """
             UPDATE CreditCard SET Name=@Name,IdHolderPerson=@IdHolderPerson,ClosingDay=@ClosingDay,DueDay=@DueDay,CreditLimit=@CreditLimit,
                 ClosingDayRule=@ClosingDayRule,Version=@Version,IsActive=@IsActive,DtUpdated=@DtUpdated,UpdatedBy=@UpdatedBy,DtDeleted=@DtDeleted,DeletedBy=@DeletedBy
@@ -47,7 +70,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Cards
             """;
         private const string SelectPurchase = """
             SELECT p.Code,c.Code CardCode,c.Name CardName,p.Description,p.PurchaseDate,p.TotalAmount,p.InstallmentCount,p.RefundedAmount,
-                cat.Code CategoryCode,cat.Name CategoryName,b.Code BuyerPersonCode,b.Name BuyerName,t.Code ExpenseTypeCode,p.Version
+                cat.Code CategoryCode,cat.Name CategoryName,b.Code BuyerPersonCode,b.Name BuyerName,t.Code ExpenseTypeCode,p.ExpenseTypeVersion,p.FieldValuesJson,p.Version
             FROM CardPurchase p
             JOIN CreditCard c ON c.Id=p.IdCreditCard AND c.IdTenant=p.IdTenant
             LEFT JOIN Category cat ON cat.Id=p.IdCategory AND cat.IdTenant=p.IdTenant
@@ -65,6 +88,20 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Cards
         public const string UpdatePurchase = """
             UPDATE CardPurchase SET RefundedAmount=@RefundedAmount,Version=@Version,DtUpdated=@DtUpdated,UpdatedBy=@UpdatedBy WHERE IdTenant=@IdTenant AND Id=@Id
             """;
+        public const string UpdatePurchaseDetails = """
+            UPDATE CardPurchase SET Description=@Description,IdExpenseType=@IdExpenseType,ExpenseTypeVersion=@ExpenseTypeVersion,IdCategory=@IdCategory,
+                FieldValuesJson=@FieldValuesJson,IdBuyerPerson=@IdBuyerPerson,Version=@Version,DtUpdated=@DtUpdated,UpdatedBy=@UpdatedBy
+            WHERE IdTenant=@IdTenant AND Id=@Id
+            """;
+        public const string PurchasePaidInvoices = """
+            SELECT COUNT(*) FROM CardItem x
+            JOIN CardInvoice i ON i.Id=x.IdCardInvoice AND i.IdTenant=x.IdTenant
+            JOIN Obligation o ON o.IdCardInvoice=i.Id AND o.IdTenant=i.IdTenant
+            WHERE x.IdTenant=@IdTenant AND x.IdCardPurchase=@IdPurchase
+                AND EXISTS (SELECT 1 FROM PaymentAllocation a WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id)
+            """;
+        public const string RemovePurchaseItems = "DELETE FROM CardItem WHERE IdTenant=@IdTenant AND IdCardPurchase=@IdPurchase";
+        public const string RemovePurchase = "DELETE FROM CardPurchase WHERE IdTenant=@IdTenant AND Id=@IdPurchase";
         public const string AddItem = """
             INSERT INTO CardItem (Code,IdTenant,IdCardPurchase,IdCardInvoice,Kind,InstallmentNumber,Amount,Competence,Note,IsActive,DtCreated,CreatedBy)
             SELECT @Code,@IdTenant,p.Id,i.Id,@Kind,@Number,@Amount,@Competence,@Note,1,UTC_TIMESTAMP(6),@Actor
@@ -79,6 +116,12 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Cards
             SET o.Amount=(SELECT COALESCE(SUM(x.Amount),0) FROM CardItem x WHERE x.IdTenant=i.IdTenant AND x.IdCardInvoice=i.Id AND x.IsActive=1),
                 o.Version=o.Version+1,o.DtUpdated=UTC_TIMESTAMP(6),o.UpdatedBy=@Actor
             WHERE o.IdTenant=@IdTenant AND i.Code=@InvoiceCode
+            """;
+        public const string RecalculateCardInvoices = """
+            UPDATE Obligation o JOIN CardInvoice i ON i.Id=o.IdCardInvoice AND i.IdTenant=o.IdTenant
+            SET o.Amount=(SELECT COALESCE(SUM(x.Amount),0) FROM CardItem x WHERE x.IdTenant=i.IdTenant AND x.IdCardInvoice=i.Id AND x.IsActive=1),
+                o.Version=o.Version+1,o.DtUpdated=UTC_TIMESTAMP(6),o.UpdatedBy=@Actor
+            WHERE o.IdTenant=@IdTenant AND i.IdCreditCard=@IdCard
             """;
     }
 }

@@ -25,3 +25,4 @@ Cada documento registra objetivo, funcionalidades, regras de negócio, validaç�
 Próximas entregas devem usar a mesma estrutura, atualizar o [quadro consolidado](../status/PROJECT_STATUS.md) e registrar um commit por etapa. Não marcar futuro como entregue nem apresentar seletor como mecanismo financeiro implementado.
 
 - [Complementos da V1 e apoio ao piloto (14/10/2026)](M9-M10-complementos.md): Ajuda no sistema, catálogo padrão, primeiros passos, senha sem e-mail, metas, comprovantes e importação de extrato.
+- [Excluir e editar em cartões e compras (14/10/2026)](Cartoes-excluir-editar.md): ativar/desativar e excluir cartão; editar e excluir compra; limpeza das compras de teste no piloto.

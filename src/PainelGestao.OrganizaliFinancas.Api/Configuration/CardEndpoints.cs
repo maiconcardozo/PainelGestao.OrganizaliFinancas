@@ -30,6 +30,12 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                 Ok(context, "Cartão atualizado", "Novos dias valem para as próximas faturas.", await mediator.Send(new SaveCardCommand(user.SessionIdentity(), code, payload), ct)))
                 .WithSummary("Altera o cartão; faturas já criadas mantêm datas e itens.").WithDescription(cardHelp)
                 .Produces<SuccessDetails<CardDto>>().ProducesProblem(400).ProducesProblem(404).ProducesProblem(409);
+            cards.MapDelete("/{code:guid}", async (Guid code, ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
+            {
+                await mediator.Send(new DeleteCardCommand(user.SessionIdentity(), code), ct);
+                return Results.NoContent();
+            }).WithSummary("Exclui o cartão de vez. Só sem compras lançadas e sem fatura com pagamento, ajuste ou comprovante; caso contrário, desative-o. Titular ou editor.")
+                .Produces(204).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
 
             var invoices = endpoints.MapGroup("/api/card-invoices").WithTags("Faturas").RequireAuthorization();
             invoices.MapGet("", async (Guid? cardCode, DateOnly? from, DateOnly? to, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
@@ -53,6 +59,17 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                     await mediator.Send(new CreatePurchaseCommand(user.SessionIdentity(), IdempotencyKey(context), payload), ct)))
                 .WithSummary("Lança compra à vista ou parcelada no cartão. Não reduz saldo bancário; a fatura é paga depois, uma única vez.").WithDescription(KeyHelp)
                 .Produces<SuccessDetails<PurchaseDto>>(201).ProducesProblem(400).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
+            purchases.MapPut("/{code:guid}", async (Guid code, UpdatePurchasePayload payload, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
+                Ok(context, "Compra atualizada", "Descrição, tipo, categoria e comprador alterados; valor e parcelas não mudam.",
+                    await mediator.Send(new UpdatePurchaseCommand(user.SessionIdentity(), code, payload), ct)))
+                .WithSummary("Edita descrição, tipo de despesa, categoria, campos e comprador. Valor, data e parcelas são fixos: para mudá-los, exclua e lance de novo.")
+                .Produces<SuccessDetails<PurchaseDto>>().ProducesProblem(400).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
+            purchases.MapDelete("/{code:guid}", async (Guid code, ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
+            {
+                await mediator.Send(new DeletePurchaseCommand(user.SessionIdentity(), code), ct);
+                return Results.NoContent();
+            }).WithSummary("Exclui a compra e tira as parcelas das faturas (faturas que ficarem vazias somem). Recusada se alguma dessas faturas já recebeu pagamento. Titular ou editor.")
+                .Produces(204).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
             purchases.MapPost("/{code:guid}/refunds", async (Guid code, RefundPayload payload, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
                 Created(context, "Estorno registrado", "Parcelas canceladas ou crédito lançado na fatura.",
                     await mediator.Send(new RefundPurchaseCommand(user.SessionIdentity(), IdempotencyKey(context), code, payload), ct)))

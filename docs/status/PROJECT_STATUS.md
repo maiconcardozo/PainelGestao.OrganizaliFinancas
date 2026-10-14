@@ -47,10 +47,11 @@ Atualizado em 11/10/2026. Projeto particular. Referência: RevendaPRO e Arquitet
 - Cadastros iniciais carregados pela API com `deploy/seed-catalogs.py`: 69 categorias em 15 grupos, 15 tipos de renda, 29 credores, 9 formas de pagamento e 47 tipos de despesa (45 ativos) com campos e categoria padrão. Os quatro tipos criados pelo titular foram enriquecidos; dois duplicados ficaram inativos.
 - [Tutorial de uso](../product/tutorial.md) escrito com os rótulos reais da interface.
 - 14/10/2026: [complementos](../deliveries/M9-M10-complementos.md) implementados e publicados na LAN: Ajuda dentro do sistema, catálogo padrão pelo próprio sistema (provisionamento, operação `SeedCatalog` e botão na tela), Primeiros passos em Minha casa, troca de senha e link de nova senha gerado pelo titular, metas de reserva (RF38), comprovantes (RF34) e importação de extrato OFX/CSV com prévia (RF44).
+- 14/10/2026 (tarde): titular cadastrou 5 cartões e 13 compras de teste. [Excluir e editar em cartões](../deliveries/Cartoes-excluir-editar.md): ativar/desativar e excluir cartão, editar e excluir compra (premissa A16); as compras de teste foram excluídas pela API nova e os cartões mantidos. A conta de teste da fumaça ficou inativa com saldo zero.
 
 ## Próximos passos
 
-1. **Usuário:** responder D16 (servidor, domínio, provedor SMTP), D17 (retenção/exclusão) e revisar as premissas A01–A15; validar a jornada com a família piloto (contas, fontes de renda e cartões ainda não cadastrados).
+1. **Usuário:** responder D16 (servidor, domínio, provedor SMTP), D17 (retenção/exclusão) e revisar as premissas A01–A16; validar a jornada com a família piloto (cartões cadastrados; contas e fontes de renda ainda não).
 2. **Publicar fora da LAN:** preencher `deploy/.env.production` com domínio e certificado público, rodar `deploy/publish.sh` e subir a pilha conforme o [runbook](../operations/runbook.md).
 3. **M9 — complementos da V1:** comprovantes privados, exportações, metas de reserva, conciliação manual, renegociação, encerramento/exportação/exclusão (depende de D17), resumo mensal e simulação.
 4. **M10:** comercialização (depende de D14) e importação CSV/OFX.
