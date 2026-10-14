@@ -23,6 +23,7 @@ export async function proxy(request: NextRequest) {
     });
     if (result.status === 401) {
       // The refresh token is gone for good (expired, signed out elsewhere, password changed): clear it so the next stop is the login page.
+      headers.set("cookie", keptCookies(request).join("; "));
       const response = NextResponse.next({ request: { headers } });
       for (const name of [ACCESS_COOKIE, REFRESH_COOKIE])
         response.cookies.set(name, "", { httpOnly: true, sameSite: "lax", secure: COOKIE_SECURE, path: "/", maxAge: 0 });
@@ -31,9 +32,7 @@ export async function proxy(request: NextRequest) {
     if (!result.ok) return NextResponse.next({ request: { headers } });
     const tokens: Tokens = (await result.json()).data.tokens;
     // The page being rendered right now must already see the new access cookie.
-    const cookie = request.headers.get("cookie") ?? "";
-    const kept = cookie.split(";").map(part => part.trim()).filter(part => part && !part.startsWith(`${ACCESS_COOKIE}=`) && !part.startsWith(`${REFRESH_COOKIE}=`));
-    headers.set("cookie", [...kept, `${ACCESS_COOKIE}=${tokens.accessToken}`, `${REFRESH_COOKIE}=${tokens.refreshToken}`].join("; "));
+    headers.set("cookie", [...keptCookies(request), `${ACCESS_COOKIE}=${tokens.accessToken}`, `${REFRESH_COOKIE}=${tokens.refreshToken}`].join("; "));
     const response = NextResponse.next({ request: { headers } });
     const options = { httpOnly: true, sameSite: "lax" as const, secure: COOKIE_SECURE, path: "/" };
     response.cookies.set(ACCESS_COOKIE, tokens.accessToken, { ...options, expires: new Date(tokens.accessTokenExpiresAt) });
@@ -42,6 +41,12 @@ export async function proxy(request: NextRequest) {
   } catch {
     return NextResponse.next({ request: { headers } });
   }
+}
+
+/** The request's cookies without the two session cookies, so the forwarded request carries only what the proxy decided. */
+function keptCookies(request: NextRequest): string[] {
+  return (request.headers.get("cookie") ?? "").split(";").map(part => part.trim())
+    .filter(part => part && !part.startsWith(`${ACCESS_COOKIE}=`) && !part.startsWith(`${REFRESH_COOKIE}=`));
 }
 
 export const config = {
