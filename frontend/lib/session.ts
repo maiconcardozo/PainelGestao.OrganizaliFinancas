@@ -17,7 +17,8 @@ export async function requireSession(): Promise<Session> {
   const signIn = async () => {
     // The proxy already tried a silent renewal; this screen renews once more and comes back to the same page.
     const path = (await headers()).get("x-pathname") ?? "";
-    if ((await cookies()).has(REFRESH_COOKIE)) redirect(`/session-renew${path.startsWith("/") ? `?next=${encodeURIComponent(path)}` : ""}`);
+    // A cookie the proxy just cleared still shows up in this request with an empty value: that is no session.
+    if ((await cookies()).get(REFRESH_COOKIE)?.value) redirect(`/session-renew${path.startsWith("/") ? `?next=${encodeURIComponent(path)}` : ""}`);
     redirect("/login");
   };
   if (!token) return signIn();
