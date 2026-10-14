@@ -60,6 +60,10 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                 options.AddPolicy("authentication", context => RateLimitPartition.GetFixedWindowLimiter(
                     context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                     _ => new FixedWindowRateLimiterOptions { PermitLimit=10, Window=TimeSpan.FromMinutes(1), QueueLimit=0 }));
+                // Silent renewals can arrive in bursts from one browser (page, data and parallel tabs); they are not password guesses.
+                options.AddPolicy("renewal", context => RateLimitPartition.GetFixedWindowLimiter(
+                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit=60, Window=TimeSpan.FromMinutes(1), QueueLimit=0 }));
                 options.OnRejected = (context, _) => new ValueTask(Results.Problem(statusCode:429,
                     title:"Muitas tentativas",detail:"Aguarde um minuto antes de tentar novamente.").ExecuteAsync(context.HttpContext));
             });

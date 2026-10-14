@@ -19,7 +19,7 @@ O acesso (token JWT no cookie `organizali_access`) valia 15 minutos. Vencido, qu
 |---|---|
 | Quando a pessoa volta ao login | Só se ficar 30 dias sem usar, se sair em outro aparelho (**Sair** encerra todas as sessões), se trocar a senha, se o titular bloquear o acesso ou se a chave JWT for trocada. |
 | Rotação | Cada renovação emite um par novo e marca o anterior como revogado; o anterior ainda vale 60 s. |
-| Limite | A renovação usa o mesmo limite do login: 10 por minuto por endereço. Uma renovação atende todas as requisições seguintes daquele navegador. |
+| Limite | Renovação limitada a 60 por minuto por endereço (política `renewal`), separada das 10 tentativas de login. Uma renovação atende todas as requisições seguintes daquele navegador. |
 
 ## Validação e reprodução
 

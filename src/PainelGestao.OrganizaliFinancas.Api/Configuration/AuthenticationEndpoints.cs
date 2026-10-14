@@ -30,7 +30,7 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                 .Produces<SuccessDetails<AuthenticationResultDto>>().ProducesProblem(400).ProducesProblem(401).ProducesProblem(429);
             group.MapPost("/refresh", async (RenewSessionCommand command, IMediator mediator, HttpContext context, CancellationToken ct) =>
                 Results.Ok(new SuccessDetails<AuthenticationResultDto>(200,"Renovado","Sessão renovada.",context.Request.Path,await mediator.Send(command,ct))))
-                .RequireRateLimiting("authentication").WithSummary("Renova e rotaciona o refresh token.")
+                .RequireRateLimiting("renewal").WithSummary("Renova e rotaciona o refresh token (até 60 por minuto por endereço).")
                 .Produces<SuccessDetails<AuthenticationResultDto>>().ProducesProblem(401);
             group.MapPost("/logout", async (IMediator mediator, ClaimsPrincipal principal, CancellationToken ct) =>
             {

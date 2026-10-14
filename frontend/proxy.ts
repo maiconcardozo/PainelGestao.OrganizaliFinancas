@@ -23,7 +23,9 @@ export async function proxy(request: NextRequest) {
     });
     if (result.status === 401) {
       // The refresh token is gone for good (expired, signed out elsewhere, password changed): clear it so the next stop is the login page.
-      headers.set("cookie", keptCookies(request).join("; "));
+      // An empty header override is ignored by Next, so the cookie header is removed outright when nothing else is in it.
+      const kept = keptCookies(request);
+      if (kept.length > 0) headers.set("cookie", kept.join("; ")); else headers.delete("cookie");
       const response = NextResponse.next({ request: { headers } });
       for (const name of [ACCESS_COOKIE, REFRESH_COOKIE])
         response.cookies.set(name, "", { httpOnly: true, sameSite: "lax", secure: COOKIE_SECURE, path: "/", maxAge: 0 });
