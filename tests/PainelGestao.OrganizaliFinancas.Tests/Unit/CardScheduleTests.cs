@@ -34,6 +34,19 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Unit
         }
 
         [Fact]
+        public void Plan_RunningPurchaseCreatesOnlyTheRemainingInstallmentsFromTheGivenInvoice()
+        {
+            // Closes on the 28th and is due on the 10th: the October invoice closes in September.
+            var items = CardSchedule.Plan(2650m, 10, new DateOnly(2026, 5, 16), 28, 10, "current", 0, 5, new DateOnly(2026, 10, 1));
+            items.Select(x => (x.Number, x.Cycle.ReferenceMonth.Month, x.Amount)).Should().Equal((5, 10, 265m), (6, 11, 265m), (7, 12, 265m), (8, 1, 265m), (9, 2, 265m), (10, 3, 265m));
+            items[0].Cycle.Should().Be(new CardCycle(new DateOnly(2026, 9, 28), new DateOnly(2026, 10, 10)));
+            CardSchedule.Plan(51.5m, 1, new DateOnly(2026, 9, 2), 28, 10, "current", 0, 1, new DateOnly(2026, 10, 1)).Single().Cycle.ReferenceMonth.Should().Be(new DateOnly(2026, 10, 1));
+            CardSchedule.Plan(300m, 3, new DateOnly(2026, 10, 1), 3, 25, "next", 0, 3, new DateOnly(2026, 10, 1)).Single().Cycle.ClosingDate.Should().Be(new DateOnly(2026, 10, 3));
+            ((Action)(() => CardSchedule.Plan(300m, 3, new DateOnly(2026, 10, 10), 28, 10, "next", 0, 2))).Should().Throw<InputValidationException>();
+            ((Action)(() => CardSchedule.Plan(300m, 3, new DateOnly(2026, 10, 10), 28, 10, "next", 0, 4, new DateOnly(2026, 10, 1)))).Should().Throw<InputValidationException>();
+        }
+
+        [Fact]
         public void Card_RefusesCardNumberAsNickname()
         {
             var holder = Person.Create(1, "Ana", "test");

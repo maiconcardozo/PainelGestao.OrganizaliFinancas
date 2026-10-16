@@ -14,11 +14,13 @@ export function PurchaseModal({ cards, catalogs, today, onClose, onSaved }: { ca
   const action = useFinanceAction();
   const [typeCode, setTypeCode] = useState("");
   const [preview, setPreview] = useState<PurchasePreview | null>(null);
+  const [running, setRunning] = useState(false);
   const active = cards.filter(card => card.isActive);
   const type = catalogs.types.find(item => item.code === typeCode);
   function previewPayload(data: FormData) {
     return { cardCode: data.get("card"), purchaseDate: data.get("purchaseDate"), total: toApiMoney(data.get("total")), count: Number(data.get("count")),
-      firstInvoiceShift: Number(data.get("shift")) };
+      firstInvoiceShift: running ? 0 : Number(data.get("shift")), currentInstallment: running ? Number(data.get("currentInstallment")) : 1,
+      currentInvoiceMonth: running ? `${data.get("currentInvoice")}-01` : null };
   }
   async function showPreview(event: React.MouseEvent<HTMLButtonElement>) {
     setPreview(await action.send<PurchasePreview>("card-purchases/preview", "POST", previewPayload(new FormData(event.currentTarget.form!)), "Prévia pronta. Nada foi gravado."));
@@ -54,12 +56,18 @@ export function PurchaseModal({ cards, catalogs, today, onClose, onSaved }: { ca
       <label>Parcelas<input type="number" name="count" required min={1} max={120} defaultValue={1} onChange={() => setPreview(null)} /></label>
       <label>Data da compra<input type="date" name="purchaseDate" required defaultValue={today} max={today} onChange={() => setPreview(null)} /></label>
     </div>
-    <label>Primeira parcela<select name="shift" defaultValue="0" onChange={() => setPreview(null)}>
-      <option value="0">Na fatura indicada pelo fechamento</option><option value="-1">Uma fatura antes</option><option value="1">Uma fatura depois</option></select></label>
+    <label className="checkbox-label"><input type="checkbox" checked={running} onChange={event => { setRunning(event.target.checked); setPreview(null); }} />
+      Compra já em andamento: as parcelas anteriores já vieram em faturas passadas</label>
+    {running ? <div className="form-row">
+      <label>Parcela atual<input type="number" name="currentInstallment" required min={1} max={120} defaultValue={2} onChange={() => setPreview(null)} /></label>
+      <label>Está na fatura de<input type="month" name="currentInvoice" required defaultValue={today.slice(0, 7)} onChange={() => setPreview(null)} /></label>
+    </div> : <label>Primeira parcela<select name="shift" defaultValue="0" onChange={() => setPreview(null)}>
+      <option value="0">Na fatura indicada pelo fechamento</option><option value="-1">Uma fatura antes</option><option value="1">Uma fatura depois</option></select></label>}
+    {running && <p className="form-hint">Valor total = parcela × número de parcelas. Só a parcela atual e as seguintes entram nas faturas; as anteriores não são lançadas de novo.</p>}
     <button type="button" className="secondary-button" disabled={action.busy} onClick={showPreview}>Ver em quais faturas cai</button>
-    {preview && <div className="table-scroll"><table className="finance-table"><caption>{preview.items.length} parcela(s) somando {money(preview.total)}</caption>
+    {preview && <div className="table-scroll"><table className="finance-table"><caption>{preview.items.length} parcela(s) a lançar somando {money(preview.total)}</caption>
       <thead><tr><th scope="col">Parcela</th><th scope="col">Fatura</th><th scope="col">Fecha</th><th scope="col">Vence</th><th scope="col" className="number">Valor</th></tr></thead>
-      <tbody>{preview.items.map(item => <tr key={item.number}><td>{item.number}/{preview.items.length}</td><td>{monthLabel(item.referenceMonth)}</td>
+      <tbody>{preview.items.map(item => <tr key={item.number}><td>{item.number}/{preview.count}</td><td>{monthLabel(item.referenceMonth)}</td>
         <td>{civilDate(item.closingDate)}</td><td>{civilDate(item.dueDate)}</td><td className="number">{money(item.amount)}</td></tr>)}</tbody></table></div>}
     <p className="form-hint">A compra não sai da conta bancária agora: ela entra na fatura, e o dinheiro sai uma única vez quando a fatura for paga.</p>
     <ModalActions busy={action.busy} label="Lançar compra" onCancel={onClose} />

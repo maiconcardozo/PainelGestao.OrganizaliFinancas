@@ -42,15 +42,25 @@ namespace PainelGestao.OrganizaliFinancas.Domain.ValueObjects
         }
 
         /// <param name="shift">−1, 0 or +1: the preview lets the household correct the first invoice by one cycle.</param>
-        public static IReadOnlyList<PlannedCardItem> Plan(decimal total, int count, DateOnly purchase, int closingDay, int dueDay, string rule, int shift = 0)
+        /// <param name="currentInstallment">Purchase already running when it is registered (e.g. 5 of 10 in this invoice): earlier installments are not created.</param>
+        /// <param name="currentInvoice">Reference month (due month) of the invoice that holds <paramref name="currentInstallment"/>; it replaces the closing calculation and the shift.</param>
+        public static IReadOnlyList<PlannedCardItem> Plan(decimal total, int count, DateOnly purchase, int closingDay, int dueDay, string rule, int shift = 0,
+            int currentInstallment = 1, DateOnly? currentInvoice = null)
         {
             if (shift is < -1 or > 1) throw new InputValidationException(new Dictionary<string, string[]> { ["FirstInvoiceShift"] = ["A fatura de destino só pode mudar um ciclo."] });
             if (count is < 1 or > Installments.MaxCount) throw new InputValidationException(new Dictionary<string, string[]> { ["Count"] = [$"Informe de 1 a {Installments.MaxCount} parcelas."] });
+            if (currentInstallment < 1 || currentInstallment > count)
+                throw new InputValidationException(new Dictionary<string, string[]> { ["CurrentInstallment"] = [$"A parcela atual deve estar entre 1 e {count}."] });
+            if (currentInstallment > 1 && currentInvoice is null)
+                throw new InputValidationException(new Dictionary<string, string[]> { ["CurrentInvoiceMonth"] = ["Informe a fatura em que está a parcela atual."] });
             var amounts = count == 1 ? (total > 0 && Money.Round(total) == total ? [total]
                 : throw new InputValidationException(new Dictionary<string, string[]> { ["Total"] = ["Informe um total positivo em centavos."] }))
                 : Installments.Split(total, count);
-            var first = ClosingMonthFor(purchase, closingDay, rule).AddMonths(shift);
-            return amounts.Select((amount, index) => new PlannedCardItem(index + 1, ClosingIn(first.AddMonths(index), closingDay, dueDay), amount)).ToArray();
+            // The invoice is named by its due month; when the due day comes before the closing day, that invoice closes in the previous month.
+            var first = currentInvoice is DateOnly reference ? new DateOnly(reference.Year, reference.Month, 1).AddMonths(dueDay > closingDay ? 0 : -1)
+                : ClosingMonthFor(purchase, closingDay, rule).AddMonths(shift);
+            return amounts.Skip(currentInstallment - 1)
+                .Select((amount, index) => new PlannedCardItem(currentInstallment + index, ClosingIn(first.AddMonths(index), closingDay, dueDay), amount)).ToArray();
         }
     }
 }

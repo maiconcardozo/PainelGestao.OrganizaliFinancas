@@ -20,10 +20,13 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
     public sealed record CardItemDto(Guid Code, Guid PurchaseCode, string Description, DateOnly PurchaseDate, string Kind, int? InstallmentNumber, int InstallmentCount,
         string Amount, string? CategoryName, bool IsActive, string? Note);
     public sealed record InvoiceDetailDto(InvoiceDto Invoice, IReadOnlyList<CardItemDto> Items);
-    public sealed record PurchasePreviewPayload(Guid CardCode, DateOnly PurchaseDate, string Total, int Count, int FirstInvoiceShift);
+    /// <summary>CurrentInstallment and CurrentInvoiceMonth register a purchase already running: only the installments from that invoice on are created.</summary>
+    public sealed record PurchasePreviewPayload(Guid CardCode, DateOnly PurchaseDate, string Total, int Count, int FirstInvoiceShift, int CurrentInstallment = 1,
+        DateOnly? CurrentInvoiceMonth = null);
     public sealed record PurchasePreviewItemDto(int Number, string ReferenceMonth, DateOnly ClosingDate, DateOnly DueDate, string Amount);
-    public sealed record PurchasePreviewDto(string Total, IReadOnlyList<PurchasePreviewItemDto> Items);
-    public sealed record PurchasePayload(Guid CardCode, Guid? BuyerPersonCode, ExpenseDetailsPayload Details, DateOnly PurchaseDate, string Total, int Count, int FirstInvoiceShift);
+    public sealed record PurchasePreviewDto(string Total, int Count, IReadOnlyList<PurchasePreviewItemDto> Items);
+    public sealed record PurchasePayload(Guid CardCode, Guid? BuyerPersonCode, ExpenseDetailsPayload Details, DateOnly PurchaseDate, string Total, int Count, int FirstInvoiceShift,
+        int CurrentInstallment = 1, DateOnly? CurrentInvoiceMonth = null);
     public sealed record PurchaseDto(Guid Code, Guid CardCode, string CardName, string Description, DateOnly PurchaseDate, string Total, int Count, string Refunded,
         Guid? CategoryCode, string? CategoryName, Guid? BuyerPersonCode, string? BuyerName, Guid? ExpenseTypeCode, int? ExpenseTypeVersion, JsonElement Fields, int Version);
     /// <summary>Only the description of the purchase changes; amount, date and installments are fixed once the items are in the invoices.</summary>
@@ -64,6 +67,9 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
             RuleFor(x => x.Total).PositiveMoney();
             RuleFor(x => x.Count).InclusiveBetween(1, Installments.MaxCount).WithMessage($"Informe de 1 a {Installments.MaxCount} parcelas.");
             RuleFor(x => x.FirstInvoiceShift).InclusiveBetween(-1, 1).WithMessage("A fatura de destino só pode mudar um ciclo.");
+            RuleFor(x => x.CurrentInstallment).Must((x, current) => current >= 1 && current <= Math.Max(1, x.Count))
+                .WithMessage("A parcela atual deve estar entre 1 e o número de parcelas.");
+            RuleFor(x => x.CurrentInvoiceMonth).NotNull().When(x => x.CurrentInstallment > 1).WithMessage("Informe a fatura em que está a parcela atual.");
         }
     }
     public class PreviewPurchaseValidator : AbstractValidator<PreviewPurchaseQuery>
@@ -78,7 +84,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
             RuleFor(x => x.Payload.Details).NotNull().SetValidator(new SingleExpenseDetailsValidator());
             RuleFor(x => x.Payload.Details.Shares).Must(shares => shares is null || shares.Length == 0).When(x => x.Payload.Details is not null)
                 .WithMessage("Compras no cartão ainda não são divididas entre moradores.");
-            RuleFor(x => new PurchasePreviewPayload(x.Payload.CardCode, x.Payload.PurchaseDate, x.Payload.Total, x.Payload.Count, x.Payload.FirstInvoiceShift))
+            RuleFor(x => new PurchasePreviewPayload(x.Payload.CardCode, x.Payload.PurchaseDate, x.Payload.Total, x.Payload.Count, x.Payload.FirstInvoiceShift,
+                    x.Payload.CurrentInstallment, x.Payload.CurrentInvoiceMonth))
                 .SetValidator(new PurchasePreviewValidator()).OverridePropertyName("Payload");
         }
     }
@@ -231,8 +238,9 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
             await HouseholdAccess.RequireAsync(work, request.Identity, "household.read", ct);
             var payload = request.Payload;
             var card = await work.CardRepository.FindCardAsync(request.Identity.IdTenant, payload.CardCode, ct) ?? throw new NotFoundException("Cartão não encontrado.");
-            var items = CardSchedule.Plan(Money.Parse(payload.Total), payload.Count, payload.PurchaseDate, card.ClosingDay, card.DueDay, card.ClosingDayRule, payload.FirstInvoiceShift);
-            return new PurchasePreviewDto(Money.Format(items.Sum(x => x.Amount)), items.Select(x => new PurchasePreviewItemDto(x.Number,
+            var items = CardSchedule.Plan(Money.Parse(payload.Total), payload.Count, payload.PurchaseDate, card.ClosingDay, card.DueDay, card.ClosingDayRule, payload.FirstInvoiceShift,
+                payload.CurrentInstallment, payload.CurrentInvoiceMonth);
+            return new PurchasePreviewDto(Money.Format(items.Sum(x => x.Amount)), payload.Count, items.Select(x => new PurchasePreviewItemDto(x.Number,
                 x.Cycle.ReferenceMonth.ToString("yyyy-MM"), x.Cycle.ClosingDate, x.Cycle.DueDate, Money.Format(x.Amount))).ToArray());
         }
     }
@@ -258,7 +266,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
                 HouseholdCalendar.EnsureNotFuture(payload.PurchaseDate, today, "PurchaseDate");
                 var resolved = await ExpenseDetailsResolver.ResolveAsync(work, user.IdTenant, payload.Details, "card", null, ct);
                 var total = Money.Parse(payload.Total);
-                var items = CardSchedule.Plan(total, payload.Count, payload.PurchaseDate, card.ClosingDay, card.DueDay, card.ClosingDayRule, payload.FirstInvoiceShift);
+                var items = CardSchedule.Plan(total, payload.Count, payload.PurchaseDate, card.ClosingDay, card.DueDay, card.ClosingDayRule, payload.FirstInvoiceShift,
+                    payload.CurrentInstallment, payload.CurrentInvoiceMonth);
                 var purchase = CardPurchase.Create(card, idBuyer, resolved.Details, payload.PurchaseDate, total, payload.Count, actor);
                 work.CardRepository.AddPurchase(purchase);
                 var invoices = await InvoiceWriter.EnsureAsync(work, card, items.Select(x => x.Cycle), actor, ct);
