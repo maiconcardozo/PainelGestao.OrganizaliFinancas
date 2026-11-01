@@ -193,13 +193,13 @@ namespace PainelGestao.OrganizaliFinancas.Application.Imports
                         var obligation = Obligation.Create(idTenant, details, new DateOnly(line.Date.Year, line.Date.Month, 1), line.Date, -amount, actor);
                         work.ExpenseRepository.Add(obligation);
                         work.ExpenseRepository.ReplaceShares(idTenant, obligation.Code, [], actor);
-                        await PaymentWriter.PayAsync(work, idTenant, account.Code, line.Date, null, null, line.Description, [(obligation.Code, -amount)], actor, ct);
+                        await PaymentWriter.PayAsync(work, idTenant, account.Code, null, line.Date, null, null, line.Description, null, [(obligation.Code, -amount)], actor, ct);
                         result = obligation.Code; expenses++; expensesTotal += -amount;
                         break;
                     }
                     case ImportActions.Pay:
                     {
-                        var payment = await PaymentWriter.PayAsync(work, idTenant, account.Code, line.Date, null, null, line.Description, [(line.ExpenseCode!.Value, -amount)], actor, ct);
+                        var payment = await PaymentWriter.PayAsync(work, idTenant, account.Code, null, line.Date, null, null, line.Description, null, [(line.ExpenseCode!.Value, -amount)], actor, ct);
                         result = payment.Code; payments++; paymentsTotal += -amount;
                         break;
                     }

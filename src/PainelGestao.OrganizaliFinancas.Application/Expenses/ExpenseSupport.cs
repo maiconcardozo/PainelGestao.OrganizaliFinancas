@@ -101,10 +101,10 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
             return (await ReadAsync(work, idTenant, [record], today, ct))[0];
         }
         public static PaymentAllocationDto Allocation(PaymentAllocationRecord x) => new(x.PaymentCode, x.ExpenseCode, x.ExpenseDescription, Money.Format(x.Amount),
-            DateOnly.FromDateTime(x.PaymentDate), x.AccountName, x.IsReversed);
+            DateOnly.FromDateTime(x.PaymentDate), x.AccountName, x.CardName, x.IsReversed);
         public static PaymentDto Payment(PaymentRecord x, IEnumerable<PaymentAllocationRecord> allocations) => new(x.Code, x.AccountCode, x.AccountName,
-            x.PayerPersonCode, x.PayerPersonName, x.PaymentMethodCode, DateOnly.FromDateTime(x.PaymentDate), Money.Format(x.Amount), x.Description,
-            x.DtReversed is not null, x.ReversalReason, allocations.Where(a => a.PaymentCode == x.Code).Select(Allocation).ToArray());
+            x.CardCode, x.CardName, x.PurchaseCode, x.PayerPersonCode, x.PayerPersonName, x.PaymentMethodCode, DateOnly.FromDateTime(x.PaymentDate),
+            Money.Format(x.Amount), x.Description, x.DtReversed is not null, x.ReversalReason, allocations.Where(a => a.PaymentCode == x.Code).Select(Allocation).ToArray());
     }
 
     /// <summary>Applies the idempotent occurrence plan of one recurring expense inside the buffered transaction.</summary>

@@ -29,9 +29,11 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
     {
         public int Id { get; init; } public decimal Adjustments { get; init; } public decimal Paid { get; init; }
     }
+    /// <summary>Account fields are null for a payment made on a credit card; card fields are null for a bank payment.</summary>
     public sealed record PaymentRecord
     {
-        public Guid Code { get; init; } public Guid AccountCode { get; init; } public string AccountName { get; init; } = string.Empty;
+        public Guid Code { get; init; } public Guid? AccountCode { get; init; } public string? AccountName { get; init; }
+        public Guid? CardCode { get; init; } public string? CardName { get; init; } public Guid? PurchaseCode { get; init; }
         public Guid? PayerPersonCode { get; init; } public string? PayerPersonName { get; init; } public Guid? PaymentMethodCode { get; init; }
         public DateTime PaymentDate { get; init; } public decimal Amount { get; init; } public string Description { get; init; } = string.Empty;
         public DateTime? DtReversed { get; init; } public string? ReversalReason { get; init; }
@@ -39,7 +41,8 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
     public sealed record PaymentAllocationRecord
     {
         public Guid PaymentCode { get; init; } public Guid ExpenseCode { get; init; } public string ExpenseDescription { get; init; } = string.Empty;
-        public decimal Amount { get; init; } public DateTime PaymentDate { get; init; } public string AccountName { get; init; } = string.Empty; public bool IsReversed { get; init; }
+        public decimal Amount { get; init; } public DateTime PaymentDate { get; init; } public string? AccountName { get; init; } public string? CardName { get; init; }
+        public bool IsReversed { get; init; }
     }
     public sealed record RecurringExpenseRecord
     {
@@ -96,6 +99,8 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         /// <summary>Payment and obligation may both be new in the transaction; they are resolved by Code.</summary>
         void AddAllocation(int idTenant, Guid paymentCode, Guid obligationCode, decimal amount, string actor);
         void MarkPaymentReversed(Payment payment);
+        /// <summary>Links a card payment to the purchase that carries it into the invoice; both rows may be new in the transaction and are resolved by Code.</summary>
+        void LinkPaymentToPurchase(int idTenant, Guid paymentCode, Guid purchaseCode);
 
         Task<IReadOnlyList<RecurringExpenseRecord>> ListRecurrencesAsync(int idTenant, CancellationToken ct);
         Task<RecurringExpense?> FindRecurrenceAsync(int idTenant, Guid code, CancellationToken ct);

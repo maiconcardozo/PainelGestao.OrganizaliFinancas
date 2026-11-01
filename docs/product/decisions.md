@@ -64,6 +64,7 @@ Em 10/10/2026 o usuário autorizou concluir todos os marcos até a publicação 
 | A14 | Recuperação de senha por SMTP genérico configurável; sem provedor o recurso responde indisponível | M8 | Integrar API de um provedor escolhido em D16 |
 | A15 | Imagens construídas localmente com tag do commit; envio a registro e deploy só com registro/servidor definidos pelo usuário | M8 | Configurar `ORGANIZALI_REGISTRY` e o servidor |
 | A16 | Cartão e compra no cartão podem ser excluídos fisicamente só enquanto nada financeiro depende deles (cartão: sem compras e sem fatura com pagamento, ajuste, rateio ou comprovante; compra: nenhuma fatura com suas parcelas recebeu pagamento). Com pagamento registrado, o caminho é desativar o cartão ou estornar a compra | Cartões 14/10 | Exclusão lógica com histórico ou permitir excluir com estorno automático |
+| A17 | Despesa paga com cartão de crédito: o pagamento não movimenta conta; vira uma compra de uma parcela no cartão, na fatura definida pelo dia de fechamento (até o fechamento, a fatura que fecha no mês; depois, a seguinte — regra do dia do fechamento de cada cartão). A despesa fica paga; o dinheiro sai uma vez, ao pagar a fatura. No orçamento e na análise essa compra não conta (a despesa já conta na sua categoria e competência). Estornar o pagamento tira o item da fatura (como estorno da loja) e é recusado se a fatura já recebeu pagamento. Fatura não pode ser paga com cartão | Despesas 01/11 | Transferir o item para outra fatura ou permitir estorno com crédito na fatura seguinte |
 
 ## Regra de tratamento
 

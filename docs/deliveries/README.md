@@ -27,3 +27,4 @@ Próximas entregas devem usar a mesma estrutura, atualizar o [quadro consolidado
 - [Complementos da V1 e apoio ao piloto (14/10/2026)](M9-M10-complementos.md): Ajuda no sistema, catálogo padrão, primeiros passos, senha sem e-mail, metas, comprovantes e importação de extrato.
 - [Sessão renovada sozinha (14/10/2026)](Sessao-renovacao-automatica.md): correção do "cai para o login"; renovação silenciosa no proxy do Next, acesso de 60 min e sessão de 30 dias.
 - [Excluir e editar em cartões e compras (14/10/2026)](Cartoes-excluir-editar.md): ativar/desativar e excluir cartão; editar e excluir compra; limpeza das compras de teste no piloto.
+- [Despesa paga com cartão de crédito (01/11/2026)](Despesas-pagas-no-cartao.md): "Pagar com" aceita um cartão; o valor entra na fatura pelo fechamento, nada sai da conta, e o estorno do pagamento desfaz o item da fatura.

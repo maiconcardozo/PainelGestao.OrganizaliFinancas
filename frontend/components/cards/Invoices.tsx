@@ -91,12 +91,13 @@ function PurchaseRow({ purchase, catalogs, canEdit, onDone }: Omit<PurchasesProp
     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[var(--surface-2)] text-[var(--signal)]"><ShoppingBag size={17} /></span>
     <span className="min-w-0 flex-1"><span className="block font-semibold">{purchase.description}{purchase.count > 1 && <span className="font-normal text-[var(--text-secondary)]"> em {purchase.count}x</span>}</span>
       <span className="mt-0.5 block text-xs text-[var(--text-muted)]">{civilDate(purchase.purchaseDate)} no {purchase.cardName}{purchase.buyerName && ` · ${purchase.buyerName}`}{purchase.categoryName && ` · ${purchase.categoryName}`}
-        {Number(purchase.refunded) > 0 && ` · estornado ${money(purchase.refunded)}`}</span></span>
+        {purchase.paymentCode && " · despesa paga no cartão"}{Number(purchase.refunded) > 0 && (purchase.paymentCode ? " · pagamento estornado" : ` · estornado ${money(purchase.refunded)}`)}</span></span>
     <span className="num shrink-0 text-sm font-semibold">{money(purchase.total)}</span>
     {canEdit && <span className="flex shrink-0 items-center gap-1">
-      {remaining > 0 && <button type="button" className="secondary-button" onClick={() => setDialog("refund")}>Estorno da loja</button>}
+      {remaining > 0 && !purchase.paymentCode && <button type="button" className="secondary-button" onClick={() => setDialog("refund")}>Estorno da loja</button>}
       <EditButton name={purchase.description} onClick={() => setDialog("edit")} />
-      <IconAction label={`Excluir ${purchase.description}`} danger disabled={action.busy} onClick={() => setDialog("delete")}><Trash2 size={15} /></IconAction>
+      {/* An expense paid on the card is undone by reversing its payment in Despesas, so the invoice and the expense change together. */}
+      {!purchase.paymentCode && <IconAction label={`Excluir ${purchase.description}`} danger disabled={action.busy} onClick={() => setDialog("delete")}><Trash2 size={15} /></IconAction>}
     </span>}
     {dialog === "edit" && <PurchaseEditModal purchase={purchase} catalogs={catalogs} onClose={() => setDialog("")} onSaved={message => { setDialog(""); onDone(message); }} />}
     {dialog === "delete" && <ConfirmModal title="Excluir compra" label="Excluir compra" busy={action.busy} error={action.error} onConfirm={() => void remove()} onClose={() => setDialog("")}>

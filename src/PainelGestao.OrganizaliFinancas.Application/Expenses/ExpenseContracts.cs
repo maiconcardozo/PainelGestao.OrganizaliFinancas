@@ -12,13 +12,15 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
     /// <summary>Descriptive data common to a single bill, a recurrence and an installment purchase.</summary>
     public sealed record ExpenseDetailsPayload(string Description, Guid? ExpenseTypeCode, int? ExpenseTypeVersion, Guid? CategoryCode, Guid? CreditorCode,
         Guid? PaymentMethodCode, Guid? PayerPersonCode, Dictionary<string, JsonElement>? Fields, string? SplitMode, SharePayload[]? Shares);
-    public sealed record ImmediatePaymentPayload(Guid AccountCode, DateOnly PaymentDate, Guid? PayerPersonCode);
+    /// <summary>Exactly one of AccountCode (bank) or CardCode (credit card, A17) identifies where the money comes from.</summary>
+    public sealed record ImmediatePaymentPayload(Guid? AccountCode, DateOnly PaymentDate, Guid? PayerPersonCode, Guid? CardCode = null);
     public sealed record ExpensePayload(ExpenseDetailsPayload Details, DateOnly? Competence, DateOnly DueDate, string Amount, int Version, ImmediatePaymentPayload? Payment);
     public sealed record CancelExpensePayload(string Reason, int Version);
     public sealed record AdjustmentPayload(string Kind, string Amount, string Reason, DateOnly? Date);
     public sealed record PaymentAllocationPayload(Guid ExpenseCode, string Amount, string? Interest, string? Fine, string? Discount);
-    public sealed record PaymentPayload(Guid AccountCode, DateOnly PaymentDate, Guid? PayerPersonCode, Guid? PaymentMethodCode, string? Description,
-        PaymentAllocationPayload[] Allocations, string? AdjustmentReason);
+    /// <summary>Exactly one of AccountCode (bank) or CardCode (credit card, A17) identifies where the money comes from.</summary>
+    public sealed record PaymentPayload(Guid? AccountCode, DateOnly PaymentDate, Guid? PayerPersonCode, Guid? PaymentMethodCode, string? Description,
+        PaymentAllocationPayload[] Allocations, string? AdjustmentReason, Guid? CardCode = null);
     public sealed record RecurrenceTermsPayload(DateOnly ValidFrom, DateOnly? EndDate, string Frequency, string Amount, bool IsEstimated, bool IsActive);
     public sealed record RecurrencePayload(ExpenseDetailsPayload Details, RecurrenceTermsPayload Terms, int Version);
     public sealed record InstallmentPreviewPayload(string Total, int Count, DateOnly FirstDueDate, string Frequency);
@@ -33,9 +35,13 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
     /// <summary>Totals cover the obligations due in the period; overdue items from earlier periods are listed and summed separately.</summary>
     public sealed record ExpenseListDto(DateOnly From, DateOnly To, DateOnly Today, string Total, string Paid, string Open, string Overdue, IReadOnlyList<ExpenseDto> Items);
     public sealed record AdjustmentDto(Guid Code, string Kind, string Amount, DateOnly Date, string Reason);
-    public sealed record PaymentAllocationDto(Guid PaymentCode, Guid ExpenseCode, string ExpenseDescription, string Amount, DateOnly PaymentDate, string AccountName, bool IsReversed);
+    /// <summary>AccountName is null when the payment was made on a credit card; CardName is null for a bank payment.</summary>
+    public sealed record PaymentAllocationDto(Guid PaymentCode, Guid ExpenseCode, string ExpenseDescription, string Amount, DateOnly PaymentDate, string? AccountName,
+        string? CardName, bool IsReversed);
     public sealed record ExpenseDetailDto(ExpenseDto Expense, IReadOnlyList<AdjustmentDto> Adjustments, IReadOnlyList<PaymentAllocationDto> Payments);
-    public sealed record PaymentDto(Guid Code, Guid AccountCode, string AccountName, Guid? PayerPersonCode, string? PayerPersonName, Guid? PaymentMethodCode,
+    /// <summary>A bank payment carries the account; a payment on a credit card carries the card and the purchase it created in the invoice.</summary>
+    public sealed record PaymentDto(Guid Code, Guid? AccountCode, string? AccountName, Guid? CardCode, string? CardName, Guid? PurchaseCode,
+        Guid? PayerPersonCode, string? PayerPersonName, Guid? PaymentMethodCode,
         DateOnly PaymentDate, string Amount, string Description, bool IsReversed, string? ReversalReason, IReadOnlyList<PaymentAllocationDto> Allocations);
     public sealed record RecurrenceDto(Guid Code, string Description, bool IsActive, int Version, DateOnly ValidFrom, DateOnly? EndDate, string Frequency,
         string Amount, bool IsEstimated, Guid? ExpenseTypeCode, int? ExpenseTypeVersion, Guid? CategoryCode, string? CategoryName, Guid? CreditorCode,
@@ -93,6 +99,13 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                 .WithMessage("Informe cada parte como valor positivo (50.00) ou percentual (até 4 casas, ex.: 33.3333).");
         }
     }
+    /// <summary>A payment comes from one bank account or from one credit card (A17), never from both and never from neither.</summary>
+    internal static class PaymentSources
+    {
+        public const string Message = "Escolha a conta de saída ou o cartão de crédito.";
+        public static bool HasExactlyOne(PaymentPayload payload) => payload.AccountCode.HasValue != payload.CardCode.HasValue;
+        public static bool HasExactlyOne(ImmediatePaymentPayload payload) => payload.AccountCode.HasValue != payload.CardCode.HasValue;
+    }
     public sealed class SingleExpenseDetailsValidator() : ExpenseDetailsValidator(false);
     public sealed class TemplateExpenseDetailsValidator() : ExpenseDetailsValidator(true);
     public class CreateExpenseValidator : AbstractValidator<CreateExpenseCommand>
@@ -103,6 +116,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
             RuleFor(x => x.Payload.Details).NotNull().SetValidator(new SingleExpenseDetailsValidator());
             RuleFor(x => x.Payload.Amount).PositiveMoney();
             RuleFor(x => x.Payload.DueDate).Must(date => date.Year >= 2000).WithMessage("Vencimento inválido.");
+            RuleFor(x => x.Payload.Payment!).Must(PaymentSources.HasExactlyOne).When(x => x.Payload.Payment is not null)
+                .WithMessage(PaymentSources.Message).OverridePropertyName("Payment");
         }
     }
     public class UpdateExpenseValidator : AbstractValidator<UpdateExpenseCommand>
@@ -133,6 +148,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
         public CreatePaymentValidator()
         {
             RuleFor(x => x.Key).NotEmpty().WithMessage("Envie o cabeçalho Idempotency-Key.");
+            RuleFor(x => x.Payload).Must(PaymentSources.HasExactlyOne).WithMessage(PaymentSources.Message).OverridePropertyName("AccountCode");
             RuleFor(x => x.Payload.Allocations).NotEmpty().WithMessage("Escolha ao menos uma despesa.")
                 .Must(items => items is null || items.Length <= 50).WithMessage("Pague até 50 despesas por vez.")
                 .Must(items => items is null || items.Select(x => x.ExpenseCode).Distinct().Count() == items.Length).WithMessage("Cada despesa aparece uma única vez.");

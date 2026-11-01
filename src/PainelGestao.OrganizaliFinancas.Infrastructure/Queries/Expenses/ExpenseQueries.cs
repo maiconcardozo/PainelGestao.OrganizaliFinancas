@@ -67,22 +67,33 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             """;
 
         public const string FindPayment = "SELECT * FROM Payment WHERE IdTenant=@IdTenant AND Code=@Code";
+        // A payment made on a credit card has no account: the card and the purchase that carries it into the invoice come through CardPurchase.
         private const string SelectPayment = """
-            SELECT p.Code,a.Code AccountCode,a.Name AccountName,pp.Code PayerPersonCode,pp.Name PayerPersonName,pm.Code PaymentMethodCode,
+            SELECT p.Code,a.Code AccountCode,a.Name AccountName,cc.Code CardCode,cc.Name CardName,cp.Code PurchaseCode,
+                pp.Code PayerPersonCode,pp.Name PayerPersonName,pm.Code PaymentMethodCode,
                 p.PaymentDate,p.Amount,p.Description,p.DtReversed,p.ReversalReason
             FROM Payment p
-            JOIN FinancialAccount a ON a.Id=p.IdFinancialAccount AND a.IdTenant=p.IdTenant
+            LEFT JOIN FinancialAccount a ON a.Id=p.IdFinancialAccount AND a.IdTenant=p.IdTenant
+            LEFT JOIN CardPurchase cp ON cp.Id=p.IdCardPurchase AND cp.IdTenant=p.IdTenant
+            LEFT JOIN CreditCard cc ON cc.Id=cp.IdCreditCard AND cc.IdTenant=cp.IdTenant
             LEFT JOIN Person pp ON pp.Id=p.IdPayerPerson AND pp.IdTenant=p.IdTenant
             LEFT JOIN PaymentMethod pm ON pm.Id=p.IdPaymentMethod AND pm.IdTenant=p.IdTenant
+            """;
+        public const string LinkPaymentPurchase = """
+            UPDATE Payment SET IdCardPurchase=(SELECT cp.Id FROM CardPurchase cp WHERE cp.IdTenant=@IdTenant AND cp.Code=@PurchaseCode)
+            WHERE IdTenant=@IdTenant AND Code=@PaymentCode
             """;
         public const string GetPayment = SelectPayment + " WHERE p.IdTenant=@IdTenant AND p.Code=@Code";
         public const string Payments = SelectPayment + " WHERE p.IdTenant=@IdTenant AND p.PaymentDate BETWEEN @From AND @To ORDER BY p.PaymentDate DESC,p.Id DESC";
         private const string SelectAllocation = """
-            SELECT p.Code PaymentCode,o.Code ExpenseCode,o.Description ExpenseDescription,x.Amount,p.PaymentDate,a.Name AccountName,(p.DtReversed IS NOT NULL) IsReversed
+            SELECT p.Code PaymentCode,o.Code ExpenseCode,o.Description ExpenseDescription,x.Amount,p.PaymentDate,a.Name AccountName,cc.Name CardName,
+                (p.DtReversed IS NOT NULL) IsReversed
             FROM PaymentAllocation x
             JOIN Payment p ON p.Id=x.IdPayment AND p.IdTenant=x.IdTenant
             JOIN Obligation o ON o.Id=x.IdObligation AND o.IdTenant=x.IdTenant
-            JOIN FinancialAccount a ON a.Id=p.IdFinancialAccount AND a.IdTenant=p.IdTenant
+            LEFT JOIN FinancialAccount a ON a.Id=p.IdFinancialAccount AND a.IdTenant=p.IdTenant
+            LEFT JOIN CardPurchase cp ON cp.Id=p.IdCardPurchase AND cp.IdTenant=p.IdTenant
+            LEFT JOIN CreditCard cc ON cc.Id=cp.IdCreditCard AND cc.IdTenant=cp.IdTenant
             """;
         public const string AllocationsByPayment = SelectAllocation + " WHERE x.IdTenant=@IdTenant AND p.Code IN @Codes ORDER BY x.Id";
         public const string AllocationsByObligation = SelectAllocation + " WHERE x.IdTenant=@IdTenant AND x.IdObligation=@IdObligation ORDER BY p.PaymentDate,x.Id";

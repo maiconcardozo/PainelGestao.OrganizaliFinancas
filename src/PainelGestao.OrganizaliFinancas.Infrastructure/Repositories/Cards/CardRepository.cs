@@ -48,6 +48,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Cards
             Single<PurchaseRecord>(CardSql.GetPurchase, new { IdTenant = idTenant, Code = code }, ct);
         public Task<CardPurchase?> FindPurchaseAsync(int idTenant, Guid code, CancellationToken ct) =>
             Single<CardPurchase>(CardSql.FindPurchase, new { IdTenant = idTenant, Code = code }, ct);
+        public Task<CardPurchase?> FindPurchaseByIdAsync(int idTenant, int id, CancellationToken ct) =>
+            Single<CardPurchase>(CardSql.FindPurchaseById, new { IdTenant = idTenant, Id = id }, ct);
         public Task<IReadOnlyList<PurchaseItemState>> ListPurchaseItemsAsync(int idTenant, int idPurchase, CancellationToken ct) =>
             List<PurchaseItemState>(CardSql.PurchaseItems, new { IdTenant = idTenant, IdPurchase = idPurchase }, ct);
         public void AddPurchase(CardPurchase purchase) => new DapperRepository<CardPurchase>(work).Add(purchase);

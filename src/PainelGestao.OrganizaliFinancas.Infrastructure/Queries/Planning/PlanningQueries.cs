@@ -9,6 +9,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Planning
             WHERE c.IdTenant=@IdTenant ORDER BY c.Name
             """;
         // Invoice obligations are excluded: their card items carry the categories, so nothing is counted twice.
+        // A purchase that settles an expense (A17) is also excluded: that expense already counts under its own category and competence.
+        private const string PurchaseIsSettlement = "EXISTS (SELECT 1 FROM Payment py WHERE py.IdTenant=p.IdTenant AND py.IdCardPurchase=p.Id)";
         public const string Spend = $"""
             SELECT s.CategoryCode,SUM(s.Bills) Bills,SUM(s.Card) Card,SUM(s.Paid) Paid FROM (
                 SELECT c.Code CategoryCode,o.Amount+({ExpenseSql.AdjustmentSum}) Bills,0.00 Card,({ExpenseSql.LivePaid}) Paid
@@ -18,7 +20,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Planning
                 SELECT c.Code,0.00,x.Amount,0.00
                 FROM CardItem x JOIN CardPurchase p ON p.Id=x.IdCardPurchase AND p.IdTenant=x.IdTenant
                 LEFT JOIN Category c ON c.Id=p.IdCategory AND c.IdTenant=p.IdTenant
-                WHERE x.IdTenant=@IdTenant AND x.IsActive=1 AND x.Competence=@Month
+                WHERE x.IdTenant=@IdTenant AND x.IsActive=1 AND x.Competence=@Month AND NOT {PurchaseIsSettlement}
             ) s GROUP BY s.CategoryCode
             """;
         public const string Budgets = """
@@ -61,7 +63,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Planning
                 ({ExpenseSql.LivePaid}) Paid,o.Status,CAST(NULL AS CHAR(60)) CardName,CAST(NULL AS CHAR(36)) BuyerCode,
                 (SELECT GROUP_CONCAT(DISTINCT a.Code) FROM PaymentAllocation x JOIN Payment p ON p.Id=x.IdPayment AND p.IdTenant=x.IdTenant
                     JOIN FinancialAccount a ON a.Id=p.IdFinancialAccount AND a.IdTenant=p.IdTenant
-                    WHERE x.IdTenant=o.IdTenant AND x.IdObligation=o.Id AND p.DtReversed IS NULL) AccountCodes
+                    WHERE x.IdTenant=o.IdTenant AND x.IdObligation=o.Id AND p.DtReversed IS NULL AND p.IdFinancialAccount IS NOT NULL) AccountCodes
             FROM Obligation o LEFT JOIN Category c ON c.Id=o.IdCategory AND c.IdTenant=o.IdTenant
             WHERE o.IdTenant=@IdTenant AND o.IsActive=1 AND o.Status<>'cancelled' AND o.IdCardInvoice IS NULL AND o.Competence=@Month
             UNION ALL
@@ -72,7 +74,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Planning
             JOIN CreditCard cc ON cc.Id=p.IdCreditCard AND cc.IdTenant=p.IdTenant
             LEFT JOIN Category c ON c.Id=p.IdCategory AND c.IdTenant=p.IdTenant
             LEFT JOIN Person b ON b.Id=p.IdBuyerPerson AND b.IdTenant=p.IdTenant
-            WHERE x.IdTenant=@IdTenant AND x.IsActive=1 AND x.Competence=@Month
+            WHERE x.IdTenant=@IdTenant AND x.IsActive=1 AND x.Competence=@Month AND NOT {PurchaseIsSettlement}
             ORDER BY DueDate,Description
             """;
     }

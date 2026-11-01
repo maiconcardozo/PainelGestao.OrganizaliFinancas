@@ -161,14 +161,19 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
         }
     }
 
-    /// <summary>Effective cash out of one account, allocated to one or more obligations. Reversal keeps it and compensates the movement.</summary>
+    /// <summary>
+    /// Settlement of one or more obligations. From a bank account it is effective cash out, compensated on reversal.
+    /// On a credit card (A17) no account moves: the amount becomes a purchase of one installment in the card's invoice, and the cash leaves
+    /// only when that invoice is paid. Exactly one of the account or the card purchase is set.
+    /// </summary>
     public class Payment : TenantEntity
     {
         private Payment() { }
         private Payment(int idTenant) : base(idTenant) { }
-        public int IdFinancialAccount { get; private set; }
+        public int? IdFinancialAccount { get; private set; }
         public int? IdPayerPerson { get; private set; }
         public int? IdPaymentMethod { get; private set; }
+        public int? IdCardPurchase { get; private set; }
         public DateTime PaymentDate { get; private set; }
         public decimal Amount { get; private set; }
         public string Description { get; private set; } = string.Empty;
@@ -176,14 +181,28 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
         public string? ReversedBy { get; private set; }
         public string? ReversalReason { get; private set; }
         public bool IsReversed() => DtReversed is not null;
+        public bool IsOnCard() => IdCardPurchase is not null;
         public static Payment Create(FinancialAccount account, Person? payer, int? idPaymentMethod, DateOnly date, decimal amount, string? description, string actor)
         {
-            if (amount <= 0) throw new ArgumentException("Valor deve ser positivo.", nameof(amount));
             if (payer is not null && payer.IdTenant != account.IdTenant) throw new ArgumentException("Pagador de outra casa.");
             account.EnsureAccepts(date);
-            var payment = new Payment(account.IdTenant)
+            var payment = New(account.IdTenant, payer, idPaymentMethod, date, amount, description, actor);
+            payment.IdFinancialAccount = account.Id;
+            return payment;
+        }
+        /// <summary>The purchase id is linked afterwards by code (same transaction), as the purchase row is written in the same batch.</summary>
+        public static Payment CreateOnCard(CreditCard card, Person? payer, int? idPaymentMethod, DateOnly date, decimal amount, string? description, string actor)
+        {
+            if (payer is not null && payer.IdTenant != card.IdTenant) throw new ArgumentException("Pagador de outra casa.");
+            card.EnsureAcceptsPurchases();
+            return New(card.IdTenant, payer, idPaymentMethod, date, amount, description, actor);
+        }
+        private static Payment New(int idTenant, Person? payer, int? idPaymentMethod, DateOnly date, decimal amount, string? description, string actor)
+        {
+            if (amount <= 0) throw new ArgumentException("Valor deve ser positivo.", nameof(amount));
+            var payment = new Payment(idTenant)
             {
-                IdFinancialAccount = account.Id, IdPayerPerson = payer?.Id, IdPaymentMethod = idPaymentMethod, PaymentDate = date.ToDateTime(TimeOnly.MinValue),
+                IdPayerPerson = payer?.Id, IdPaymentMethod = idPaymentMethod, PaymentDate = date.ToDateTime(TimeOnly.MinValue),
                 Amount = amount, Description = description?.Trim() ?? string.Empty
             };
             payment.SetCreatedBy(actor);

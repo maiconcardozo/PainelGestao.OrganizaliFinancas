@@ -12,10 +12,21 @@ export type Expense = {
 };
 export type ExpenseList = { from: string; to: string; today: string; total: string; paid: string; open: string; overdue: string; items: Expense[] };
 export type Adjustment = { code: string; kind: string; amount: string; date: string; reason: string };
-export type PaymentAllocation = { paymentCode: string; expenseCode: string; expenseDescription: string; amount: string; paymentDate: string; accountName: string; isReversed: boolean };
+/** A payment comes from a bank account or from a credit card: the account fields are null on a card, the card fields are null on an account. */
+export type PaymentAllocation = { paymentCode: string; expenseCode: string; expenseDescription: string; amount: string; paymentDate: string; accountName: string | null;
+  cardName: string | null; isReversed: boolean };
 export type ExpenseDetail = { expense: Expense; adjustments: Adjustment[]; payments: PaymentAllocation[] };
-export type Payment = { code: string; accountCode: string; accountName: string; payerPersonCode: string | null; payerPersonName: string | null; paymentMethodCode: string | null;
+export type Payment = { code: string; accountCode: string | null; accountName: string | null; cardCode: string | null; cardName: string | null; purchaseCode: string | null;
+  payerPersonCode: string | null; payerPersonName: string | null; paymentMethodCode: string | null;
   paymentDate: string; amount: string; description: string; isReversed: boolean; reversalReason: string | null; allocations: PaymentAllocation[] };
+/** Where the money comes from, as the payment forms send it: one of the two codes. */
+export type PaymentSource = { accountCode: string | null; cardCode: string | null };
+export const cardOption = "card:";
+export function paymentSource(value: FormDataEntryValue | null): PaymentSource {
+  const chosen = String(value ?? "");
+  return chosen.startsWith(cardOption) ? { accountCode: null, cardCode: chosen.slice(cardOption.length) } : { accountCode: chosen || null, cardCode: null };
+}
+export function paidWith(item: { accountName: string | null; cardName: string | null }) { return item.accountName ?? `cartão ${item.cardName}`; }
 export type SharePayload = { personCode: string; value: string };
 export type Recurrence = { code: string; description: string; isActive: boolean; version: number; validFrom: string; endDate: string | null; frequency: string; amount: string;
   isEstimated: boolean; expenseTypeCode: string | null; expenseTypeVersion: number | null; categoryCode: string | null; categoryName: string | null; creditorCode: string | null;

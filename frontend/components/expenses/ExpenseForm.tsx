@@ -1,23 +1,27 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { civilDate, frequencies, money, toApiMoney, type Account } from "@/lib/finance";
-import { changeLabels, type InstallmentPreview, type RecurrencePlan } from "@/lib/expenses";
+import type { Card } from "@/lib/cards";
+import { changeLabels, paymentSource, type InstallmentPreview, type RecurrencePlan } from "@/lib/expenses";
 import { Modal } from "@/components/common/Modal";
 import { ModalActions } from "@/components/common/Ui";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
 import { DetailInputs, ShareInputs, detailsFrom, type Catalogs } from "./DetailInputs";
+import { InvoiceHint, PaymentSourceSelect, defaultSource } from "./PaymentSource";
 
 type Kind = "single" | "recurring" | "installments";
 const kinds: Record<Kind, string> = { single: "Conta avulsa", recurring: "Conta recorrente", installments: "Compra parcelada" };
 
-type Props = { catalogs: Catalogs; accounts: Account[]; today: string; canSettle: boolean; onClose: () => void; onSaved: (message: string) => void };
+type Props = { catalogs: Catalogs; accounts: Account[]; cards?: Card[]; today: string; canSettle: boolean; onClose: () => void; onSaved: (message: string) => void };
 
 /** "Nova despesa": the three ways of entering a bill, in one modal with a segmented switch. */
-export function ExpenseModal({ catalogs, accounts, today, canSettle, onClose, onSaved }: Props) {
+export function ExpenseModal({ catalogs, accounts, cards = [], today, canSettle, onClose, onSaved }: Props) {
   const action = useFinanceAction();
   const [kind, setKind] = useState<Kind>("single");
   const [typeCode, setTypeCode] = useState("");
   const [paid, setPaid] = useState(false);
+  const [source, setSource] = useState(() => defaultSource(accounts, cards));
+  const [paymentDate, setPaymentDate] = useState(today);
   const [estimated, setEstimated] = useState(false);
   const [installments, setInstallments] = useState<InstallmentPreview | null>(null);
   const [recurrence, setRecurrence] = useState<RecurrencePlan | null>(null);
@@ -44,7 +48,7 @@ export function ExpenseModal({ catalogs, accounts, today, canSettle, onClose, on
     if (kind === "single")
       saved = await action.send("expenses", "POST", {
         details, competence: data.get("competence") ? `${data.get("competence")}-01` : null, dueDate: data.get("dueDate"), amount: toApiMoney(data.get("amount")), version: 0,
-        payment: paid ? { accountCode: data.get("account"), paymentDate: data.get("paymentDate"), payerPersonCode: data.get("payer") || null } : null,
+        payment: paid ? { ...paymentSource(data.get("source")), paymentDate: data.get("paymentDate"), payerPersonCode: data.get("payer") || null } : null,
       }, paid ? "Despesa lançada e paga." : "Despesa lançada.", true);
     else if (kind === "recurring")
       saved = await action.send("expense-recurrences", "POST", {
@@ -68,12 +72,12 @@ export function ExpenseModal({ catalogs, accounts, today, canSettle, onClose, on
         <label>Vencimento<input type="date" name="dueDate" required defaultValue={today} /></label>
         <label>Competência (opcional)<input type="month" name="competence" placeholder="mês do vencimento" /></label>
       </div>
-      {canSettle && activeAccounts.length > 0 && <fieldset className="choice-group"><legend>Pagamento</legend>
+      {canSettle && (activeAccounts.length > 0 || cards.length > 0) && <fieldset className="choice-group"><legend>Pagamento</legend>
         <label className="checkbox-label"><input type="checkbox" checked={paid} onChange={event => setPaid(event.target.checked)} />Já foi paga</label>
-        {paid && <div className="form-row">
-          <label>Conta de saída<select name="account" required>{activeAccounts.map(account => <option key={account.code} value={account.code}>{account.name}</option>)}</select></label>
-          <label>Data do pagamento<input type="date" name="paymentDate" required defaultValue={today} max={today} /></label>
-        </div>}
+        {paid && <><div className="form-row">
+          <PaymentSourceSelect accounts={accounts} cards={cards} value={source} onChange={setSource} />
+          <label>Data do pagamento<input type="date" name="paymentDate" required value={paymentDate} max={today} onChange={event => setPaymentDate(event.target.value)} /></label>
+        </div><InvoiceHint source={source} date={paymentDate} /></>}
       </fieldset>}
     </>}
 

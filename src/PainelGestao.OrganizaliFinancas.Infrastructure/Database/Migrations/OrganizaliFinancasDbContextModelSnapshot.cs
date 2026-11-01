@@ -2464,7 +2464,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.Property<decimal>("Amount")
                         .HasPrecision(19, 2)
                         .HasColumnType("decimal(19,2)")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.Property<Guid>("Code")
                         .HasColumnType("char(36)")
@@ -2474,36 +2474,40 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(15);
+                        .HasColumnOrder(16);
 
                     b.Property<string>("DeletedBy")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(19);
+                        .HasColumnOrder(20);
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<DateTime>("DtCreated")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(14);
+                        .HasColumnOrder(15);
 
                     b.Property<DateTime?>("DtDeleted")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(18);
+                        .HasColumnOrder(19);
 
                     b.Property<DateTime?>("DtReversed")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.Property<DateTime?>("DtUpdated")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(16);
+                        .HasColumnOrder(17);
 
-                    b.Property<int>("IdFinancialAccount")
+                    b.Property<int?>("IdCardPurchase")
+                        .HasColumnType("int")
+                        .HasColumnOrder(7);
+
+                    b.Property<int?>("IdFinancialAccount")
                         .HasColumnType("int")
                         .HasColumnOrder(4);
 
@@ -2521,31 +2525,33 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(14);
 
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("date")
-                        .HasColumnOrder(7);
+                        .HasColumnOrder(8);
 
                     b.Property<string>("ReversalReason")
                         .HasMaxLength(300)
                         .HasColumnType("varchar(300)")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<string>("ReversedBy")
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(12);
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(17);
+                        .HasColumnOrder(18);
 
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
                         .IsUnique();
+
+                    b.HasIndex("IdTenant", "IdCardPurchase");
 
                     b.HasIndex("IdTenant", "IdFinancialAccount");
 
@@ -4305,12 +4311,17 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
 
             modelBuilder.Entity("PainelGestao.OrganizaliFinancas.Domain.Entities.Payment", b =>
                 {
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.CardPurchase", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdCardPurchase")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.FinancialAccount", null)
                         .WithMany()
                         .HasForeignKey("IdTenant", "IdFinancialAccount")
                         .HasPrincipalKey("IdTenant", "Id")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Person", null)
                         .WithMany()

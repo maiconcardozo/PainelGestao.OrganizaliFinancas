@@ -46,8 +46,9 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Tokens.AccessToken);
             var refresh = await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = result.Tokens.RefreshToken });
             refresh.StatusCode.Should().Be(HttpStatusCode.OK);
+            // Since 14/10/2026 a rotated refresh token stays accepted for 60 s, so parallel tabs of the same browser never drop the session.
             (await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = result.Tokens.RefreshToken }))
-                .StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+                .StatusCode.Should().Be(HttpStatusCode.OK, "a refresh token rotated seconds ago is still accepted (Sessao-renovacao-automatica)");
             (await client.PostAsync("/api/auth/logout", null)).StatusCode.Should().Be(HttpStatusCode.NoContent);
             (await client.GetAsync("/api/auth/me")).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
             var refreshed = (await refresh.Content.ReadFromJsonAsync<SuccessDetails<AuthenticationResultDto>>())!.Data;

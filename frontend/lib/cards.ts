@@ -7,7 +7,9 @@ export type CardItem = { code: string; purchaseCode: string; description: string
 export type InvoiceDetail = { invoice: Invoice; items: CardItem[] };
 export type Purchase = { code: string; cardCode: string; cardName: string; description: string; purchaseDate: string; total: string; count: number; refunded: string;
   categoryCode: string | null; categoryName: string | null; buyerPersonCode: string | null; buyerName: string | null; expenseTypeCode: string | null;
-  expenseTypeVersion: number | null; fields: Record<string, unknown>; version: number };
+  expenseTypeVersion: number | null; fields: Record<string, unknown>; version: number;
+  /** Set when the purchase is an expense paid on the card: it is undone by reversing that payment in Despesas, not deleted here. */
+  paymentCode: string | null };
 export type PurchasePreview = { total: string; count: number; items: { number: number; referenceMonth: string; closingDate: string; dueDate: string; amount: string }[] };
 
 export const invoiceStatus: Record<Invoice["status"], string> = { open: "Aberta", closed: "Fechada", partial: "Paga em parte", paid: "Paga", credit: "Com crédito" };

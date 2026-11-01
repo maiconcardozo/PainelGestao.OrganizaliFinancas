@@ -33,6 +33,8 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         public DateTime PurchaseDate { get; init; } public decimal TotalAmount { get; init; } public int InstallmentCount { get; init; } public decimal RefundedAmount { get; init; }
         public Guid? CategoryCode { get; init; } public string? CategoryName { get; init; } public Guid? BuyerPersonCode { get; init; } public string? BuyerName { get; init; }
         public Guid? ExpenseTypeCode { get; init; } public int? ExpenseTypeVersion { get; init; } public string FieldValuesJson { get; init; } = "{}"; public int Version { get; init; }
+        /// <summary>Set when the purchase is the settlement of an expense paid on the card (A17); it is then undone by reversing that payment, never deleted.</summary>
+        public Guid? PaymentCode { get; init; }
     }
     /// <summary>What stands in the way of removing a card: purchases still registered and invoices with a payment, adjustment, share or receipt.</summary>
     public sealed record CardUsage { public int Purchases { get; init; } public int LockedInvoices { get; init; } }
@@ -58,6 +60,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         Task<IReadOnlyList<PurchaseRecord>> ListPurchasesAsync(int idTenant, DateTime from, DateTime to, CancellationToken ct);
         Task<PurchaseRecord?> GetPurchaseAsync(int idTenant, Guid code, CancellationToken ct);
         Task<CardPurchase?> FindPurchaseAsync(int idTenant, Guid code, CancellationToken ct);
+        Task<CardPurchase?> FindPurchaseByIdAsync(int idTenant, int id, CancellationToken ct);
         Task<IReadOnlyList<PurchaseItemState>> ListPurchaseItemsAsync(int idTenant, int idPurchase, CancellationToken ct);
         void AddPurchase(CardPurchase purchase);
         void UpdatePurchase(CardPurchase purchase);

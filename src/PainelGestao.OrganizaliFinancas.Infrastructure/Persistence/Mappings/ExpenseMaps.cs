@@ -123,7 +123,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Persistence.Mappings
             builder.Property(x => x.ReversalReason).HasMaxLength(300);
             builder.HasAlternateKey(x => new { x.IdTenant, x.Id });
             builder.HasIndex(x => new { x.IdTenant, x.PaymentDate });
+            // Either the account (bank payment) or the card purchase (payment on a credit card, A17) is set; never both.
             builder.HasOne<FinancialAccount>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdFinancialAccount })
+                .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<CardPurchase>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdCardPurchase })
                 .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<Person>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdPayerPerson })
                 .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);

@@ -66,8 +66,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                 work.ExpenseRepository.Add(obligation);
                 work.ExpenseRepository.ReplaceShares(user.IdTenant, obligation.Code, shares, actor);
                 if (payload.Payment is ImmediatePaymentPayload immediate)
-                    await PaymentWriter.PayAsync(work, user.IdTenant, immediate.AccountCode, immediate.PaymentDate, immediate.PayerPersonCode, obligation.IdPaymentMethod,
-                        obligation.Description, [(obligation.Code, amount)], actor, ct);
+                    await PaymentWriter.PayAsync(work, user.IdTenant, immediate.AccountCode, immediate.CardCode, immediate.PaymentDate, immediate.PayerPersonCode,
+                        obligation.IdPaymentMethod, obligation.Description, obligation.IdCategory, [(obligation.Code, amount)], actor, ct);
                 Idempotency.Record(work, user.IdTenant, Operation, request.Key, hash, obligation.Code, actor);
                 return obligation.Code;
             }, ct);
@@ -142,23 +142,39 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
         }
     }
 
-    /// <summary>Writes one payment: cash out, allocations and the ledger movement in the caller's transaction.</summary>
+    /// <summary>
+    /// Writes one payment and its allocations in the caller's transaction. From a bank account it also writes the ledger movement;
+    /// on a credit card (A17) it writes instead a one-installment purchase in the card's invoice, so the cash leaves only when that invoice is paid.
+    /// </summary>
     internal static class PaymentWriter
     {
-        public static async Task<Payment> PayAsync(IUnitOfWork work, int idTenant, Guid accountCode, DateOnly date, Guid? payerCode, int? idPaymentMethod,
-            string? description, IReadOnlyList<(Guid ObligationCode, decimal Amount)> allocations, string actor, CancellationToken ct)
+        public static async Task<Payment> PayAsync(IUnitOfWork work, int idTenant, Guid? accountCode, Guid? cardCode, DateOnly date, Guid? payerCode, int? idPaymentMethod,
+            string? description, int? idCategory, IReadOnlyList<(Guid ObligationCode, decimal Amount)> allocations, string actor, CancellationToken ct)
         {
             var today = await HouseholdCalendar.TodayAsync(work, idTenant, ct);
             HouseholdCalendar.EnsureNotFuture(date, today, "PaymentDate");
-            var account = await work.AccountRepository.FindAsync(idTenant, accountCode, ct) ?? throw new NotFoundException("Conta não encontrada.");
             Person? payer = null;
             if (payerCode is Guid code)
                 payer = await work.HouseholdRepository.FindPersonAsync(idTenant, code, ct) ?? throw new NotFoundException("Pagador não encontrado nesta casa.");
             var amount = allocations.Sum(x => x.Amount);
-            var payment = Payment.Create(account, payer, idPaymentMethod, date, amount, description, actor);
-            work.ExpenseRepository.AddPayment(payment);
-            var label = string.IsNullOrEmpty(payment.Description) ? "Pagamento" : $"Pagamento: {payment.Description}";
-            work.AccountRepository.AddMovement(AccountMovement.Create(account, date, -amount, "payment", label, actor), paymentCode: payment.Code);
+            Payment payment;
+            if (cardCode is Guid card)
+            {
+                var creditCard = await work.CardRepository.FindCardAsync(idTenant, card, ct) ?? throw new NotFoundException("Cartão não encontrado.");
+                payment = Payment.CreateOnCard(creditCard, payer, idPaymentMethod, date, amount, description, actor);
+                work.ExpenseRepository.AddPayment(payment);
+                var purchase = await Cards.CardCharges.ChargeAsync(work, creditCard, payer?.Id, string.IsNullOrEmpty(payment.Description) ? "Pagamento" : payment.Description,
+                    idCategory, date, amount, actor, ct);
+                work.ExpenseRepository.LinkPaymentToPurchase(idTenant, payment.Code, purchase.Code);
+            }
+            else
+            {
+                var account = await work.AccountRepository.FindAsync(idTenant, accountCode ?? Guid.Empty, ct) ?? throw new NotFoundException("Conta não encontrada.");
+                payment = Payment.Create(account, payer, idPaymentMethod, date, amount, description, actor);
+                work.ExpenseRepository.AddPayment(payment);
+                var label = string.IsNullOrEmpty(payment.Description) ? "Pagamento" : $"Pagamento: {payment.Description}";
+                work.AccountRepository.AddMovement(AccountMovement.Create(account, date, -amount, "payment", label, actor), paymentCode: payment.Code);
+            }
             foreach (var (obligationCode, value) in allocations) work.ExpenseRepository.AddAllocation(idTenant, payment.Code, obligationCode, value, actor);
             return payment;
         }
@@ -210,6 +226,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                 {
                     var obligation = obligations.Single(x => x.Code == item.ExpenseCode);
                     obligation.EnsureOpen();
+                    if (payload.CardCode is not null && obligation.IsInvoice())
+                        throw new ConflictException("A fatura de um cartão não pode ser paga com cartão de crédito; escolha uma conta de saída.");
                     var open = obligation.Amount + totals[obligation.Id].Adjustments - totals[obligation.Id].Paid;
                     foreach (var (kind, value) in new[] { ("interest", item.Interest), ("fine", item.Fine), ("discount", item.Discount) })
                     {
@@ -228,16 +246,21 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                 if (payload.PaymentMethodCode is Guid method)
                     idMethod = (await work.CatalogRepository.FindAsync(Domain.Interfaces.Repositories.CatalogKind.PaymentMethods, user.IdTenant, method, ct)
                         ?? throw new NotFoundException("Forma de pagamento não encontrada.")).Id;
-                var description = payload.Description ?? (obligations.Count == 1 ? obligations[0].Description : null);
-                var payment = await PaymentWriter.PayAsync(work, user.IdTenant, payload.AccountCode, payload.PaymentDate, payload.PayerPersonCode, idMethod,
-                    description, allocations, actor, ct);
+                var description = payload.Description ?? (obligations.Count == 1 ? obligations[0].Description
+                    : payload.CardCode is null ? null : $"Pagamento de {obligations.Count} despesas");
+                // On a card the purchase inherits the category of a single expense, so the invoice items stay readable; the budget never counts it twice.
+                var payment = await PaymentWriter.PayAsync(work, user.IdTenant, payload.AccountCode, payload.CardCode, payload.PaymentDate, payload.PayerPersonCode, idMethod,
+                    description, obligations.Count == 1 ? obligations[0].IdCategory : null, allocations, actor, ct);
                 Idempotency.Record(work, user.IdTenant, Operation, request.Key, hash, payment.Code, actor);
                 return payment.Code;
             }, ct);
             return await ListPaymentsHandler.ReadAsync(work, request.Identity.IdTenant, code, ct);
         }
     }
-    /// <summary>RF21: owner only. The original payment and movement stay; a compensating movement restores the account and the open balance.</summary>
+    /// <summary>
+    /// RF21: owner only. The original payment and movement stay; a compensating movement restores the account and the open balance.
+    /// A payment made on a card has no movement: its purchase is undone in the invoice instead (refused once that invoice received a payment).
+    /// </summary>
     public class ReversePaymentHandler(IUnitOfWork work) : IRequestHandler<ReversePaymentCommand, PaymentDto>
     {
         private const string Operation = "payments.reverse";
@@ -256,8 +279,10 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                 var actor = user.Code.ToString();
                 payment.Reverse(request.Payload.Reason, actor);
                 work.ExpenseRepository.MarkPaymentReversed(payment);
-                foreach (var original in await work.AccountRepository.FindOriginalMovementsAsync(user.IdTenant, null, null, payment.Id, ct))
-                    work.AccountRepository.AddMovement(original.Compensate(date, $"Estorno: {payment.ReversalReason}", actor));
+                if (payment.IdCardPurchase is int idPurchase) await Cards.CardCharges.UndoAsync(work, user.IdTenant, idPurchase, actor, ct);
+                else
+                    foreach (var original in await work.AccountRepository.FindOriginalMovementsAsync(user.IdTenant, null, null, payment.Id, ct))
+                        work.AccountRepository.AddMovement(original.Compensate(date, $"Estorno: {payment.ReversalReason}", actor));
                 Idempotency.Record(work, user.IdTenant, Operation, request.Key, hash, payment.Code, actor);
                 return true;
             }, ct);

@@ -27,8 +27,10 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
     public sealed record PurchasePreviewDto(string Total, int Count, IReadOnlyList<PurchasePreviewItemDto> Items);
     public sealed record PurchasePayload(Guid CardCode, Guid? BuyerPersonCode, ExpenseDetailsPayload Details, DateOnly PurchaseDate, string Total, int Count, int FirstInvoiceShift,
         int CurrentInstallment = 1, DateOnly? CurrentInvoiceMonth = null);
+    /// <summary>PaymentCode is set when the purchase is an expense paid on the card (A17): it is undone by reversing that payment, not deleted here.</summary>
     public sealed record PurchaseDto(Guid Code, Guid CardCode, string CardName, string Description, DateOnly PurchaseDate, string Total, int Count, string Refunded,
-        Guid? CategoryCode, string? CategoryName, Guid? BuyerPersonCode, string? BuyerName, Guid? ExpenseTypeCode, int? ExpenseTypeVersion, JsonElement Fields, int Version);
+        Guid? CategoryCode, string? CategoryName, Guid? BuyerPersonCode, string? BuyerName, Guid? ExpenseTypeCode, int? ExpenseTypeVersion, JsonElement Fields, int Version,
+        Guid? PaymentCode = null);
     /// <summary>Only the description of the purchase changes; amount, date and installments are fixed once the items are in the invoices.</summary>
     public sealed record UpdatePurchasePayload(Guid? BuyerPersonCode, ExpenseDetailsPayload Details, int Version);
     public sealed record RefundPayload(string? Amount, string Reason, DateOnly? Date);
@@ -125,7 +127,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
         }
         public static PurchaseDto Purchase(PurchaseRecord x) => new(x.Code, x.CardCode, x.CardName, x.Description, DateOnly.FromDateTime(x.PurchaseDate),
             Money.Format(x.TotalAmount), x.InstallmentCount, Money.Format(x.RefundedAmount), x.CategoryCode, x.CategoryName, x.BuyerPersonCode, x.BuyerName,
-            x.ExpenseTypeCode, x.ExpenseTypeVersion, ExpenseMapper.Fields(x.FieldValuesJson), x.Version);
+            x.ExpenseTypeCode, x.ExpenseTypeVersion, ExpenseMapper.Fields(x.FieldValuesJson), x.Version, x.PaymentCode);
     }
 
     /// <summary>Finds or creates the invoices of the planned cycles, each with its backing obligation, inside the caller's transaction.</summary>
@@ -320,6 +322,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
                 await work.MemberRepository.LockHouseholdAsync(request.Identity.IdTenant, ct);
                 var user = await HouseholdAccess.RequireAsync(work, request.Identity, "finance.write", ct);
                 var purchase = await work.CardRepository.FindPurchaseAsync(user.IdTenant, request.Code, ct) ?? throw new NotFoundException("Compra não encontrada.");
+                if ((await work.CardRepository.GetPurchaseAsync(user.IdTenant, request.Code, ct))!.PaymentCode is not null)
+                    throw new ConflictException("Esta compra é o pagamento de uma despesa no cartão. Para desfazê-la, estorne o pagamento na tela de despesas.");
                 if (await work.CardRepository.PurchaseHasPaidInvoiceAsync(user.IdTenant, purchase.Id, ct))
                     throw new ConflictException("Uma fatura com esta compra já recebeu pagamento. Estorne o pagamento antes ou registre um estorno da loja.");
                 var actor = user.Code.ToString();

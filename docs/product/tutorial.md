@@ -94,7 +94,9 @@ Em cada cartão há três ícones: **Editar** (lápis), **Ativar/Desativar** (en
 
 ### 3.2 Pagar
 
-Na lista de despesas, clique em **Pagar**. Informe **Conta de saída**, **Data do pagamento**, **Quem pagou** e **Valor pago agora** (já vem com o saldo devido). Pagar menos deixa o restante em aberto ("Paga em parte"). Juros, multa e desconto são campos separados e pedem **Justificativa dos encargos ou desconto**. Só o pagamento tira dinheiro da conta; a despesa sozinha não muda saldo nenhum.
+Na lista de despesas, clique em **Pagar**. Informe **Pagar com** (uma conta ou, no grupo **Cartão de crédito**, um cartão da casa), **Data do pagamento**, **Quem pagou** e **Valor pago agora** (já vem com o saldo devido). Pagar menos deixa o restante em aberto ("Paga em parte"). Juros, multa e desconto são campos separados e pedem **Justificativa dos encargos ou desconto**. Só o pagamento tira dinheiro da conta; a despesa sozinha não muda saldo nenhum.
+
+**Pagando no cartão**, nada sai da conta agora: a despesa fica paga e o valor entra na fatura do cartão. A tela mostra em qual fatura ele cai (até o dia do fechamento, a fatura daquele mês; depois, a seguinte) e com que vencimento. O dinheiro sai uma vez só, quando você pagar a fatura. Para desfazer, use **Estornar** no pagamento: o valor sai da fatura e a despesa volta a ficar em aberto — se a fatura já tiver sido paga, estorne antes o pagamento da fatura.
 
 ### 3.3 Corrigir, cancelar, estornar
 
@@ -114,7 +116,8 @@ Na lista de despesas, clique em **Pagar**. Informe **Conta de saída**, **Data d
 ### 3.5 Cartão de crédito
 
 - **Lançar compra**: **Cartão**, **Descrição**, **Tipo de despesa** (tipos "Cartão"), **Categoria**, **Quem comprou**, **Valor total**, **Parcelas** (1 a 120) e **Data da compra**. **Ver em quais faturas cai** mostra fatura, fechamento e vencimento de cada parcela e permite mover a primeira parcela uma fatura antes ou depois. A compra não sai da conta bancária: entra na fatura.
-- **Pagar fatura** usa a mesma janela de pagamento das despesas. É o único momento em que o dinheiro sai da conta, uma vez só. A fatura também aparece em **Despesas** como "Fatura do cartão".
+- **Pagar fatura** usa a mesma janela de pagamento das despesas (só com conta; fatura não se paga com cartão). É o único momento em que o dinheiro sai da conta, uma vez só. A fatura também aparece em **Despesas** como "Fatura do cartão".
+- **Despesa paga no cartão** (ver 3.2) aparece em **Ver compras** da fatura com a descrição da despesa e, em **Compras recentes**, marcada como "despesa paga no cartão": não tem Excluir nem Estorno da loja; para desfazer, estorne o pagamento em **Despesas**.
 - **Ver compras** lista os itens da fatura. **Estorno da loja** cancela as parcelas ainda abertas e transforma o restante em crédito na fatura.
 - Em **Compras recentes**, o lápis **edita** descrição, tipo, categoria e quem comprou (valor, data e parcelas não mudam: para isso, exclua e lance de novo). A lixeira **exclui** a compra e tira as parcelas das faturas; se uma fatura com essa compra já foi paga, a exclusão é recusada e o caminho é o estorno da loja.
 - O **Disponível** é uma estimativa a partir do que foi lançado aqui e pode diferir do banco.

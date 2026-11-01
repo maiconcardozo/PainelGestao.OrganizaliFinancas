@@ -8,6 +8,7 @@ using PainelGestao.OrganizaliFinancas.Application.Accounts;
 using PainelGestao.OrganizaliFinancas.Application.Cards;
 using PainelGestao.OrganizaliFinancas.Application.ExpenseTypes;
 using PainelGestao.OrganizaliFinancas.Application.Expenses;
+using PainelGestao.OrganizaliFinancas.Application.Finance;
 using PainelGestao.OrganizaliFinancas.Application.Households;
 using PainelGestao.OrganizaliFinancas.Domain.ValueObjects;
 using static PainelGestao.OrganizaliFinancas.Tests.Helpers.FinanceAssertions;
@@ -92,6 +93,40 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             await PostStatus(owner, "/api/card-purchases", single with { Details = Details("Errado", single2) }, Guid.NewGuid(), HttpStatusCode.Conflict);
             var cardType = await Create<ExpenseTypeDto>(owner, "/api/expense-types", new ExpenseTypePayload("Streaming", true, 0, "card", null, []));
             await PostStatus(owner, "/api/card-purchases", single with { Details = Details("Assinatura de vídeo", cardType), Total = "39.90" }, Guid.NewGuid(), HttpStatusCode.Created);
+
+            // A17: an expense paid with the card never touches the bank; it enters the invoice chosen by the closing day and the expense reads as paid.
+            var elo = await Create<CardDto>(owner, "/api/cards", new CardPayload(holder.Code, "Elo da casa", 25, 10, null, "next", true, 0));
+            var internet = await Post<ExpenseDto>(owner, "/api/expenses", new ExpensePayload(Details("Internet"), null, today, "120.00", 0, null), Guid.NewGuid(), HttpStatusCode.Created);
+            PaymentPayload PayInternet(Guid? accountCode, Guid? cardCode) =>
+                new(accountCode, today, holder.Code, null, null, [new PaymentAllocationPayload(internet.Code, "120.00", null, null, null)], null, cardCode);
+            await PostStatus(owner, "/api/payments", PayInternet(account.Code, elo.Code), Guid.NewGuid(), HttpStatusCode.BadRequest);
+            await PostStatus(owner, "/api/payments", PayInternet(null, null), Guid.NewGuid(), HttpStatusCode.BadRequest);
+            await PostStatus(reader, "/api/payments", PayInternet(null, elo.Code), Guid.NewGuid(), HttpStatusCode.Forbidden);
+            var before = await Balance(owner, account.Code);
+            var onCard = await Post<PaymentDto>(owner, "/api/payments", PayInternet(null, elo.Code), Guid.NewGuid(), HttpStatusCode.Created);
+            (onCard.AccountCode, onCard.CardCode, onCard.CardName, onCard.PurchaseCode.HasValue).Should().Be(((Guid?)null, (Guid?)elo.Code, (string?)"Elo da casa", true));
+            (await Balance(owner, account.Code)).Should().Be(before, "a payment on the card is not a bank movement");
+            var paidDetail = (await owner.GetFromJsonAsync<SuccessDetails<ExpenseDetailDto>>($"/api/expenses/{internet.Code}"))!.Data;
+            (paidDetail.Expense.Status, paidDetail.Payments.Single().CardName, paidDetail.Payments.Single().AccountName).Should().Be(("paid", (string?)"Elo da casa", (string?)null));
+            var eloCycle = CardSchedule.Plan(120m, 1, today, 25, 10, "next").Single().Cycle;
+            var eloInvoice = (await Invoices(owner, elo.Code)).Single(x => x.ReferenceMonth == eloCycle.ReferenceMonth.ToString("yyyy-MM"));
+            (eloInvoice.Amount, eloInvoice.DueDate).Should().Be(("120.00", eloCycle.DueDate));
+            (await owner.GetFromJsonAsync<SuccessDetails<InvoiceDetailDto>>($"/api/card-invoices/{eloInvoice.Code}"))!.Data.Items
+                .Should().ContainSingle(x => x.Description == "Internet" && x.Amount == "120.00" && x.PurchaseCode == onCard.PurchaseCode);
+            var settlement = (await owner.GetFromJsonAsync<SuccessDetails<PurchaseDto[]>>("/api/card-purchases"))!.Data.Single(x => x.Code == onCard.PurchaseCode);
+            settlement.PaymentCode.Should().Be(onCard.Code);
+            (await owner.DeleteAsync($"/api/card-purchases/{settlement.Code}")).StatusCode.Should().Be(HttpStatusCode.Conflict, "the settlement is undone through the payment");
+            await PostStatus(owner, "/api/payments", new PaymentPayload(null, today, null, null, null, [new PaymentAllocationPayload(partial.ExpenseCode, "1.00", null, null, null)], null, elo.Code),
+                Guid.NewGuid(), HttpStatusCode.Conflict);
+            (await Post<PaymentDto>(owner, $"/api/payments/{onCard.Code}/reversals", new ReversalPayload("Paguei no débito", null), Guid.NewGuid(), HttpStatusCode.Created)).IsReversed.Should().BeTrue();
+            (await owner.GetFromJsonAsync<SuccessDetails<ExpenseDetailDto>>($"/api/expenses/{internet.Code}"))!.Data.Expense.OpenBalance.Should().Be("120.00");
+            (await Invoices(owner, elo.Code)).Single(x => x.Code == eloInvoice.Code).Amount.Should().Be("0.00", "the reversal takes the item out of the invoice");
+            (await owner.GetFromJsonAsync<SuccessDetails<PurchaseDto[]>>("/api/card-purchases"))!.Data.Single(x => x.Code == settlement.Code).Refunded.Should().Be("120.00");
+            // Once the invoice that received the expense is paid, the card payment can no longer be reversed: the cash history stays whole.
+            var water = await Post<ExpenseDto>(owner, "/api/expenses", new ExpensePayload(Details("Água"), null, today, "80.00", 0, null), Guid.NewGuid(), HttpStatusCode.Created);
+            var onPaidCard = await Post<PaymentDto>(owner, "/api/payments", new PaymentPayload(null, today, null, null, null,
+                [new PaymentAllocationPayload(water.Code, "80.00", null, null, null)], null, second.Code), Guid.NewGuid(), HttpStatusCode.Created);
+            await PostStatus(owner, $"/api/payments/{onPaidCard.Code}/reversals", new ReversalPayload("Tarde demais", null), Guid.NewGuid(), HttpStatusCode.Conflict);
         }
 
         private static async Task<IReadOnlyList<InvoiceDto>> Invoices(HttpClient client, Guid card) =>

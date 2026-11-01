@@ -5,23 +5,25 @@ import { Modal } from "@/components/common/Modal";
 import { Attachments } from "@/components/common/Attachments";
 import { Empty, ModalActions } from "@/components/common/Ui";
 import { civilDate, monthLabel, money, toApiMoney, type Account } from "@/lib/finance";
-import { adjustmentKinds, statusLabels, type Expense, type ExpenseDetail } from "@/lib/expenses";
+import type { Card } from "@/lib/cards";
+import { adjustmentKinds, paidWith, paymentSource, statusLabels, type Expense, type ExpenseDetail } from "@/lib/expenses";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
 import type { Person } from "@/components/households/HouseholdForms";
 import { ShareInputs, type Catalogs } from "./DetailInputs";
+import { InvoiceHint, PaymentSourceSelect, defaultSource } from "./PaymentSource";
 
 type Rights = { canEdit: boolean; canSettle: boolean };
-type Props = Rights & { items: Expense[]; accounts: Account[]; catalogs: Catalogs; today: string };
+type Props = Rights & { items: Expense[]; accounts: Account[]; cards: Card[]; catalogs: Catalogs; today: string };
 
-export function ExpenseList({ items, accounts, catalogs, today, canEdit, canSettle }: Props) {
+export function ExpenseList({ items, accounts, cards, catalogs, today, canEdit, canSettle }: Props) {
   if (items.length === 0) return <Empty title={canEdit ? "Nenhuma despesa neste mês. Use “Nova despesa” para lançar contas avulsas, recorrentes ou compras parceladas." : "Nenhuma despesa neste mês."} />;
   return <ul className="expense-list">{items.map(item => <ExpenseRow key={`${item.code}-${item.version}-${item.paid}-${item.adjustments}`} expense={item}
-    accounts={accounts} catalogs={catalogs} today={today} canEdit={canEdit} canSettle={canSettle} />)}</ul>;
+    accounts={accounts} cards={cards} catalogs={catalogs} today={today} canEdit={canEdit} canSettle={canSettle} />)}</ul>;
 }
 
 const smallButton = "inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] px-3 py-1.5 text-xs font-semibold transition hover:bg-[var(--surface-2)]";
 
-function ExpenseRow({ expense, accounts, catalogs, today, canEdit, canSettle }: Rights & { expense: Expense; accounts: Account[]; catalogs: Catalogs; today: string }) {
+function ExpenseRow({ expense, accounts, cards, catalogs, today, canEdit, canSettle }: Rights & { expense: Expense; accounts: Account[]; cards: Card[]; catalogs: Catalogs; today: string }) {
   const action = useFinanceAction();
   const [panel, setPanel] = useState<"" | "pay" | "detail" | "cancel">("");
   const [detail, setDetail] = useState<ExpenseDetail | null>(null);
@@ -52,14 +54,14 @@ function ExpenseRow({ expense, accounts, catalogs, today, canEdit, canSettle }: 
         {expense.status === "cancelled" && expense.cancelReason && <span className="entry-meta">Motivo: {expense.cancelReason}</span>}
       </p>
       <div className="row-actions">
-        {canSettle && open && accounts.some(account => account.isActive) && <button type="button" onClick={() => setPanel("pay")}
+        {canSettle && open && (accounts.some(account => account.isActive) || cards.length > 0) && <button type="button" onClick={() => setPanel("pay")}
           className="inline-flex items-center gap-1.5 rounded-md bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[var(--primary-strong)]"><HandCoins size={14} />Pagar</button>}
         <button type="button" disabled={action.busy} onClick={() => void showDetail()} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--primary)]`}><Eye size={14} />Detalhes</button>
         {canEdit && expense.status === "open" && !expense.cardInvoiceCode && <button type="button" onClick={() => setPanel("cancel")} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--critical)]`}><Ban size={14} />Cancelar despesa</button>}
       </div>
     </div>
     {panel === "" && action.error && <p className="form-error" role="alert">{action.error}</p>}
-    {panel === "pay" && <PayModal expense={expense} accounts={accounts} people={catalogs.people} today={today} onClose={() => setPanel("")} />}
+    {panel === "pay" && <PayModal expense={expense} accounts={accounts} cards={cards} people={catalogs.people} today={today} onClose={() => setPanel("")} />}
     {panel === "cancel" && <Modal title={`Cancelar ${expense.description}`} onClose={() => setPanel("")} error={action.error} width="max-w-md">
       <form className="data-form" onSubmit={cancel}>
         <p className="form-hint">A despesa deixa de contar no mês e no orçamento. O registro fica no histórico com o motivo.</p>
@@ -74,10 +76,15 @@ function ExpenseRow({ expense, accounts, catalogs, today, canEdit, canSettle }: 
 }
 
 export type Payable = Pick<Expense, "code" | "description" | "openBalance" | "payerPersonCode" | "paymentMethodCode">;
-/** Partial or total payment in a modal; interest, fine and discount are shown separately before confirming. Also pays card invoices. */
-export function PayModal({ expense, accounts, people, today, onClose }: { expense: Payable; accounts: Account[]; people: Person[]; today: string; onClose: () => void }) {
+/**
+ * Partial or total payment in a modal; interest, fine and discount are shown separately before confirming. Also pays card invoices.
+ * With `cards`, the payment can be made on a credit card: nothing leaves an account and the amount enters the card's invoice (A17).
+ */
+export function PayModal({ expense, accounts, cards = [], people, today, onClose }: { expense: Payable; accounts: Account[]; cards?: Card[]; people: Person[]; today: string; onClose: () => void }) {
   const action = useFinanceAction();
   const [extra, setExtra] = useState({ interest: "", fine: "", discount: "" });
+  const [source, setSource] = useState(() => defaultSource(accounts, cards));
+  const [date, setDate] = useState(today);
   const charges = Number(toApiMoney(extra.interest) || 0) + Number(toApiMoney(extra.fine) || 0) - Number(toApiMoney(extra.discount) || 0);
   const due = (Number(expense.openBalance) + charges).toFixed(2);
   async function pay(event: FormEvent<HTMLFormElement>) {
@@ -85,7 +92,7 @@ export function PayModal({ expense, accounts, people, today, onClose }: { expens
     const data = new FormData(event.currentTarget);
     const optional = (value: string) => value.trim() ? toApiMoney(value) : null;
     const saved = await action.send("payments", "POST", {
-      accountCode: data.get("account"), paymentDate: data.get("paymentDate"), payerPersonCode: data.get("payer") || null, paymentMethodCode: expense.paymentMethodCode,
+      ...paymentSource(data.get("source")), paymentDate: data.get("paymentDate"), payerPersonCode: data.get("payer") || null, paymentMethodCode: expense.paymentMethodCode,
       description: null, adjustmentReason: data.get("reason") || null,
       allocations: [{ expenseCode: expense.code, amount: toApiMoney(data.get("amount")), interest: optional(extra.interest), fine: optional(extra.fine), discount: optional(extra.discount) }],
     }, "Pagamento registrado.", true);
@@ -94,11 +101,12 @@ export function PayModal({ expense, accounts, people, today, onClose }: { expens
   return <Modal title={`Pagar ${expense.description}`} onClose={onClose} error={action.error}>
     <form className="data-form pay-form" onSubmit={pay}>
       <div className="form-row">
-        <label>Conta de saída<select name="account" required>{accounts.filter(account => account.isActive).map(account => <option key={account.code} value={account.code}>{account.name}</option>)}</select></label>
-        <label>Data do pagamento<input type="date" name="paymentDate" required defaultValue={today} max={today} /></label>
+        <PaymentSourceSelect accounts={accounts} cards={cards} value={source} onChange={setSource} />
+        <label>Data do pagamento<input type="date" name="paymentDate" required value={date} max={today} onChange={event => setDate(event.target.value)} /></label>
         <label>Quem pagou<select name="payer" defaultValue={expense.payerPersonCode ?? ""}><option value="">A casa</option>
           {people.filter(person => person.isActive).map(person => <option key={person.code} value={person.code}>{person.name}</option>)}</select></label>
       </div>
+      <InvoiceHint source={source} date={date} />
       <div className="form-row">
         {(["interest", "fine", "discount"] as const).map(kind => <label key={kind}>{adjustmentKinds[kind]} (opcional)
           <input inputMode="decimal" value={extra[kind]} onChange={event => setExtra({ ...extra, [kind]: event.target.value })} /></label>)}
@@ -145,7 +153,7 @@ function DetailPanel({ detail, catalogs, canEdit, canSettle }: { detail: Expense
     {detail.adjustments.length > 0 && <><h3>Encargos e descontos</h3><ul className="entry-list compact">{detail.adjustments.map(item =>
       <li key={item.code}><span>{adjustmentKinds[item.kind]} · {civilDate(item.date)} · {item.reason}</span><span className="number">{money(item.amount)}</span></li>)}</ul></>}
     {detail.payments.length > 0 && <><h3>Pagamentos</h3><ul className="entry-list compact">{detail.payments.map(item =>
-      <li key={item.paymentCode} className={item.isReversed ? "muted-row" : ""}><span>{civilDate(item.paymentDate)} · {item.accountName}{item.isReversed && " · estornado"}</span>
+      <li key={item.paymentCode} className={item.isReversed ? "muted-row" : ""}><span>{civilDate(item.paymentDate)} · {paidWith(item)}{item.isReversed && " · estornado"}</span>
         <span className="number">{money(item.amount)}</span></li>)}</ul></>}
     <Attachments kind="expense" target={expense.code} canEdit={canEdit} />
     {action.error && <p className="form-error" role="alert">{action.error}</p>}{action.message && <p role="status">{action.message}</p>}

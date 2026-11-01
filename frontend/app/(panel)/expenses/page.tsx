@@ -5,6 +5,7 @@ import { fetchFromApi } from "@/lib/server";
 import { money, monthLabel, type AccountsOverview } from "@/lib/finance";
 import { addMonths, capitalize, type Contributions as ContributionData, type ExpenseList as ListData, type Payment, type Recurrence } from "@/lib/expenses";
 import type { CatalogItem } from "@/lib/catalogs";
+import type { Card } from "@/lib/cards";
 import type { ExpenseType } from "@/lib/expense-types";
 import type { Person } from "@/components/households/HouseholdForms";
 import { ExpenseList } from "@/components/expenses/ExpenseList";
@@ -21,16 +22,18 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
   const first = `${month}-01`;
   const lastDay = (value: string) => new Date(Date.parse(`${addMonths(value, 1)}-01T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
   const monthTotals = (value: string) => fetchFromApi<ListData>("expenses", { from: `${value}-01`, to: lastDay(value), includeOverdue: "false" });
-  const [list, previous, next, payments, recurrences, contributions, people, types, categories, creditors, methods] = await Promise.all([
+  const [list, previous, next, payments, recurrences, contributions, people, types, categories, creditors, methods, cards] = await Promise.all([
     // The overdue figure still covers earlier months; the list itself shows only what is due in the chosen month.
     fetchFromApi<ListData>("expenses", { from: first, to: lastDay(month) }), monthTotals(addMonths(month, -1)), monthTotals(addMonths(month, 1)),
     fetchFromApi<Payment[]>("payments"), fetchFromApi<Recurrence[]>("expense-recurrences"), fetchFromApi<ContributionData>("expenses/contributions", { month: first }),
     fetchFromApi<Person[]>("people"), fetchFromApi<ExpenseType[]>("expense-types"), fetchFromApi<CatalogItem[]>("catalogs/categories"),
-    fetchFromApi<CatalogItem[]>("catalogs/creditors"), fetchFromApi<CatalogItem[]>("catalogs/payment-methods")]);
+    fetchFromApi<CatalogItem[]>("catalogs/creditors"), fetchFromApi<CatalogItem[]>("catalogs/payment-methods"), fetchFromApi<Card[]>("cards")]);
   const catalogs = { types, categories, creditors, methods, people };
   const canEdit = session.permissions.includes("finance.write");
   const canSettle = session.permissions.includes("payments.settle");
-  return <ExpensesView catalogs={catalogs} accounts={accounts.accounts} today={list.today} canEdit={canEdit} canSettle={canSettle}>
+  // Only active cards can take a payment; the list is the same one offered in "Pagar" and in "Já foi paga".
+  const activeCards = cards.filter(card => card.isActive);
+  return <ExpensesView catalogs={catalogs} accounts={accounts.accounts} cards={activeCards} today={list.today} canEdit={canEdit} canSettle={canSettle}>
     <nav className="month-nav" aria-label="Mês das despesas">
       <Link href={`/expenses?month=${addMonths(month, -1)}`} aria-label="Mês anterior"><ChevronLeft aria-hidden="true" size={20} /><span className="nav-text">Anterior</span></Link>
       <strong aria-current="date">{capitalize(monthLabel(month))}</strong>
@@ -46,7 +49,8 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
       <div><dt>Falta pagar</dt><dd>{money(list.open)}</dd></div>
       <div><dt>Vencidas em aberto (todos os meses)</dt><dd className={Number(list.overdue) > 0 ? "alert-figure" : ""}>{money(list.overdue)}</dd></div>
     </dl>
-    <ExpenseList items={list.items.filter(item => item.dueDate >= list.from)}accounts={accounts.accounts} catalogs={catalogs} today={list.today} canEdit={canEdit} canSettle={canSettle} />
+    <ExpenseList items={list.items.filter(item => item.dueDate >= list.from)} accounts={accounts.accounts} cards={activeCards} catalogs={catalogs} today={list.today}
+      canEdit={canEdit} canSettle={canSettle} />
     <h2>Rateio de {monthLabel(month)}</h2>
     <Contributions data={contributions} />
     <h2>Contas recorrentes</h2>

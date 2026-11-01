@@ -70,7 +70,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Cards
             """;
         private const string SelectPurchase = """
             SELECT p.Code,c.Code CardCode,c.Name CardName,p.Description,p.PurchaseDate,p.TotalAmount,p.InstallmentCount,p.RefundedAmount,
-                cat.Code CategoryCode,cat.Name CategoryName,b.Code BuyerPersonCode,b.Name BuyerName,t.Code ExpenseTypeCode,p.ExpenseTypeVersion,p.FieldValuesJson,p.Version
+                cat.Code CategoryCode,cat.Name CategoryName,b.Code BuyerPersonCode,b.Name BuyerName,t.Code ExpenseTypeCode,p.ExpenseTypeVersion,p.FieldValuesJson,p.Version,
+                (SELECT py.Code FROM Payment py WHERE py.IdTenant=p.IdTenant AND py.IdCardPurchase=p.Id ORDER BY py.Id LIMIT 1) PaymentCode
             FROM CardPurchase p
             JOIN CreditCard c ON c.Id=p.IdCreditCard AND c.IdTenant=p.IdTenant
             LEFT JOIN Category cat ON cat.Id=p.IdCategory AND cat.IdTenant=p.IdTenant
@@ -80,6 +81,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Cards
         public const string Purchases = SelectPurchase + " WHERE p.IdTenant=@IdTenant AND p.PurchaseDate BETWEEN @From AND @To ORDER BY p.PurchaseDate DESC,p.Id DESC";
         public const string GetPurchase = SelectPurchase + " WHERE p.IdTenant=@IdTenant AND p.Code=@Code";
         public const string FindPurchase = "SELECT * FROM CardPurchase WHERE IdTenant=@IdTenant AND Code=@Code";
+        public const string FindPurchaseById = "SELECT * FROM CardPurchase WHERE IdTenant=@IdTenant AND Id=@Id";
         public const string PurchaseItems = """
             SELECT x.Code,i.Code InvoiceCode,i.ClosingDate,x.Kind,x.InstallmentNumber,x.Amount
             FROM CardItem x JOIN CardInvoice i ON i.Id=x.IdCardInvoice AND i.IdTenant=x.IdTenant
