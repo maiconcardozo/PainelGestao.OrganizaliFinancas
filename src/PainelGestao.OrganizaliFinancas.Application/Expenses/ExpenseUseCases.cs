@@ -18,14 +18,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
             var to = request.To ?? from.AddMonths(1).AddDays(-1);
             if (from > to || to.DayNumber - from.DayNumber > 366)
                 throw new InputValidationException(new Dictionary<string, string[]> { ["From"] = ["Escolha um período de até 366 dias."] });
-            // A18: a card invoice is not a household expense here; its purchases (and expenses paid on the card) already count, and it is paid in Cartões.
-            var records = (await work.ExpenseRepository.ListAsync(idTenant, HouseholdCalendar.Day(from), HouseholdCalendar.Day(to), request.IncludeOverdue, ct))
-                .Where(x => x.CardInvoiceCode is null).ToArray();
-            var items = await ExpenseMapper.ReadAsync(work, idTenant, records, today, ct);
-            var inPeriod = items.Where(x => x.DueDate >= from && x.Status != "cancelled").ToArray();
-            decimal Sum(IEnumerable<ExpenseDto> list, Func<ExpenseDto, string> value) => list.Sum(x => Money.Parse(value(x)));
-            return new ExpenseListDto(from, to, today, Money.Format(inPeriod.Sum(x => Money.Parse(x.Amount) + Money.Parse(x.Adjustments))),
-                Money.Format(Sum(inPeriod, x => x.Paid)), Money.Format(Sum(inPeriod, x => x.OpenBalance)), Money.Format(Sum(items.Where(x => x.IsOverdue), x => x.OpenBalance)), items);
+            // A18/A19: no card invoice here (it is paid in Cartões); the card purchases due in the period are listed instead, in the invoice's month.
+            return await ExpenseListing.ReadAsync(work, idTenant, from, to, request.IncludeOverdue, today, ct);
         }
     }
     public class GetExpenseHandler(IUnitOfWork work) : IRequestHandler<GetExpenseQuery, ExpenseDetailDto>

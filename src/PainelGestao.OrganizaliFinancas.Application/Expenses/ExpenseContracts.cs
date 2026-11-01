@@ -27,11 +27,13 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
     public sealed record InstallmentPayload(ExpenseDetailsPayload Details, InstallmentPreviewPayload Plan);
 
     public sealed record ShareDto(Guid PersonCode, string PersonName, string Amount, string? Percent);
+    /// <summary>CardPurchaseCode, CardName and PurchaseDate are set on a card purchase listed in Despesas (A19): it is read-only there and settled by its invoice in Cartões.</summary>
     public sealed record ExpenseDto(Guid Code, string Description, string Competence, DateOnly DueDate, string Amount, string Adjustments, string Paid,
         string OpenBalance, string Status, bool IsOverdue, bool IsEstimated, string? CancelReason, Guid? ExpenseTypeCode, string? ExpenseTypeName,
         int? ExpenseTypeVersion, Guid? CategoryCode, string? CategoryName, Guid? CreditorCode, string? CreditorName, Guid? PaymentMethodCode,
         Guid? PayerPersonCode, string? PayerPersonName, Guid? RecurrenceCode, bool IsDetached, Guid? InstallmentPlanCode, int? InstallmentNumber,
-        int? InstallmentCount, Guid? CardInvoiceCode, string? SplitMode, IReadOnlyList<ShareDto> Shares, JsonElement Fields, int Version);
+        int? InstallmentCount, Guid? CardInvoiceCode, string? SplitMode, IReadOnlyList<ShareDto> Shares, JsonElement Fields, int Version,
+        Guid? CardPurchaseCode = null, string? CardName = null, DateOnly? PurchaseDate = null);
     /// <summary>Totals cover the obligations due in the period; overdue items from earlier periods are listed and summed separately.</summary>
     public sealed record ExpenseListDto(DateOnly From, DateOnly To, DateOnly Today, string Total, string Paid, string Open, string Overdue, IReadOnlyList<ExpenseDto> Items);
     public sealed record AdjustmentDto(Guid Code, string Kind, string Amount, DateOnly Date, string Reason);

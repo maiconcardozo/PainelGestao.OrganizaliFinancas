@@ -117,7 +117,24 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             var dueMonthStart = new DateOnly(eloCycle.DueDate.Year, eloCycle.DueDate.Month, 1);
             var dueMonth = (await owner.GetFromJsonAsync<SuccessDetails<ExpenseListDto>>(
                 $"/api/expenses?from={dueMonthStart:yyyy-MM-dd}&to={dueMonthStart.AddMonths(1).AddDays(-1):yyyy-MM-dd}&includeOverdue=false"))!.Data;
-            dueMonth.Items.Should().NotContain(x => x.Code == eloInvoice.ExpenseCode || x.CardInvoiceCode != null);
+            dueMonth.Items.Should().NotContain(x => x.Code == eloInvoice.ExpenseCode || x.CardPurchaseCode == onCard.PurchaseCode, "Internet is already the expense");
+            // A19: ordinary card purchases are listed in Despesas in the month their invoice is due and follow the invoice's payments; the invoice itself never is.
+            async Task<ExpenseListDto> MonthOf(DateOnly due)
+            {
+                var start = new DateOnly(due.Year, due.Month, 1);
+                return (await owner.GetFromJsonAsync<SuccessDetails<ExpenseListDto>>($"/api/expenses?from={start:yyyy-MM-dd}&to={start.AddMonths(1).AddDays(-1):yyyy-MM-dd}&includeOverdue=false"))!.Data;
+            }
+            var visaMonth = await MonthOf(invoice.DueDate);
+            visaMonth.Items.Should().NotContain(x => x.Code == invoice.ExpenseCode);
+            var market = visaMonth.Items.Single(x => x.CardPurchaseCode == purchase.Code && x.Amount == "300.00");
+            (market.Status, market.Paid, market.OpenBalance, market.CardName, market.DueDate, market.Competence, market.PurchaseDate)
+                .Should().Be(("paid", "300.00", "0.00", (string?)"Visa da casa", invoice.DueDate, invoice.ReferenceMonth, (DateOnly?)today));
+            visaMonth.Items.Should().Contain(x => x.CardPurchaseCode == purchase.Code && x.Amount == "-50.00" && x.Status == "paid", "the store credit follows the paid invoice");
+            visaMonth.Items.Should().NotContain(x => x.CardPurchaseCode == tv.Code, "cancelled installments are not expenses");
+            Money.Parse(visaMonth.Total).Should().BeGreaterThanOrEqualTo(289.90m, "the purchases of the invoice count in the month total");
+            var pharmacy = (await MonthOf(partial.DueDate)).Items.Single(x => x.CardPurchaseCode != null && x.Description == "Farmácia");
+            (pharmacy.Status, pharmacy.Paid, pharmacy.OpenBalance, pharmacy.CardInvoiceCode).Should().Be(("partial", "100.00", "200.00", (Guid?)partial.Code));
+            (await owner.DeleteAsync($"/api/expenses/{market.Code}")).StatusCode.Should().Be(HttpStatusCode.NotFound, "a card row is not an obligation");
             (await owner.DeleteAsync($"/api/expenses/{eloInvoice.ExpenseCode}")).StatusCode.Should().Be(HttpStatusCode.Conflict);
             var settlement = (await owner.GetFromJsonAsync<SuccessDetails<PurchaseDto[]>>("/api/card-purchases"))!.Data.Single(x => x.Code == onCard.PurchaseCode);
             settlement.PaymentCode.Should().Be(onCard.Code);

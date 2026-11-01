@@ -36,6 +36,17 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         /// <summary>Set when the purchase is the settlement of an expense paid on the card (A17); it is then undone by reversing that payment, never deleted.</summary>
         public Guid? PaymentCode { get; init; }
     }
+    /// <summary>Active item of an invoice due in a period, with the purchase it belongs to and the invoice's settlement, for the Despesas list (A19).</summary>
+    public sealed record CardItemDueRecord
+    {
+        public Guid Code { get; init; } public Guid PurchaseCode { get; init; } public Guid InvoiceCode { get; init; } public Guid CardCode { get; init; }
+        public string CardName { get; init; } = string.Empty; public string Description { get; init; } = string.Empty; public DateTime PurchaseDate { get; init; }
+        public string Kind { get; init; } = string.Empty; public int? InstallmentNumber { get; init; } public int InstallmentCount { get; init; } public decimal Amount { get; init; }
+        public string? Note { get; init; } public DateTime ReferenceMonth { get; init; } public DateTime DueDate { get; init; }
+        public decimal InvoiceAmount { get; init; } public decimal InvoiceAdjustments { get; init; } public decimal InvoicePaid { get; init; }
+        public Guid? CategoryCode { get; init; } public string? CategoryName { get; init; } public Guid? BuyerPersonCode { get; init; } public string? BuyerName { get; init; }
+        public Guid? ExpenseTypeCode { get; init; } public string? ExpenseTypeName { get; init; } public int? ExpenseTypeVersion { get; init; } public string FieldValuesJson { get; init; } = "{}";
+    }
     /// <summary>What stands in the way of removing a card: purchases still registered and invoices with a payment, adjustment, share or receipt.</summary>
     public sealed record CardUsage { public int Purchases { get; init; } public int LockedInvoices { get; init; } }
 
@@ -56,6 +67,8 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         /// <summary>The invoice and its backing obligation are created together and linked by Code in the same transaction.</summary>
         void AddInvoice(CardInvoice invoice, Obligation obligation);
         Task<IReadOnlyList<CardItemRecord>> ListItemsAsync(int idTenant, Guid invoiceCode, CancellationToken ct);
+        /// <summary>Active items of invoices due in the period (and, when asked, of earlier invoices still open), except the settlement of an expense paid on the card (A17).</summary>
+        Task<IReadOnlyList<CardItemDueRecord>> ListItemsDueAsync(int idTenant, DateTime from, DateTime to, bool includeOverdue, CancellationToken ct);
 
         Task<IReadOnlyList<PurchaseRecord>> ListPurchasesAsync(int idTenant, DateTime from, DateTime to, CancellationToken ct);
         Task<PurchaseRecord?> GetPurchaseAsync(int idTenant, Guid code, CancellationToken ct);

@@ -196,16 +196,15 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
             var expected = forecasts.Where(x => x.Status != "closed" || x.ReceivedAmount > 0).Sum(x => x.ExpectedAmount ?? 0);
             var received = (await work.IncomeRepository.ReceivedTotalsAsync(idTenant, HouseholdCalendar.Day(month), HouseholdCalendar.Day(month.AddMonths(1)), ct)).Sum(x => x.Total);
             var pending = forecasts.Where(x => x.Status == "open" && x.ExpectedAmount is not null).Sum(x => Math.Max(0, x.ExpectedAmount!.Value - x.ReceivedAmount));
-            var obligations = await work.ExpenseRepository.ListAsync(idTenant, HouseholdCalendar.Day(month), HouseholdCalendar.Day(month.AddMonths(1).AddDays(-1)), false, ct);
-            var states = obligations.Where(x => x.Status != "cancelled").Select(x => (Record: x,
-                State: ObligationBalance.Of(x.Amount, x.Adjustments, x.Paid, false, DateOnly.FromDateTime(x.DueDate), planner.Today))).ToArray();
+            // The month's expenses are exactly what Despesas shows for it (A18/A19): no card invoice, the card purchases due in the month instead.
+            var expenses = await Expenses.ExpenseListing.ReadAsync(work, idTenant, month, month.AddMonths(1).AddDays(-1), false, planner.Today, ct);
+            var open = expenses.Items.Where(x => x.DueDate >= month && x.Status != "cancelled").Sum(x => Math.Max(0, Money.Parse(x.OpenBalance)));
             var (_, projection) = await planner.ProjectionAsync(planner.Today.AddDays(HouseholdPlanner.ProjectionDays), ct);
             var (budget, _) = await planner.BudgetAsync(month, ct);
             var alerts = (await planner.AlertsAsync(ct)).Select(HouseholdPlanner.Map).ToArray();
             return new DashboardDto(month.ToString("yyyy-MM"), planner.Today, Money.Format(balance),
                 new MonthIncomeDto(Money.Format(expected), Money.Format(received), Money.Format(pending)),
-                new MonthExpenseDto(Money.Format(states.Sum(x => x.Record.Amount + x.Record.Adjustments)), Money.Format(states.Sum(x => x.Record.Paid)),
-                    Money.Format(states.Sum(x => Math.Max(0, x.State.OpenBalance))), Money.Format(states.Where(x => x.State.IsOverdue).Sum(x => x.State.OpenBalance))),
+                new MonthExpenseDto(expenses.Total, expenses.Paid, Money.Format(open), expenses.Overdue),
                 projection, budget, await planner.AgendaAsync(ct), alerts.Take(6).ToArray(), alerts.Count(x => x.Status == "new"));
         }
     }

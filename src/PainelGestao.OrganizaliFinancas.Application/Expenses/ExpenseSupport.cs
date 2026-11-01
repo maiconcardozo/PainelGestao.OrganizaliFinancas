@@ -100,11 +100,64 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
             var today = await HouseholdCalendar.TodayAsync(work, idTenant, ct);
             return (await ReadAsync(work, idTenant, [record], today, ct))[0];
         }
+        /// <summary>
+        /// Card purchases as rows of Despesas (A19): every active item of an invoice due in the period, in the invoice's month. The invoice's own payments
+        /// settle its items in order, so the rows' paid and open amounts add up to the invoice's; a store credit follows the invoice's state.
+        /// </summary>
+        public static IReadOnlyList<ExpenseDto> CardItems(IReadOnlyList<CardItemDueRecord> records, DateOnly today)
+        {
+            var rows = new List<ExpenseDto>();
+            foreach (var invoice in records.GroupBy(x => x.InvoiceCode))
+            {
+                var head = invoice.First();
+                var settled = head.InvoicePaid > 0 && head.InvoicePaid >= head.InvoiceAmount + head.InvoiceAdjustments;
+                var remaining = head.InvoicePaid;
+                foreach (var x in invoice)
+                {
+                    var due = DateOnly.FromDateTime(x.DueDate);
+                    decimal paid;
+                    string status;
+                    var overdue = false;
+                    if (x.Amount <= 0) (paid, status) = settled ? (x.Amount, "paid") : (0, "open");
+                    else
+                    {
+                        paid = settled ? x.Amount : Math.Min(x.Amount, Math.Max(0, remaining));
+                        remaining -= paid;
+                        var state = ObligationBalance.Of(x.Amount, 0, paid, false, due, today);
+                        (status, overdue) = (state.Status, state.IsOverdue);
+                    }
+                    var installments = x.Kind == "installment" && x.InstallmentCount > 1;
+                    rows.Add(new ExpenseDto(x.Code, x.Kind == "credit" ? $"{x.Description} (crédito da loja)" : x.Description, x.ReferenceMonth.ToString("yyyy-MM"), due,
+                        Money.Format(x.Amount), "0.00", Money.Format(paid), Money.Format(x.Amount - paid), status, overdue, false, null,
+                        x.ExpenseTypeCode, x.ExpenseTypeName, x.ExpenseTypeVersion, x.CategoryCode, x.CategoryName, null, null, null,
+                        x.BuyerPersonCode, x.BuyerName, null, false, null, installments ? x.InstallmentNumber : null, installments ? x.InstallmentCount : null,
+                        x.InvoiceCode, null, [], Fields(x.FieldValuesJson), 0, x.PurchaseCode, x.CardName, DateOnly.FromDateTime(x.PurchaseDate)));
+                }
+            }
+            return rows;
+        }
         public static PaymentAllocationDto Allocation(PaymentAllocationRecord x) => new(x.PaymentCode, x.ExpenseCode, x.ExpenseDescription, Money.Format(x.Amount),
             DateOnly.FromDateTime(x.PaymentDate), x.AccountName, x.CardName, x.IsReversed);
         public static PaymentDto Payment(PaymentRecord x, IEnumerable<PaymentAllocationRecord> allocations) => new(x.Code, x.AccountCode, x.AccountName,
             x.CardCode, x.CardName, x.PurchaseCode, x.PayerPersonCode, x.PayerPersonName, x.PaymentMethodCode, DateOnly.FromDateTime(x.PaymentDate),
             Money.Format(x.Amount), x.Description, x.DtReversed is not null, x.ReversalReason, allocations.Where(a => a.PaymentCode == x.Code).Select(Allocation).ToArray());
+    }
+
+    /// <summary>What Despesas shows for a period: the household's obligations (never the card invoice, A18) plus the card purchases due in it (A19).</summary>
+    internal static class ExpenseListing
+    {
+        public static async Task<ExpenseListDto> ReadAsync(IUnitOfWork work, int idTenant, DateOnly from, DateOnly to, bool includeOverdue, DateOnly today, CancellationToken ct)
+        {
+            var (start, end) = (HouseholdCalendar.Day(from), HouseholdCalendar.Day(to));
+            var records = (await work.ExpenseRepository.ListAsync(idTenant, start, end, includeOverdue, ct)).Where(x => x.CardInvoiceCode is null).ToArray();
+            var expenses = await ExpenseMapper.ReadAsync(work, idTenant, records, today, ct);
+            var purchases = ExpenseMapper.CardItems(await work.CardRepository.ListItemsDueAsync(idTenant, start, end, includeOverdue, ct), today);
+            var items = expenses.Concat(purchases).OrderBy(x => x.DueDate).ToArray();
+            var inPeriod = items.Where(x => x.DueDate >= from && x.Status != "cancelled").ToArray();
+            decimal Sum(IEnumerable<ExpenseDto> list, Func<ExpenseDto, string> value) => list.Sum(x => Money.Parse(value(x)));
+            return new ExpenseListDto(from, to, today, Money.Format(inPeriod.Sum(x => Money.Parse(x.Amount) + Money.Parse(x.Adjustments))),
+                Money.Format(Sum(inPeriod, x => x.Paid)), Money.Format(Sum(inPeriod, x => x.OpenBalance)), Money.Format(Sum(items.Where(x => x.IsOverdue), x => x.OpenBalance)), items);
+        }
     }
 
     /// <summary>Applies the idempotent occurrence plan of one recurring expense inside the buffered transaction.</summary>

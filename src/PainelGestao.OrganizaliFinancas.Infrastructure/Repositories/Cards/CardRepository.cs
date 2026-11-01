@@ -41,6 +41,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Cards
         }
         public Task<IReadOnlyList<CardItemRecord>> ListItemsAsync(int idTenant, Guid invoiceCode, CancellationToken ct) =>
             List<CardItemRecord>(CardSql.Items, new { IdTenant = idTenant, InvoiceCode = invoiceCode }, ct);
+        public Task<IReadOnlyList<CardItemDueRecord>> ListItemsDueAsync(int idTenant, DateTime from, DateTime to, bool includeOverdue, CancellationToken ct) =>
+            List<CardItemDueRecord>(CardSql.ItemsDue, new { IdTenant = idTenant, From = from, To = to, IncludeOverdue = includeOverdue }, ct);
 
         public Task<IReadOnlyList<PurchaseRecord>> ListPurchasesAsync(int idTenant, DateTime from, DateTime to, CancellationToken ct) =>
             List<PurchaseRecord>(CardSql.Purchases, new { IdTenant = idTenant, From = from, To = to }, ct);

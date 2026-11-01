@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { civilDate, money, monthLabel, type Account } from "@/lib/finance";
 import { invoiceStatus, type Card, type Invoice, type InvoiceDetail, type Purchase } from "@/lib/cards";
 import type { Person } from "@/components/households/HouseholdForms";
-import { ShoppingBag, Trash2 } from "lucide-react";
+import { ShoppingBag, Trash2, Undo2 } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { EditButton, Empty, IconAction, ModalActions } from "@/components/common/Ui";
@@ -94,7 +94,7 @@ function PurchaseRow({ purchase, catalogs, canEdit, onDone }: Omit<PurchasesProp
         {purchase.paymentCode && " · despesa paga no cartão"}{Number(purchase.refunded) > 0 && (purchase.paymentCode ? " · pagamento estornado" : ` · estornado ${money(purchase.refunded)}`)}</span></span>
     <span className="num shrink-0 text-sm font-semibold">{money(purchase.total)}</span>
     {canEdit && <span className="flex shrink-0 items-center gap-1">
-      {remaining > 0 && !purchase.paymentCode && <button type="button" className="secondary-button" onClick={() => setDialog("refund")}>Estorno da loja</button>}
+      {remaining > 0 && !purchase.paymentCode && <IconAction label={`Registrar estorno da loja de ${purchase.description}`} onClick={() => setDialog("refund")}><Undo2 size={15} /></IconAction>}
       <EditButton name={purchase.description} onClick={() => setDialog("edit")} />
       {/* An expense paid on the card is undone by reversing its payment in Despesas, so the invoice and the expense change together. */}
       {!purchase.paymentCode && <IconAction label={`Excluir ${purchase.description}`} danger disabled={action.busy} onClick={() => setDialog("delete")}><Trash2 size={15} /></IconAction>}

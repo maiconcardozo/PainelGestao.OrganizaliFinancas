@@ -1,6 +1,7 @@
 "use client";
 import { useState, type FormEvent } from "react";
-import { Ban, Eye, HandCoins, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Ban, CreditCard, Eye, HandCoins, Trash2 } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Attachments } from "@/components/common/Attachments";
@@ -29,8 +30,11 @@ function ExpenseRow({ expense, accounts, cards, catalogs, today, canEdit, canSet
   const [panel, setPanel] = useState<"" | "pay" | "detail" | "cancel" | "delete">("");
   const [detail, setDetail] = useState<ExpenseDetail | null>(null);
   const open = expense.status === "open" || expense.status === "partial";
+  // A19: a card purchase is read-only here; it is edited, refunded or deleted in Cartões and settled by its invoice.
+  if (expense.cardPurchaseCode) return <CardPurchaseRow expense={expense} />;
   // A18: only an entry nobody paid can leave for good; a paid one keeps the cash history until its payment is reversed.
   const removable = canEdit && (expense.status === "open" || expense.status === "cancelled");
+  const paidNotice = canEdit && (expense.status === "paid" || expense.status === "partial");
   async function remove() {
     if (await action.send(`expenses/${expense.code}`, "DELETE", undefined, "Despesa excluída.")) setPanel("");
   }
@@ -64,10 +68,14 @@ function ExpenseRow({ expense, accounts, cards, catalogs, today, canEdit, canSet
           className="inline-flex items-center gap-1.5 rounded-md bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[var(--primary-strong)]"><HandCoins size={14} />Pagar</button>}
         <button type="button" disabled={action.busy} onClick={() => void showDetail()} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--primary)]`}><Eye size={14} />Detalhes</button>
         {canEdit && expense.status === "open" && <button type="button" onClick={() => setPanel("cancel")} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--critical)]`}><Ban size={14} />Cancelar despesa</button>}
-        {removable && <button type="button" onClick={() => setPanel("delete")} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--critical)]`}><Trash2 size={14} />Excluir</button>}
+        {(removable || paidNotice) && <button type="button" onClick={() => setPanel("delete")} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--critical)]`}><Trash2 size={14} />Excluir</button>}
       </div>
     </div>
-    {panel === "delete" && <ConfirmModal title={`Excluir ${expense.description}`} label="Excluir despesa" busy={action.busy} error={action.error} onConfirm={() => void remove()} onClose={() => setPanel("")}>
+    {panel === "delete" && paidNotice && <Modal title={`Excluir ${expense.description}`} onClose={() => setPanel("")} width="max-w-md">
+      <p className="text-sm">Esta despesa já tem pagamento registrado ({money(expense.paid)}). Para excluir, primeiro estorne o pagamento em <strong>Pagamentos recentes</strong>, no fim desta página:
+        o dinheiro volta para a conta e a despesa reabre. Depois o botão Excluir apaga a despesa de vez.</p>
+    </Modal>}
+    {panel === "delete" && removable && <ConfirmModal title={`Excluir ${expense.description}`} label="Excluir despesa" busy={action.busy} error={action.error} onConfirm={() => void remove()} onClose={() => setPanel("")}>
       <p className="text-sm">{expense.description} de {money(expense.amount)}, vencimento {civilDate(expense.dueDate)}, some de vez: não fica no histórico nem conta em mês nenhum.
         {expense.recurrenceCode ? " A recorrência continua; só esta ocorrência deixa de existir e não é recriada." : expense.installmentNumber ? " As outras parcelas continuam." : ""}
         {" "}Se preferir manter o registro com um motivo, use “Cancelar despesa”.</p>
@@ -84,6 +92,30 @@ function ExpenseRow({ expense, accounts, cards, catalogs, today, canEdit, canSet
     {panel === "detail" && detail && <Modal title={expense.description} onClose={() => setPanel("")} width="max-w-3xl">
       <DetailPanel detail={detail} catalogs={catalogs} canEdit={canEdit} canSettle={canSettle} />
     </Modal>}
+  </li>;
+}
+
+/** A card purchase in the month of its invoice: what it is, where it came from and how the invoice stands; the actions live in Cartões. */
+function CardPurchaseRow({ expense }: { expense: Expense }) {
+  const origin = expense.installmentNumber ? ` · parcela ${expense.installmentNumber}/${expense.installmentCount}` : "";
+  const status = expense.isOverdue ? "Fatura vencida" : expense.status === "paid" ? "Paga na fatura" : expense.status === "partial" ? "Fatura paga em parte" : "Na fatura";
+  return <li className={`expense-row status-${expense.status}${expense.isOverdue ? " is-overdue" : ""}`}>
+    <div className="expense-main">
+      <div><strong>{expense.description}</strong>
+        <span className="entry-meta">Fatura vence {civilDate(expense.dueDate)} · competência {monthLabel(expense.competence)}
+          {expense.categoryName && ` · ${expense.categoryName}`}{expense.payerPersonName && ` · ${expense.payerPersonName}`}</span>
+        <span className="entry-meta"><CreditCard size={12} className="mr-1 inline" aria-hidden="true" />Cartão {expense.cardName}
+          {expense.purchaseDate && `, compra de ${civilDate(expense.purchaseDate)}`}{origin}</span>
+      </div>
+      <div className="number"><strong>{money(expense.status === "paid" ? expense.amount : expense.openBalance)}</strong>
+        {expense.status === "partial" && <span className="entry-meta">em aberto de {money(expense.amount)}</span>}</div>
+    </div>
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <p className="status-line"><span className={`status-tag ${expense.isOverdue ? "overdue" : expense.status}`}>{status}</span></p>
+      <div className="row-actions">
+        <Link href="/cards" className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--primary)]`}><CreditCard size={14} />Ver em Cartões</Link>
+      </div>
+    </div>
   </li>;
 }
 
