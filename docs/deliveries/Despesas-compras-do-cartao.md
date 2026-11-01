@@ -36,7 +36,11 @@ Frontend: `components/expenses/ExpenseList.tsx` (linha `CardPurchaseRow`, aviso 
 
 ## Execução
 
-(preenchido após a validação no servidor)
+Tudo rodou no servidor da LAN (192.168.1.7, PowerShell Remoting), em contêineres descartáveis a partir do zip do commit `49a87db` expandido em `C:\apps\organizali-work\repo`:
+
+- `dotnet test` (SDK 10 em contêiner, Testcontainers com `host.docker.internal`): **96 aprovados, 1 falha** — `SmtpRecoveryDeliveryTests` (mesma falha conhecida desde M9, não relacionada). `PersistenceTests` aprovado com o cenário A19 de `CardAssertions`.
+- Frontend (imagem `organizali-frontend:5be2004` local, `npm ci --include=dev`): `tsc --noEmit`, `eslint` e `next build` aprovados.
+- **Publicação na LAN** (01/11/2026, 19:21): zip expandido em `C:\apps\OrganizaliFinancas`, `ORGANIZALI_VERSION=49a87db`, tarefa `OrganizaliDeploy` com `BUILD_EXIT=0` e `UP_EXIT=0`; sem migration nova; `api` e `frontend` na imagem `49a87db`; `/api/health` = Healthy; página de login 200; `GET /api/backend/expenses` responde pelo proxy (401 sem sessão). Fumaça funcional na tela (compras do cartão em Despesas, aviso ao excluir despesa paga, ícone de estorno em Cartões) fica para a Carolina, que tem o login do piloto.
 
 ## Limitações e pendências
 
