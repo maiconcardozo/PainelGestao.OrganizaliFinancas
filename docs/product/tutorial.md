@@ -1,6 +1,6 @@
 # Tutorial — como usar o Organizali Finanças
 
-Guia para quem vai usar o sistema no dia a dia da casa. Os nomes de telas, botões e campos aparecem aqui exatamente como estão na interface. Este mesmo texto fica dentro do sistema, no menu **Ajuda**. Atualizado em 14/10/2026.
+Guia para quem vai usar o sistema no dia a dia da casa. Os nomes de telas, botões e campos aparecem aqui exatamente como estão na interface. Este mesmo texto fica dentro do sistema, no menu **Ajuda**. Atualizado em 01/11/2026.
 
 ## 1. Entrar no sistema
 
@@ -102,7 +102,7 @@ Na lista de despesas, clique em **Pagar**. Informe **Pagar com** (uma conta ou, 
 
 - **Detalhes** mostra valor original, encargos, pago e em aberto. Ali dá para **Alterar despesa** (descrição, categoria, valor, vencimento, competência e responsáveis) e **Registrar encargo, desconto ou ajuste**. Depois de um pagamento, o valor original fica travado: corrija com juros, multa, desconto ou ajuste (aceita valor negativo).
 - Em uma despesa que veio de recorrente, **Detalhes** altera "somente esta ocorrência". Para mudar as próximas (valor novo do aluguel, por exemplo), use o lápis em **Contas recorrentes**: **Ver o que muda** mostra a prévia e **Salvar esta e próximas** aplica a partir da data escolhida. Para encerrar uma recorrência, desmarque **Recorrência ativa**.
-- **Cancelar despesa** exige motivo e só funciona sem pagamento ativo. Despesa paga por engano: o titular estorna o pagamento primeiro, em **Pagamentos recentes → Estornar**, com **Motivo do estorno**. O estorno devolve o dinheiro à conta e reabre a despesa.
+- **Cancelar despesa** exige motivo e só funciona sem pagamento ativo; o registro fica no histórico, riscado, com o motivo. **Excluir** apaga de vez uma despesa aberta ou cancelada (lançada por engano, duplicada): some da lista, do total e do orçamento, sem deixar rastro; em uma parcela, as outras continuam; em uma ocorrência de recorrente, só aquela some e não volta. Despesa paga por engano: o titular estorna o pagamento primeiro, em **Pagamentos recentes → Estornar**, com **Motivo do estorno**; o estorno devolve o dinheiro à conta e reabre a despesa, e aí ela pode ser excluída. Despesa com comprovante: remova o comprovante antes.
 - **Atualizar vencimentos** avança as recorrências até o mês atual mais 12. O servidor faz isso todo dia sozinho; o botão serve para adiantar.
 
 ### 3.4 Registrar uma renda
@@ -116,7 +116,7 @@ Na lista de despesas, clique em **Pagar**. Informe **Pagar com** (uma conta ou, 
 ### 3.5 Cartão de crédito
 
 - **Lançar compra**: **Cartão**, **Descrição**, **Tipo de despesa** (tipos "Cartão"), **Categoria**, **Quem comprou**, **Valor total**, **Parcelas** (1 a 120) e **Data da compra**. **Ver em quais faturas cai** mostra fatura, fechamento e vencimento de cada parcela e permite mover a primeira parcela uma fatura antes ou depois. A compra não sai da conta bancária: entra na fatura.
-- **Pagar fatura** usa a mesma janela de pagamento das despesas (só com conta; fatura não se paga com cartão). É o único momento em que o dinheiro sai da conta, uma vez só. A fatura também aparece em **Despesas** como "Fatura do cartão".
+- **Pagar fatura** usa a mesma janela de pagamento das despesas (só com conta; fatura não se paga com cartão). É o único momento em que o dinheiro sai da conta, uma vez só. A fatura **não** aparece em **Despesas** nem soma no total do mês: as compras do cartão e as despesas pagas no cartão já contam lá; a fatura fica só aqui e no fluxo de caixa.
 - **Despesa paga no cartão** (ver 3.2) aparece em **Ver compras** da fatura com a descrição da despesa e, em **Compras recentes**, marcada como "despesa paga no cartão": não tem Excluir nem Estorno da loja; para desfazer, estorne o pagamento em **Despesas**.
 - **Ver compras** lista os itens da fatura. **Estorno da loja** cancela as parcelas ainda abertas e transforma o restante em crédito na fatura.
 - Em **Compras recentes**, o lápis **edita** descrição, tipo, categoria e quem comprou (valor, data e parcelas não mudam: para isso, exclua e lance de novo). A lixeira **exclui** a compra e tira as parcelas das faturas; se uma fatura com essa compra já foi paga, a exclusão é recusada e o caminho é o estorno da loja.

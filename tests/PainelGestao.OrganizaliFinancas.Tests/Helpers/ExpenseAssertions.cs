@@ -85,6 +85,22 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             (cancelled.Status, cancelled.CancelReason).Should().Be(("cancelled", "Serviço cancelado"));
             await PostStatus(owner, "/api/payments", Pay(account.Code, today, unpaid.Code, "1.00"), Guid.NewGuid(), HttpStatusCode.Conflict);
 
+            // A18: an entry made by mistake is deleted for good; a paid one must have its payment reversed first; a reader cannot delete.
+            (await owner.DeleteAsync($"/api/expenses/{expense.Code}")).StatusCode.Should().Be(HttpStatusCode.Conflict, "Luz has a live payment");
+            (await reader.DeleteAsync($"/api/expenses/{unpaid.Code}")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            (await other.DeleteAsync($"/api/expenses/{unpaid.Code}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+            (await owner.DeleteAsync($"/api/expenses/{unpaid.Code}")).StatusCode.Should().Be(HttpStatusCode.NoContent, "a cancelled expense can be deleted");
+            (await owner.GetAsync($"/api/expenses/{unpaid.Code}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+            var mistake = await Post<ExpenseDto>(owner, "/api/expenses", new ExpensePayload(Details("Lançada por engano", null, null, "percent", [new(ana.Code, "50"), new(bruno.Code, "50")]),
+                month, today, "70.00", 0, null), Guid.NewGuid(), HttpStatusCode.Created);
+            await Adjust(owner, mistake.Code, "interest", "1.00", HttpStatusCode.Created);
+            var mistaken = await Post<PaymentDto>(owner, "/api/payments", Pay(account.Code, today, mistake.Code, "10.00"), Guid.NewGuid(), HttpStatusCode.Created);
+            (await owner.DeleteAsync($"/api/expenses/{mistake.Code}")).StatusCode.Should().Be(HttpStatusCode.Conflict);
+            await Post<PaymentDto>(owner, $"/api/payments/{mistaken.Code}/reversals", new ReversalPayload("Despesa errada", null), Guid.NewGuid(), HttpStatusCode.Created);
+            (await owner.DeleteAsync($"/api/expenses/{mistake.Code}")).StatusCode.Should().Be(HttpStatusCode.NoContent, "shares, adjustments and reversed allocations go with it");
+            (await owner.GetAsync($"/api/expenses/{mistake.Code}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+            (await Balance(owner, account.Code)).Should().Be("4683.00", "the reversed payment and its movements stay in the ledger");
+
             // RF18: 100 in 3 installments sums exactly 100, each in its own competence.
             var preview = await Ok<InstallmentPreviewDto>(owner, "/api/expense-installments/preview", new InstallmentPreviewPayload("100.00", 3, today, "monthly"));
             preview.Items.Select(x => x.Amount).Should().Equal("33.33", "33.33", "33.34");
@@ -115,6 +131,10 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             changed.Plan.Inserted.Should().Be(0);
             occurrences = await Recurring(owner, water.Recurrence.Code, month, month.AddMonths(3));
             occurrences.Select(x => x.Amount).Should().Equal("120.00", "150.00", "131.00", "150.00");
+            // A18: a deleted occurrence disappears from the list and the generator does not bring it back.
+            (await owner.DeleteAsync($"/api/expenses/{occurrences[3].Code}")).StatusCode.Should().Be(HttpStatusCode.NoContent);
+            (await Ok<RecurrencePlanDto>(owner, "/api/expense-recurrences/generate", null)).Inserted.Should().Be(0, "the hidden occurrence is locked");
+            (await Recurring(owner, water.Recurrence.Code, month, month.AddMonths(3))).Select(x => x.Amount).Should().Equal("120.00", "150.00", "131.00");
             await Put<RecurrenceSaveDto>(owner, $"/api/expense-recurrences/{water.Recurrence.Code}", new RecurrencePayload(Details("Água"),
                 new RecurrenceTermsPayload(month.AddDays(-30), null, "monthly", "150.00", false, true), changed.Recurrence.Version), HttpStatusCode.Conflict);
 
@@ -139,6 +159,12 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
                 new { water.Recurrence.Code })).Should().Be(0);
             (await database.QuerySingleAsync<decimal>("SELECT SUM(Amount) FROM Obligation o JOIN InstallmentPlan p ON p.Id=o.IdInstallmentPlan WHERE p.Code=@Code", new { purchase.Code }))
                 .Should().Be(100m);
+            (await database.QuerySingleAsync<long>("SELECT COUNT(*) FROM Obligation WHERE Code IN (@Unpaid,@Mistake)", new { Unpaid = unpaid.Code, Mistake = mistake.Code }))
+                .Should().Be(0, "deleted expenses leave no row behind");
+            // A18: the three installments go one by one; the plan row leaves with the last one.
+            foreach (var installment in purchase.Installments)
+                (await owner.DeleteAsync($"/api/expenses/{installment.Code}")).StatusCode.Should().Be(HttpStatusCode.NoContent);
+            (await database.QuerySingleAsync<long>("SELECT COUNT(*) FROM InstallmentPlan WHERE Code=@Code", new { purchase.Code })).Should().Be(0);
         }
 
         private static PaymentPayload Pay(Guid account, DateOnly date, Guid expense, string amount) =>

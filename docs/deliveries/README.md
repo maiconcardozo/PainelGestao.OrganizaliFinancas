@@ -28,3 +28,4 @@ Próximas entregas devem usar a mesma estrutura, atualizar o [quadro consolidado
 - [Sessão renovada sozinha (14/10/2026)](Sessao-renovacao-automatica.md): correção do "cai para o login"; renovação silenciosa no proxy do Next, acesso de 60 min e sessão de 30 dias.
 - [Excluir e editar em cartões e compras (14/10/2026)](Cartoes-excluir-editar.md): ativar/desativar e excluir cartão; editar e excluir compra; limpeza das compras de teste no piloto.
 - [Despesa paga com cartão de crédito (01/11/2026)](Despesas-pagas-no-cartao.md): "Pagar com" aceita um cartão; o valor entra na fatura pelo fechamento, nada sai da conta, e o estorno do pagamento desfaz o item da fatura.
+- [Fatura fora de Despesas, excluir despesa e limpeza (01/11/2026)](Despesas-excluir-e-fatura.md): a fatura do cartão deixa de ser listada e somada em Despesas; despesa aberta ou cancelada pode ser excluída de vez; lançamentos cancelados e estornados do piloto apagados.

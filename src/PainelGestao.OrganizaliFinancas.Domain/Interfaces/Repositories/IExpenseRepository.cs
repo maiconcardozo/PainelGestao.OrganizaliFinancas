@@ -89,6 +89,15 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         void AddAdjustment(ObligationAdjustment adjustment);
         void AddInstallmentPlan(InstallmentPlan plan);
         void LinkInstallment(int idTenant, Guid obligationCode, Guid planCode);
+        /// <summary>Active receipts attached to the obligation; they block a physical delete so no stored file is orphaned.</summary>
+        Task<int> CountAttachmentsAsync(int idTenant, Guid obligationCode, CancellationToken ct);
+        /// <summary>
+        /// Hard delete of an obligation nobody paid: shares, adjustments, allocations of reversed payments and the row itself go;
+        /// an installment plan left without installments goes with it. The caller checked <see cref="Obligation.EnsureRemovable"/>.
+        /// </summary>
+        void Remove(Obligation obligation);
+        /// <summary>Hides a recurring occurrence and detaches it, so lists stop showing it and the recurrence never recreates it.</summary>
+        void HideOccurrence(Obligation obligation, string actor);
 
         Task<Payment?> FindPaymentAsync(int idTenant, Guid code, CancellationToken ct);
         Task<PaymentRecord?> GetPaymentAsync(int idTenant, Guid code, CancellationToken ct);

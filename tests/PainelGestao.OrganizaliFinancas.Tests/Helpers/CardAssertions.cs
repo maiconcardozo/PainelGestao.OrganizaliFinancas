@@ -113,6 +113,12 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             (eloInvoice.Amount, eloInvoice.DueDate).Should().Be(("120.00", eloCycle.DueDate));
             (await owner.GetFromJsonAsync<SuccessDetails<InvoiceDetailDto>>($"/api/card-invoices/{eloInvoice.Code}"))!.Data.Items
                 .Should().ContainSingle(x => x.Description == "Internet" && x.Amount == "120.00" && x.PurchaseCode == onCard.PurchaseCode);
+            // A18: the invoice is not listed as an expense (Internet already is), so the month total is not doubled; it is paid in Cartões and cannot be deleted here.
+            var dueMonthStart = new DateOnly(eloCycle.DueDate.Year, eloCycle.DueDate.Month, 1);
+            var dueMonth = (await owner.GetFromJsonAsync<SuccessDetails<ExpenseListDto>>(
+                $"/api/expenses?from={dueMonthStart:yyyy-MM-dd}&to={dueMonthStart.AddMonths(1).AddDays(-1):yyyy-MM-dd}&includeOverdue=false"))!.Data;
+            dueMonth.Items.Should().NotContain(x => x.Code == eloInvoice.ExpenseCode || x.CardInvoiceCode != null);
+            (await owner.DeleteAsync($"/api/expenses/{eloInvoice.ExpenseCode}")).StatusCode.Should().Be(HttpStatusCode.Conflict);
             var settlement = (await owner.GetFromJsonAsync<SuccessDetails<PurchaseDto[]>>("/api/card-purchases"))!.Data.Single(x => x.Code == onCard.PurchaseCode);
             settlement.PaymentCode.Should().Be(onCard.Code);
             (await owner.DeleteAsync($"/api/card-purchases/{settlement.Code}")).StatusCode.Should().Be(HttpStatusCode.Conflict, "the settlement is undone through the payment");

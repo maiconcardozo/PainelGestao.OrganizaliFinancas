@@ -111,6 +111,17 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
             Status = "cancelled"; CancelReason = reason.Trim(); Version++;
             UpdateAuditInfo(actor);
         }
+        /// <summary>
+        /// Deleting (A18) is for entries made by mistake: open or cancelled, without a live payment. A paid obligation keeps the cash history,
+        /// so its payments are reversed first; an invoice leaves only with its card or purchases.
+        /// </summary>
+        public void EnsureRemovable(decimal livePaid)
+        {
+            if (IsInvoice()) throw new ConflictException("A fatura não é excluída por aqui: exclua ou estorne as compras do cartão.");
+            if (livePaid > 0) throw new ConflictException("Esta despesa tem pagamento ativo. Estorne o pagamento antes de excluir.");
+        }
+        /// <summary>An occurrence of a recurrence is hidden and detached instead of deleted, so the next generation does not recreate it.</summary>
+        public bool IsRecurringOccurrence() => IdRecurringExpense is not null;
         private void EnsureNotInvoice()
         {
             if (IsInvoice()) throw new ConflictException("O valor da fatura vem das compras do cartão; altere ou estorne as compras.");

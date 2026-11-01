@@ -45,6 +45,20 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Expenses
         public void AddInstallmentPlan(InstallmentPlan plan) => new DapperRepository<InstallmentPlan>(work).Add(plan);
         public void LinkInstallment(int idTenant, Guid obligationCode, Guid planCode) =>
             work.AddPendingWrite(ExpenseSql.LinkInstallment, new { IdTenant = idTenant, ObligationCode = obligationCode, PlanCode = planCode });
+        public Task<int> CountAttachmentsAsync(int idTenant, Guid obligationCode, CancellationToken ct) =>
+            Single<int>(ExpenseSql.CountAttachments, new { IdTenant = idTenant, Code = obligationCode }, ct);
+        public void Remove(Obligation obligation)
+        {
+            var key = new { obligation.IdTenant, obligation.Id };
+            work.AddPendingWrite(ExpenseSql.RemoveShares, key);
+            work.AddPendingWrite(ExpenseSql.RemoveAdjustments, key);
+            work.AddPendingWrite(ExpenseSql.RemoveReversedAllocations, key);
+            work.AddPendingWrite(ExpenseSql.RemoveObligation, key);
+            if (obligation.IdInstallmentPlan is int idPlan)
+                work.AddPendingWrite(ExpenseSql.RemoveEmptyInstallmentPlan, new { obligation.IdTenant, IdPlan = idPlan });
+        }
+        public void HideOccurrence(Obligation obligation, string actor) =>
+            work.AddPendingWrite(ExpenseSql.HideOccurrence, new { obligation.IdTenant, obligation.Id, Actor = actor });
 
         public Task<Payment?> FindPaymentAsync(int idTenant, Guid code, CancellationToken ct) =>
             Single<Payment>(ExpenseSql.FindPayment, new { IdTenant = idTenant, Code = code }, ct);

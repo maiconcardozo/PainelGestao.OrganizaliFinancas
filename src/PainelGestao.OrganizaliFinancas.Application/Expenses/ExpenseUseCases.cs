@@ -18,7 +18,9 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
             var to = request.To ?? from.AddMonths(1).AddDays(-1);
             if (from > to || to.DayNumber - from.DayNumber > 366)
                 throw new InputValidationException(new Dictionary<string, string[]> { ["From"] = ["Escolha um período de até 366 dias."] });
-            var records = await work.ExpenseRepository.ListAsync(idTenant, HouseholdCalendar.Day(from), HouseholdCalendar.Day(to), request.IncludeOverdue, ct);
+            // A18: a card invoice is not a household expense here; its purchases (and expenses paid on the card) already count, and it is paid in Cartões.
+            var records = (await work.ExpenseRepository.ListAsync(idTenant, HouseholdCalendar.Day(from), HouseholdCalendar.Day(to), request.IncludeOverdue, ct))
+                .Where(x => x.CardInvoiceCode is null).ToArray();
             var items = await ExpenseMapper.ReadAsync(work, idTenant, records, today, ct);
             var inPeriod = items.Where(x => x.DueDate >= from && x.Status != "cancelled").ToArray();
             decimal Sum(IEnumerable<ExpenseDto> list, Func<ExpenseDto, string> value) => list.Sum(x => Money.Parse(value(x)));
@@ -118,6 +120,30 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                 return true;
             }, ct);
             return await ExpenseMapper.GetAsync(work, request.Identity.IdTenant, request.Code, ct);
+        }
+    }
+    /// <summary>
+    /// A18: an expense entered by mistake leaves for good instead of staying cancelled in the history. Refused with a live payment or receipts.
+    /// Reversed payments keep their rows and account movements; only their allocation to this obligation goes. A recurring occurrence is hidden
+    /// and detached rather than deleted, otherwise the next generation would create it again.
+    /// </summary>
+    public class DeleteExpenseHandler(IUnitOfWork work) : IRequestHandler<DeleteExpenseCommand>
+    {
+        public async Task Handle(DeleteExpenseCommand request, CancellationToken ct)
+        {
+            await work.ExecuteInTransactionAsync(async () =>
+            {
+                await work.MemberRepository.LockHouseholdAsync(request.Identity.IdTenant, ct);
+                var user = await HouseholdAccess.RequireAsync(work, request.Identity, "finance.write", ct);
+                var obligation = await work.ExpenseRepository.FindAsync(user.IdTenant, request.Code, ct) ?? throw new NotFoundException("Despesa não encontrada.");
+                var totals = (await work.ExpenseRepository.TotalsAsync(user.IdTenant, [obligation.Id], ct)).Single();
+                obligation.EnsureRemovable(totals.Paid);
+                if (await work.ExpenseRepository.CountAttachmentsAsync(user.IdTenant, obligation.Code, ct) > 0)
+                    throw new ConflictException("Esta despesa tem comprovante anexado. Remova o comprovante antes de excluir.");
+                if (obligation.IsRecurringOccurrence()) work.ExpenseRepository.HideOccurrence(obligation, user.Code.ToString());
+                else work.ExpenseRepository.Remove(obligation);
+                return true;
+            }, ct);
         }
     }
     /// <summary>Interest, fine, discount or adjustment with justification (RF20); it changes the open balance, never the account.</summary>

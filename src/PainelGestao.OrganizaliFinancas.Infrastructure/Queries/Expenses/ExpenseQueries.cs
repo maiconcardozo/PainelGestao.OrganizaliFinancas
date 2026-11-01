@@ -65,6 +65,24 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             UPDATE Obligation SET IdInstallmentPlan=(SELECT ip.Id FROM InstallmentPlan ip WHERE ip.IdTenant=@IdTenant AND ip.Code=@PlanCode)
             WHERE IdTenant=@IdTenant AND Code=@ObligationCode
             """;
+        public const string CountAttachments = "SELECT COUNT(*) FROM Attachment WHERE IdTenant=@IdTenant AND TargetKind='expense' AND TargetCode=@Code AND IsActive=1";
+        // Physical delete (A18), children first because every FK restricts. Only reversed payments can still point at the obligation at this point.
+        public const string RemoveShares = "DELETE FROM ObligationShare WHERE IdTenant=@IdTenant AND IdObligation=@Id";
+        public const string RemoveAdjustments = "DELETE FROM ObligationAdjustment WHERE IdTenant=@IdTenant AND IdObligation=@Id";
+        public const string RemoveReversedAllocations = """
+            DELETE a FROM PaymentAllocation a JOIN Payment p ON p.Id=a.IdPayment AND p.IdTenant=a.IdTenant
+            WHERE a.IdTenant=@IdTenant AND a.IdObligation=@Id AND p.DtReversed IS NOT NULL
+            """;
+        public const string RemoveObligation = "DELETE FROM Obligation WHERE IdTenant=@IdTenant AND Id=@Id";
+        public const string RemoveEmptyInstallmentPlan = """
+            DELETE FROM InstallmentPlan WHERE IdTenant=@IdTenant AND Id=@IdPlan
+                AND NOT EXISTS (SELECT 1 FROM Obligation o WHERE o.IdTenant=@IdTenant AND o.IdInstallmentPlan=@IdPlan)
+            """;
+        // A hidden occurrence stays out of every list (IsActive=0) and is locked (IsDetached=1), so Recurrence.Plan never reactivates or re-inserts it.
+        public const string HideOccurrence = """
+            UPDATE Obligation SET IsActive=0,IsDetached=1,DtDeleted=UTC_TIMESTAMP(6),DeletedBy=@Actor,Version=Version+1,DtUpdated=UTC_TIMESTAMP(6),UpdatedBy=@Actor
+            WHERE IdTenant=@IdTenant AND Id=@Id
+            """;
 
         public const string FindPayment = "SELECT * FROM Payment WHERE IdTenant=@IdTenant AND Code=@Code";
         // A payment made on a credit card has no account: the card and the purchase that carries it into the invoice come through CardPurchase.

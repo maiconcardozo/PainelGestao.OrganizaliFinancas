@@ -21,7 +21,7 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
             var expenses = endpoints.MapGroup("/api/expenses").WithTags("Despesas").RequireAuthorization();
             expenses.MapGet("", async (DateOnly? from, DateOnly? to, bool? includeOverdue, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
                 Ok(context, "Despesas", "Vencimentos do período e vencidas em aberto.", await mediator.Send(new ListExpensesQuery(user.SessionIdentity(), from, to, includeOverdue ?? true), ct)))
-                .WithSummary("Lista despesas por vencimento (padrão: mês atual; até 366 dias) e, por padrão, as vencidas ainda abertas de antes do período.")
+                .WithSummary("Lista despesas por vencimento (padrão: mês atual; até 366 dias) e, por padrão, as vencidas ainda abertas de antes do período. Faturas de cartão ficam fora: elas vivem em Cartões.")
                 .Produces<SuccessDetails<ExpenseListDto>>().ProducesProblem(400);
             expenses.MapGet("/{code:guid}", async (Guid code, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
                 Ok(context, "Despesa", "Saldo aberto, ajustes e pagamentos.", await mediator.Send(new GetExpenseQuery(user.SessionIdentity(), code), ct)))
@@ -40,6 +40,12 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                 Ok(context, "Despesa cancelada", "Saldo futuro cancelado; histórico mantido.", await mediator.Send(new CancelExpenseCommand(user.SessionIdentity(), code, payload), ct)))
                 .WithSummary("Cancela despesa sem pagamento ativo, com motivo. Paga exige estornar o pagamento antes.")
                 .Produces<SuccessDetails<ExpenseDto>>().ProducesProblem(400).ProducesProblem(404).ProducesProblem(409);
+            expenses.MapDelete("/{code:guid}", async (Guid code, ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
+            {
+                await mediator.Send(new DeleteExpenseCommand(user.SessionIdentity(), code), ct);
+                return Results.NoContent();
+            }).WithSummary("Exclui de vez uma despesa aberta ou cancelada, sem pagamento ativo nem comprovante. Ocorrência de recorrência fica oculta e não é recriada. Fatura de cartão não se exclui por aqui. Titular ou editor.")
+                .Produces(204).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
             expenses.MapPost("/{code:guid}/adjustments", async (Guid code, AdjustmentPayload payload, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
                 Created(context, "Ajuste registrado", "Saldo aberto recalculado.", await mediator.Send(new AddAdjustmentCommand(user.SessionIdentity(), code, payload), ct)))
                 .WithSummary("Registra juros, multa, desconto ou ajuste (com sinal) com justificativa. Não movimenta conta.")

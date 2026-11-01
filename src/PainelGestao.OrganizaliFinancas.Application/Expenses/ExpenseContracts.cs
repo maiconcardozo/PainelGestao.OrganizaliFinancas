@@ -62,6 +62,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
     public sealed record CreateExpenseCommand(SessionIdentity Identity, Guid Key, ExpensePayload Payload) : IRequest<ExpenseDto>;
     public sealed record UpdateExpenseCommand(SessionIdentity Identity, Guid Code, ExpensePayload Payload) : IRequest<ExpenseDto>;
     public sealed record CancelExpenseCommand(SessionIdentity Identity, Guid Code, CancelExpensePayload Payload) : IRequest<ExpenseDto>;
+    public sealed record DeleteExpenseCommand(SessionIdentity Identity, Guid Code) : IRequest;
     public sealed record AddAdjustmentCommand(SessionIdentity Identity, Guid Code, AdjustmentPayload Payload) : IRequest<ExpenseDetailDto>;
     public sealed record ListPaymentsQuery(SessionIdentity Identity, DateOnly? From, DateOnly? To) : IRequest<IReadOnlyList<PaymentDto>>;
     public sealed record CreatePaymentCommand(SessionIdentity Identity, Guid Key, PaymentPayload Payload) : IRequest<PaymentDto>;
