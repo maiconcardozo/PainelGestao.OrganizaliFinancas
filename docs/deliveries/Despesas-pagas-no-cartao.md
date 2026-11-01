@@ -53,7 +53,7 @@ Este notebook (Carolina) não tem .NET, Node nem Docker; tudo rodou no servidor 
 - `dotnet test` (SDK 10 em contêiner, Testcontainers com `host.docker.internal`): **96 aprovados, 1 falha** — `SmtpRecoveryDeliveryTests` (o servidor SMTP falso recebe só o `EHLO`; mesma falha conhecida desde M9, não relacionada). `PersistenceTests` aprovado em 44 s: migrations incrementais com a nova `CardPayments` (o snapshot escrito à mão confere com o modelo, senão o `Migrate` recusaria) e o cenário A17 inteiro de `CardAssertions`.
 - `AuthenticationAssertions` tinha uma asserção de 10/10 (refresh token reutilizado → 401) contrária à tolerância de 60 s entregue em 14/10; estava derrubando `PersistenceTests` antes de chegar aos cartões. Alinhada à regra vigente (reutilização segundos depois → 200).
 - Frontend (imagem `organizali-frontend` local com `NODE_ENV` vazio, `npm ci --include=dev`): `tsc --noEmit`, `eslint` (depois de trocar um `setState` síncrono no efeito da dica da fatura por uma resposta chaveada pelo cartão/data) e `next build` aprovados.
-- Publicação na LAN: ver [estado](../status/PROJECT_STATUS.md) para a versão no ar.
+- Publicação na LAN (01/11/2026): zip do commit `d61d19d` expandido em `C:\apps\OrganizaliFinancas`, `ORGANIZALI_VERSION=d61d19d`, tarefa `OrganizaliDeploy` (build + up) com `BUILD_EXIT=0`/`UP_EXIT=0`; `migrate` aplicou `20261101150000_CardPayments` (saída 0), `Payment.IdFinancialAccount` nulo e `Payment.IdCardPurchase` conferidos no banco, `/api/health` = Healthy, página de login 200. Nenhum pagamento existente foi alterado (15 pagamentos, 0 no cartão). Fumaça funcional (pagar uma despesa com cartão e ver a fatura) fica para a Carolina, que tem o login do piloto.
 
 ## Rendas (dados do piloto, pedido do mesmo dia)
 
