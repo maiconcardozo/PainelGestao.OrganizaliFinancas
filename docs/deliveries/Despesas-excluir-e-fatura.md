@@ -52,7 +52,12 @@ Resultado da execução: ver "Execução".
 
 ## Execução
 
-(preenchido após rodar no servidor)
+Tudo rodou no servidor da LAN (192.168.1.7, PowerShell Remoting), em contêineres descartáveis a partir do zip do commit `5be2004` expandido em `C:\apps\organizali-work\repo`:
+
+- `dotnet test` (SDK 10 em contêiner, Testcontainers com `host.docker.internal`): **96 aprovados, 1 falha** — `SmtpRecoveryDeliveryTests` (quebra de linha quoted-printable no link; mesma falha conhecida desde M9, não relacionada). `PersistenceTests` aprovado com os cenários A18 de `ExpenseAssertions` e `CardAssertions`.
+- Frontend (imagem `organizali-frontend:d61d19d` local, `npm ci --include=dev`): `tsc --noEmit`, `eslint` e `next build` aprovados.
+- **Limpeza do piloto** (antes da publicação): backup `C:\apps\organizali-backup-cancelados-20261101.sql` (477 KB); prévia com `C:\apps\preview-cancelados-20261101.sql`: 1 casa, 29 despesas canceladas (14 ocorrências de recorrência, 15 avulsas/parcelas — entre elas as cinco "cartao Bradesco" estimadas e os "Cartão Master Carol" duplicados), 2 pagamentos estornados em conta ("Padaria Teste Fumaca" e "Dental Bradesco", 4 movimentos), nenhuma compra estornada pela loja, nenhum comprovante envolvido. Aplicada com `C:\apps\cleanup-cancelados-20261101.sql` em uma transação: 0 canceladas visíveis, 0 pagamentos estornados, despesas ativas 255 → 226, pagamentos 16 → 14, faturas 11 e compras 19 inalteradas, saldos das 11 contas idênticos antes e depois.
+- **Publicação na LAN** (01/11/2026, 17:22): zip expandido em `C:\apps\OrganizaliFinancas`, `ORGANIZALI_VERSION=5be2004`, tarefa `OrganizaliDeploy` com `BUILD_EXIT=0` e `UP_EXIT=0`; `migrate` sem migrations novas; `api`, `frontend` e `migrate` na imagem `5be2004`; `/api/health` = Healthy; página de login 200; `DELETE /api/backend/expenses/{code}` responde pelo proxy (403 sem sessão, como as demais escritas). Fumaça funcional na tela (abrir Despesas sem a fatura e excluir uma despesa de teste) fica para a Carolina, que tem o login do piloto.
 
 ## Limitações e pendências
 
