@@ -120,6 +120,21 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
             if (IsInvoice()) throw new ConflictException("A fatura não é excluída por aqui: exclua ou estorne as compras do cartão.");
             if (livePaid > 0) throw new ConflictException("Esta despesa tem pagamento ativo. Estorne o pagamento antes de excluir.");
         }
+        /// <summary>Undoes a cancellation made by mistake (A20): the obligation is open again, with its amount, dates and split untouched.</summary>
+        public void Reactivate(string actor)
+        {
+            if (!IsCancelled()) throw new ConflictException($"A despesa {Description} não está cancelada.");
+            Status = "open"; CancelReason = null; Version++;
+            UpdateAuditInfo(actor);
+        }
+        /// <summary>Corrects the reason recorded at cancellation; nothing else changes.</summary>
+        public void EditCancelReason(string reason, string actor)
+        {
+            if (!IsCancelled()) throw new ConflictException($"A despesa {Description} não está cancelada.");
+            ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+            CancelReason = reason.Trim(); Version++;
+            UpdateAuditInfo(actor);
+        }
         /// <summary>An occurrence of a recurrence is hidden and detached instead of deleted, so the next generation does not recreate it.</summary>
         public bool IsRecurringOccurrence() => IdRecurringExpense is not null;
         private void EnsureNotInvoice()
@@ -224,6 +239,13 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
             if (IsReversed()) throw new ConflictException("Este pagamento já foi estornado.");
             ArgumentException.ThrowIfNullOrWhiteSpace(reason);
             (DtReversed, ReversedBy, ReversalReason) = (DateTime.UtcNow, actor, reason.Trim());
+        }
+        /// <summary>Corrects the reason of a reversal already made (A20); the reversal itself and its movements stay.</summary>
+        public void EditReversalReason(string reason)
+        {
+            if (!IsReversed()) throw new ConflictException("Este pagamento não foi estornado.");
+            ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+            ReversalReason = reason.Trim();
         }
     }
     public class PaymentAllocation : TenantEntity

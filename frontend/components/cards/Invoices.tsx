@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { civilDate, money, monthLabel, type Account } from "@/lib/finance";
 import { invoiceStatus, type Card, type Invoice, type InvoiceDetail, type Purchase } from "@/lib/cards";
 import type { Person } from "@/components/households/HouseholdForms";
@@ -13,13 +13,14 @@ import type { Catalogs } from "@/components/expenses/DetailInputs";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
 import { PurchaseEditModal } from "./PurchaseForm";
 
-type Props = { cards: Card[]; invoices: Invoice[]; accounts: Account[]; people: Person[]; today: string; canSettle: boolean };
+type Props = { cards: Card[]; invoices: Invoice[]; accounts: Account[]; people: Person[]; today: string; canSettle: boolean; focusInvoice?: string };
 
 /** RF25: one row per invoice; paying uses the invoice's own obligation, so cash leaves the account only once. */
-export function Invoices({ cards, invoices, accounts, people, today, canSettle }: Props) {
+export function Invoices({ cards, invoices, accounts, people, today, canSettle, focusInvoice }: Props) {
   const [chosen, setCardCode] = useState("");
-  // A card created after the first render must still be selectable, so the default is derived on every render.
-  const cardCode = cards.some(card => card.code === chosen) ? chosen : cards.find(card => card.isActive)?.code ?? cards[0]?.code ?? "";
+  // A card created after the first render must still be selectable, so the default is derived on every render; a focused invoice picks its card.
+  const focused = invoices.find(invoice => invoice.code === focusInvoice);
+  const cardCode = cards.some(card => card.code === chosen) ? chosen : focused?.cardCode ?? cards.find(card => card.isActive)?.code ?? cards[0]?.code ?? "";
   const shown = invoices.filter(invoice => invoice.cardCode === cardCode && (invoice.itemCount > 0 || invoice.paid !== "0.00"));
   if (cards.length === 0) return null;
   return <>
@@ -27,22 +28,32 @@ export function Invoices({ cards, invoices, accounts, people, today, canSettle }
       {cards.map(card => <option key={card.code} value={card.code}>{card.name}</option>)}</select></label>}
     {shown.length === 0 ? <Empty title="Nenhuma fatura com compras neste cartão." /> :
       <ul className="expense-list">{shown.map(invoice => <InvoiceRow key={`${invoice.code}-${invoice.amount}-${invoice.paid}`} invoice={invoice} accounts={accounts}
-        people={people} today={today} canSettle={canSettle} />)}</ul>}
+        people={people} today={today} canSettle={canSettle} autoOpen={invoice.code === focusInvoice} />)}</ul>}
   </>;
 }
 
-function InvoiceRow({ invoice, accounts, people, today, canSettle }: Omit<Props, "cards" | "invoices"> & { invoice: Invoice }) {
+function InvoiceRow({ invoice, accounts, people, today, canSettle, autoOpen = false }: Omit<Props, "cards" | "invoices" | "focusInvoice"> & { invoice: Invoice; autoOpen?: boolean }) {
   const action = useFinanceAction();
   const [panel, setPanel] = useState<"" | "items" | "pay">("");
   const [detail, setDetail] = useState<InvoiceDetail | null>(null);
+  const row = useRef<HTMLLIElement>(null);
   async function toggleItems() {
     if (panel === "items") { setPanel(""); return; }
     const loaded = await action.read<InvoiceDetail>(`card-invoices/${invoice.code}`);
     if (loaded) { setDetail(loaded); setPanel("items"); }
   }
+  // "Ver compras" from Despesas (A19) lands on this invoice with its purchases already open.
+  useEffect(() => {
+    if (!autoOpen) return;
+    void (async () => {
+      const loaded = await action.read<InvoiceDetail>(`card-invoices/${invoice.code}`);
+      if (loaded) { setDetail(loaded); setPanel("items"); row.current?.scrollIntoView({ block: "center" }); }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once for the focused invoice
+  }, [autoOpen, invoice.code]);
   const credit = Number(invoice.openBalance) < 0;
   const statusClass = invoice.isOverdue ? "overdue" : invoice.status === "paid" ? "paid" : invoice.status === "partial" ? "partial" : "";
-  return <li className={`expense-row ${invoice.isOverdue ? "is-overdue" : invoice.status === "paid" ? "status-paid" : invoice.status === "partial" ? "status-partial" : ""}`}>
+  return <li ref={row} className={`expense-row ${invoice.isOverdue ? "is-overdue" : invoice.status === "paid" ? "status-paid" : invoice.status === "partial" ? "status-partial" : ""}`}>
     <div className="expense-main">
       <div><strong>Fatura de {monthLabel(invoice.referenceMonth)}</strong>
         <span className="entry-meta">Fecha {civilDate(invoice.closingDate)} · vence {civilDate(invoice.dueDate)} · {invoice.itemCount} lançamento(s)</span></div>
@@ -64,15 +75,15 @@ function InvoiceRow({ invoice, accounts, people, today, canSettle }: Omit<Props,
       <span className={`number ${item.kind === "credit" ? "positive" : ""}`}>{money(item.amount)}</span></li>)}</ul>}
   </li>;
 }
-type PurchasesProps = { purchases: Purchase[]; catalogs: Catalogs; canEdit: boolean; onDone: (message: string) => void };
+type PurchasesProps = { purchases: Purchase[]; catalogs: Catalogs; today: string; canEdit: boolean; onDone: (message: string) => void };
 
 /** Recent purchases with edit, delete and the merchant refund (cancels open installments and credits the rest; no bank entry). */
-export function Purchases({ purchases, catalogs, canEdit, onDone }: PurchasesProps) {
+export function Purchases({ purchases, catalogs, today, canEdit, onDone }: PurchasesProps) {
   if (purchases.length === 0) return <Empty title="Nenhuma compra nos últimos meses." />;
-  return <ListFrame>{purchases.map(purchase => <PurchaseRow key={`${purchase.code}-${purchase.version}`} purchase={purchase} catalogs={catalogs} canEdit={canEdit} onDone={onDone} />)}</ListFrame>;
+  return <ListFrame>{purchases.map(purchase => <PurchaseRow key={`${purchase.code}-${purchase.version}`} purchase={purchase} catalogs={catalogs} today={today} canEdit={canEdit} onDone={onDone} />)}</ListFrame>;
 }
 
-function PurchaseRow({ purchase, catalogs, canEdit, onDone }: Omit<PurchasesProps, "purchases"> & { purchase: Purchase }) {
+function PurchaseRow({ purchase, catalogs, today, canEdit, onDone }: Omit<PurchasesProps, "purchases"> & { purchase: Purchase }) {
   const action = useFinanceAction();
   const [dialog, setDialog] = useState<"" | "refund" | "edit" | "delete">("");
   const remaining = Number(purchase.total) - Number(purchase.refunded);
@@ -99,7 +110,7 @@ function PurchaseRow({ purchase, catalogs, canEdit, onDone }: Omit<PurchasesProp
       {/* An expense paid on the card is undone by reversing its payment in Despesas, so the invoice and the expense change together. */}
       {!purchase.paymentCode && <IconAction label={`Excluir ${purchase.description}`} danger disabled={action.busy} onClick={() => setDialog("delete")}><Trash2 size={15} /></IconAction>}
     </span>}
-    {dialog === "edit" && <PurchaseEditModal purchase={purchase} catalogs={catalogs} onClose={() => setDialog("")} onSaved={message => { setDialog(""); onDone(message); }} />}
+    {dialog === "edit" && <PurchaseEditModal purchase={purchase} catalogs={catalogs} today={today} onClose={() => setDialog("")} onSaved={message => { setDialog(""); onDone(message); }} />}
     {dialog === "delete" && <ConfirmModal title="Excluir compra" label="Excluir compra" busy={action.busy} error={action.error} onConfirm={() => void remove()} onClose={() => setDialog("")}>
       <p className="text-sm">{purchase.description} de {money(purchase.total)}{purchase.count > 1 && ` em ${purchase.count}x`}: as parcelas saem das faturas e a compra some do histórico.
         Se uma fatura com esta compra já foi paga, a exclusão é recusada; nesse caso use o estorno da loja.</p>

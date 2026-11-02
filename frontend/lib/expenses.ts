@@ -9,8 +9,8 @@ export type Expense = {
   creditorCode: string | null; creditorName: string | null; paymentMethodCode: string | null; payerPersonCode: string | null; payerPersonName: string | null;
   recurrenceCode: string | null; isDetached: boolean; installmentPlanCode: string | null; installmentNumber: number | null; installmentCount: number | null; cardInvoiceCode: string | null;
   splitMode: string | null; shares: Share[]; fields: Record<string, unknown>; version: number;
-  /** Set on a card purchase listed in Despesas (A19): read-only here, settled by its invoice in Cartões. */
-  cardPurchaseCode: string | null; cardName: string | null; purchaseDate: string | null;
+  /** Set on a card invoice listed in Despesas (A19): the card and how many purchases the invoice holds; paidOn is the last live payment's date. */
+  cardName: string | null; cardItemCount: number | null; paidOn: string | null;
 };
 export type ExpenseList = { from: string; to: string; today: string; total: string; paid: string; open: string; overdue: string; items: Expense[] };
 export type Adjustment = { code: string; kind: string; amount: string; date: string; reason: string };

@@ -115,6 +115,20 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
             Version++;
             UpdateAuditInfo(actor);
         }
+        /// <summary>
+        /// A20: date, total or installment count change while nothing financial depends on the purchase (no refund, no invoice with payment).
+        /// The caller plans the items again from these values.
+        /// </summary>
+        public void Reschedule(DateOnly date, decimal total, int count, string actor)
+        {
+            if (RefundedAmount > 0) throw new ConflictException("Esta compra já teve estorno da loja; valor, data e parcelas não mudam mais.");
+            if (total <= 0 || Money.Round(total) != total) throw new ArgumentException("Valor deve ser positivo em centavos.", nameof(total));
+            if (count < 1 || count > 120) throw new ArgumentException("Informe de 1 a 120 parcelas.", nameof(count));
+            (PurchaseDate, TotalAmount, InstallmentCount) = (date.ToDateTime(TimeOnly.MinValue), total, count);
+            Version++;
+            UpdateAuditInfo(actor);
+        }
+        public bool HasSchedule(DateOnly date, decimal total, int count) => DateOnly.FromDateTime(PurchaseDate) == date && TotalAmount == total && InstallmentCount == count;
     }
 
     /// <summary>Installment or merchant credit (negative) inside one invoice, recognized in the invoice's reference month.</summary>

@@ -41,8 +41,6 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Cards
         }
         public Task<IReadOnlyList<CardItemRecord>> ListItemsAsync(int idTenant, Guid invoiceCode, CancellationToken ct) =>
             List<CardItemRecord>(CardSql.Items, new { IdTenant = idTenant, InvoiceCode = invoiceCode }, ct);
-        public Task<IReadOnlyList<CardItemDueRecord>> ListItemsDueAsync(int idTenant, DateTime from, DateTime to, bool includeOverdue, CancellationToken ct) =>
-            List<CardItemDueRecord>(CardSql.ItemsDue, new { IdTenant = idTenant, From = from, To = to, IncludeOverdue = includeOverdue }, ct);
 
         public Task<IReadOnlyList<PurchaseRecord>> ListPurchasesAsync(int idTenant, DateTime from, DateTime to, CancellationToken ct) =>
             List<PurchaseRecord>(CardSql.Purchases, new { IdTenant = idTenant, From = from, To = to }, ct);
@@ -71,6 +69,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Cards
         public async Task<bool> PurchaseHasPaidInvoiceAsync(int idTenant, int idPurchase, CancellationToken ct) =>
             await Single<int>(CardSql.PurchasePaidInvoices, new { IdTenant = idTenant, IdPurchase = idPurchase }, ct) > 0;
         public void UpdatePurchaseDetails(CardPurchase purchase) => work.AddPendingWrite(CardSql.UpdatePurchaseDetails, purchase);
+        public void UpdatePurchaseSchedule(CardPurchase purchase) => work.AddPendingWrite(CardSql.UpdatePurchaseSchedule, purchase);
+        public void RemovePurchaseItems(int idTenant, int idPurchase) => work.AddPendingWrite(CardSql.RemovePurchaseItems, new { IdTenant = idTenant, IdPurchase = idPurchase });
         public void RemovePurchase(int idTenant, int idPurchase)
         {
             work.AddPendingWrite(CardSql.RemovePurchaseItems, new { IdTenant = idTenant, IdPurchase = idPurchase });

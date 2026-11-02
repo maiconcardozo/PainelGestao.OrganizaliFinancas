@@ -31,8 +31,12 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
     public sealed record PurchaseDto(Guid Code, Guid CardCode, string CardName, string Description, DateOnly PurchaseDate, string Total, int Count, string Refunded,
         Guid? CategoryCode, string? CategoryName, Guid? BuyerPersonCode, string? BuyerName, Guid? ExpenseTypeCode, int? ExpenseTypeVersion, JsonElement Fields, int Version,
         Guid? PaymentCode = null);
-    /// <summary>Only the description of the purchase changes; amount, date and installments are fixed once the items are in the invoices.</summary>
-    public sealed record UpdatePurchasePayload(Guid? BuyerPersonCode, ExpenseDetailsPayload Details, int Version);
+    /// <summary>
+    /// Descriptive data always; PurchaseDate, Total and Count (A20) are optional and, when they differ from the purchase, its items are planned again,
+    /// which is refused once an invoice holding them received a payment or the purchase had a refund.
+    /// </summary>
+    public sealed record UpdatePurchasePayload(Guid? BuyerPersonCode, ExpenseDetailsPayload Details, int Version, DateOnly? PurchaseDate = null, string? Total = null,
+        int? Count = null, int FirstInvoiceShift = 0);
     public sealed record RefundPayload(string? Amount, string Reason, DateOnly? Date);
 
     public sealed record ListCardsQuery(SessionIdentity Identity) : IRequest<IReadOnlyList<CardDto>>;
@@ -98,6 +102,9 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
             RuleFor(x => x.Payload.Details).NotNull().SetValidator(new SingleExpenseDetailsValidator());
             RuleFor(x => x.Payload.Details.Shares).Must(shares => shares is null || shares.Length == 0).When(x => x.Payload.Details is not null)
                 .WithMessage("Compras no cartão ainda não são divididas entre moradores.");
+            RuleFor(x => x.Payload.Total).PositiveMoney().When(x => x.Payload.Total is not null);
+            RuleFor(x => x.Payload.Count).InclusiveBetween(1, 120).When(x => x.Payload.Count is not null).WithMessage("Informe de 1 a 120 parcelas.");
+            RuleFor(x => x.Payload.FirstInvoiceShift).InclusiveBetween(-1, 1).WithMessage("A fatura de destino só pode mudar um ciclo.");
         }
     }
     public class RefundPurchaseValidator : AbstractValidator<RefundPurchaseCommand>
@@ -305,8 +312,35 @@ namespace PainelGestao.OrganizaliFinancas.Application.Cards
                 }
                 var previous = new ObligationDetails(purchase.Description, purchase.IdExpenseType, purchase.ExpenseTypeVersion, purchase.IdCategory, null, null, null, purchase.FieldValuesJson, null);
                 var resolved = await ExpenseDetailsResolver.ResolveAsync(work, user.IdTenant, payload.Details, "card", previous, ct);
-                purchase.UpdateDetails(resolved.Details, idBuyer, user.Code.ToString());
+                var actor = user.Code.ToString();
+                purchase.UpdateDetails(resolved.Details, idBuyer, actor);
                 work.CardRepository.UpdatePurchaseDetails(purchase);
+                // A20: a new date, total or installment count rewrites the items, as if the purchase were entered again, keeping its code and history.
+                var date = payload.PurchaseDate ?? DateOnly.FromDateTime(purchase.PurchaseDate);
+                var total = payload.Total is null ? purchase.TotalAmount : Money.Parse(payload.Total);
+                var count = payload.Count ?? purchase.InstallmentCount;
+                if (!purchase.HasSchedule(date, total, count))
+                {
+                    if ((await work.CardRepository.GetPurchaseAsync(user.IdTenant, request.Code, ct))!.PaymentCode is not null)
+                        throw new ConflictException("Esta compra é o pagamento de uma despesa no cartão. Para mudar o valor, estorne o pagamento na tela de despesas e pague de novo.");
+                    if (await work.CardRepository.PurchaseHasPaidInvoiceAsync(user.IdTenant, purchase.Id, ct))
+                        throw new ConflictException("Uma fatura com esta compra já recebeu pagamento. Estorne o pagamento da fatura antes ou registre um estorno da loja.");
+                    var today = await HouseholdCalendar.TodayAsync(work, user.IdTenant, ct);
+                    HouseholdCalendar.EnsureNotFuture(date, today, "PurchaseDate");
+                    var card = await work.CardRepository.FindCardByIdAsync(user.IdTenant, purchase.IdCreditCard, ct) ?? throw new NotFoundException("Cartão não encontrado.");
+                    var items = CardSchedule.Plan(total, count, date, card.ClosingDay, card.DueDay, card.ClosingDayRule, payload.FirstInvoiceShift);
+                    purchase.Reschedule(date, total, count, actor);
+                    work.CardRepository.UpdatePurchaseSchedule(purchase);
+                    work.CardRepository.RemovePurchaseItems(user.IdTenant, purchase.Id);
+                    var invoices = await InvoiceWriter.EnsureAsync(work, card, items.Select(x => x.Cycle), actor, ct);
+                    foreach (var item in items)
+                    {
+                        var invoice = invoices[item.Cycle.ReferenceMonth];
+                        work.CardRepository.AddItem(user.IdTenant, purchase.Code, invoice.Code, "installment", item.Number, item.Amount, invoice.ReferenceMonth, null, actor);
+                    }
+                    work.CardRepository.RecalculateCardInvoices(user.IdTenant, card.Id, actor);
+                    work.CardRepository.RemoveEmptyInvoices(user.IdTenant, card.Id);
+                }
                 return true;
             }, ct);
             return CardMapper.Purchase((await work.CardRepository.GetPurchaseAsync(request.Identity.IdTenant, request.Code, ct))!);

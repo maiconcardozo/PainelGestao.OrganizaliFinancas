@@ -10,10 +10,12 @@ import { CardList, CardModal } from "./Cards";
 import { PurchaseModal } from "./PurchaseForm";
 import { Invoices, Purchases } from "./Invoices";
 
-type Props = { cards: Card[]; invoices: Invoice[]; purchases: Purchase[]; accounts: Account[]; people: Person[]; catalogs: Catalogs; today: string; canEdit: boolean; canSettle: boolean };
+type Props = { cards: Card[]; invoices: Invoice[]; purchases: Purchase[]; accounts: Account[]; people: Person[]; catalogs: Catalogs; today: string; canEdit: boolean; canSettle: boolean;
+  /** Invoice to show first with its purchases open (link "Ver compras" from Despesas). */
+  focusInvoice?: string };
 
 /** Cartões: the card cadastro and the purchase entry open from the header, as in RevendaPRO's "Novo …" flow. */
-export function CardsView({ cards, invoices, purchases, accounts, people, catalogs, today, canEdit, canSettle }: Props) {
+export function CardsView({ cards, invoices, purchases, accounts, people, catalogs, today, canEdit, canSettle, focusInvoice }: Props) {
   const [editing, setEditing] = useState<Card | "new" | null>(null);
   const [buying, setBuying] = useState(false);
   const [notice, setNotice] = useState("");
@@ -34,9 +36,9 @@ export function CardsView({ cards, invoices, purchases, accounts, people, catalo
     </dl>}
     <CardList cards={cards} canEdit={canEdit} onEdit={setEditing} onDone={done} />
     <h2>Faturas</h2>
-    <Invoices cards={cards} invoices={invoices} accounts={accounts} people={people} today={today} canSettle={canSettle} />
+    <Invoices cards={cards} invoices={invoices} accounts={accounts} people={people} today={today} canSettle={canSettle} focusInvoice={focusInvoice} />
     <h2>Compras recentes</h2>
-    <Purchases purchases={purchases} catalogs={catalogs} canEdit={canEdit} onDone={done} />
+    <Purchases purchases={purchases} catalogs={catalogs} today={today} canEdit={canEdit} onDone={done} />
     {editing && <CardModal card={editing === "new" ? null : editing} people={people} onClose={() => setEditing(null)} onSaved={done} />}
     {buying && <PurchaseModal cards={cards} catalogs={catalogs} today={today} onClose={() => setBuying(false)} onSaved={done} />}
   </section>;

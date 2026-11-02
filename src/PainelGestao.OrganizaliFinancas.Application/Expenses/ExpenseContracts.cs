@@ -16,6 +16,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
     public sealed record ImmediatePaymentPayload(Guid? AccountCode, DateOnly PaymentDate, Guid? PayerPersonCode, Guid? CardCode = null);
     public sealed record ExpensePayload(ExpenseDetailsPayload Details, DateOnly? Competence, DateOnly DueDate, string Amount, int Version, ImmediatePaymentPayload? Payment);
     public sealed record CancelExpensePayload(string Reason, int Version);
+    public sealed record ReactivateExpensePayload(int Version);
+    public sealed record ReversalReasonPayload(string Reason);
     public sealed record AdjustmentPayload(string Kind, string Amount, string Reason, DateOnly? Date);
     public sealed record PaymentAllocationPayload(Guid ExpenseCode, string Amount, string? Interest, string? Fine, string? Discount);
     /// <summary>Exactly one of AccountCode (bank) or CardCode (credit card, A17) identifies where the money comes from.</summary>
@@ -27,13 +29,16 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
     public sealed record InstallmentPayload(ExpenseDetailsPayload Details, InstallmentPreviewPayload Plan);
 
     public sealed record ShareDto(Guid PersonCode, string PersonName, string Amount, string? Percent);
-    /// <summary>CardPurchaseCode, CardName and PurchaseDate are set on a card purchase listed in Despesas (A19): it is read-only there and settled by its invoice in Cartões.</summary>
+    /// <summary>
+    /// A card invoice listed in Despesas (A19) carries CardInvoiceCode, CardName and CardItemCount and reads "Fatura Cartão – mês/ano"; its amount is the sum
+    /// of the card's purchases and it is paid as one. PaidOn is the date of the last live payment.
+    /// </summary>
     public sealed record ExpenseDto(Guid Code, string Description, string Competence, DateOnly DueDate, string Amount, string Adjustments, string Paid,
         string OpenBalance, string Status, bool IsOverdue, bool IsEstimated, string? CancelReason, Guid? ExpenseTypeCode, string? ExpenseTypeName,
         int? ExpenseTypeVersion, Guid? CategoryCode, string? CategoryName, Guid? CreditorCode, string? CreditorName, Guid? PaymentMethodCode,
         Guid? PayerPersonCode, string? PayerPersonName, Guid? RecurrenceCode, bool IsDetached, Guid? InstallmentPlanCode, int? InstallmentNumber,
         int? InstallmentCount, Guid? CardInvoiceCode, string? SplitMode, IReadOnlyList<ShareDto> Shares, JsonElement Fields, int Version,
-        Guid? CardPurchaseCode = null, string? CardName = null, DateOnly? PurchaseDate = null);
+        string? CardName = null, int? CardItemCount = null, DateOnly? PaidOn = null);
     /// <summary>Totals cover the obligations due in the period; overdue items from earlier periods are listed and summed separately.</summary>
     public sealed record ExpenseListDto(DateOnly From, DateOnly To, DateOnly Today, string Total, string Paid, string Open, string Overdue, IReadOnlyList<ExpenseDto> Items);
     public sealed record AdjustmentDto(Guid Code, string Kind, string Amount, DateOnly Date, string Reason);
@@ -65,6 +70,9 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
     public sealed record UpdateExpenseCommand(SessionIdentity Identity, Guid Code, ExpensePayload Payload) : IRequest<ExpenseDto>;
     public sealed record CancelExpenseCommand(SessionIdentity Identity, Guid Code, CancelExpensePayload Payload) : IRequest<ExpenseDto>;
     public sealed record DeleteExpenseCommand(SessionIdentity Identity, Guid Code) : IRequest;
+    public sealed record ReactivateExpenseCommand(SessionIdentity Identity, Guid Code, ReactivateExpensePayload Payload) : IRequest<ExpenseDto>;
+    public sealed record EditCancelReasonCommand(SessionIdentity Identity, Guid Code, CancelExpensePayload Payload) : IRequest<ExpenseDto>;
+    public sealed record EditReversalReasonCommand(SessionIdentity Identity, Guid Code, ReversalReasonPayload Payload) : IRequest<PaymentDto>;
     public sealed record AddAdjustmentCommand(SessionIdentity Identity, Guid Code, AdjustmentPayload Payload) : IRequest<ExpenseDetailDto>;
     public sealed record ListPaymentsQuery(SessionIdentity Identity, DateOnly? From, DateOnly? To) : IRequest<IReadOnlyList<PaymentDto>>;
     public sealed record CreatePaymentCommand(SessionIdentity Identity, Guid Key, PaymentPayload Payload) : IRequest<PaymentDto>;
@@ -136,6 +144,14 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
     public class CancelExpenseValidator : AbstractValidator<CancelExpenseCommand>
     {
         public CancelExpenseValidator() => RuleFor(x => x.Payload.Reason).NotEmpty().MaximumLength(300).WithMessage("Informe o motivo do cancelamento.");
+    }
+    public class EditCancelReasonValidator : AbstractValidator<EditCancelReasonCommand>
+    {
+        public EditCancelReasonValidator() => RuleFor(x => x.Payload.Reason).NotEmpty().MaximumLength(300).WithMessage("Informe o motivo do cancelamento.");
+    }
+    public class EditReversalReasonValidator : AbstractValidator<EditReversalReasonCommand>
+    {
+        public EditReversalReasonValidator() => RuleFor(x => x.Payload.Reason).NotEmpty().MaximumLength(300).WithMessage("Informe a justificativa do estorno.");
     }
     public class AddAdjustmentValidator : AbstractValidator<AddAdjustmentCommand>
     {

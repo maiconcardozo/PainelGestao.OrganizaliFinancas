@@ -77,6 +77,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Repositories.Expenses
                 Code = Guid.CreateVersion7(), IdTenant = idTenant, PaymentCode = paymentCode, ObligationCode = obligationCode, Amount = amount, Actor = actor
             });
         public void MarkPaymentReversed(Payment payment) => work.AddPendingWrite(ExpenseSql.MarkPaymentReversed, payment);
+        public void UpdateReversalReason(Payment payment) => work.AddPendingWrite(ExpenseSql.UpdateReversalReason, payment);
         public void LinkPaymentToPurchase(int idTenant, Guid paymentCode, Guid purchaseCode) =>
             work.AddPendingWrite(ExpenseSql.LinkPaymentPurchase, new { IdTenant = idTenant, PaymentCode = paymentCode, PurchaseCode = purchaseCode });
 

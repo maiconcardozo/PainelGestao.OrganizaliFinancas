@@ -196,7 +196,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
             var expected = forecasts.Where(x => x.Status != "closed" || x.ReceivedAmount > 0).Sum(x => x.ExpectedAmount ?? 0);
             var received = (await work.IncomeRepository.ReceivedTotalsAsync(idTenant, HouseholdCalendar.Day(month), HouseholdCalendar.Day(month.AddMonths(1)), ct)).Sum(x => x.Total);
             var pending = forecasts.Where(x => x.Status == "open" && x.ExpectedAmount is not null).Sum(x => Math.Max(0, x.ExpectedAmount!.Value - x.ReceivedAmount));
-            // The month's expenses are exactly what Despesas shows for it (A18/A19): no card invoice, the card purchases due in the month instead.
+            // The month's expenses are exactly what Despesas shows for it (A19): one line per card invoice due in the month, no expense paid on the card twice.
             var expenses = await Expenses.ExpenseListing.ReadAsync(work, idTenant, month, month.AddMonths(1).AddDays(-1), false, planner.Today, ct);
             var open = expenses.Items.Where(x => x.DueDate >= month && x.Status != "cancelled").Sum(x => Math.Max(0, Money.Parse(x.OpenBalance)));
             var (_, projection) = await planner.ProjectionAsync(planner.Today.AddDays(HouseholdPlanner.ProjectionDays), ct);

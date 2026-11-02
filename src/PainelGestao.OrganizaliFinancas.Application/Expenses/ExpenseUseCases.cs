@@ -18,7 +18,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
             var to = request.To ?? from.AddMonths(1).AddDays(-1);
             if (from > to || to.DayNumber - from.DayNumber > 366)
                 throw new InputValidationException(new Dictionary<string, string[]> { ["From"] = ["Escolha um período de até 366 dias."] });
-            // A18/A19: no card invoice here (it is paid in Cartões); the card purchases due in the period are listed instead, in the invoice's month.
+            // A19: each card invoice due in the period is one line with the invoice's total; an expense paid on the card is inside that total, not a second line.
             return await ExpenseListing.ReadAsync(work, idTenant, from, to, request.IncludeOverdue, today, ct);
         }
     }
@@ -114,6 +114,59 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                 return true;
             }, ct);
             return await ExpenseMapper.GetAsync(work, request.Identity.IdTenant, request.Code, ct);
+        }
+    }
+    /// <summary>A20: a cancellation made by mistake is undone; the expense counts again in its month with the same values.</summary>
+    public class ReactivateExpenseHandler(IUnitOfWork work) : IRequestHandler<ReactivateExpenseCommand, ExpenseDto>
+    {
+        public async Task<ExpenseDto> Handle(ReactivateExpenseCommand request, CancellationToken ct)
+        {
+            await work.ExecuteInTransactionAsync(async () =>
+            {
+                await work.MemberRepository.LockHouseholdAsync(request.Identity.IdTenant, ct);
+                var user = await HouseholdAccess.RequireAsync(work, request.Identity, "finance.write", ct);
+                var obligation = await work.ExpenseRepository.FindAsync(user.IdTenant, request.Code, ct) ?? throw new NotFoundException("Despesa não encontrada.");
+                if (obligation.Version != request.Payload.Version) throw new ConflictException("Despesa alterada. Atualize a página antes de reativar.");
+                obligation.Reactivate(user.Code.ToString());
+                work.ExpenseRepository.Update(obligation);
+                return true;
+            }, ct);
+            return await ExpenseMapper.GetAsync(work, request.Identity.IdTenant, request.Code, ct);
+        }
+    }
+    /// <summary>A20: the reason written at cancellation can be corrected afterwards.</summary>
+    public class EditCancelReasonHandler(IUnitOfWork work) : IRequestHandler<EditCancelReasonCommand, ExpenseDto>
+    {
+        public async Task<ExpenseDto> Handle(EditCancelReasonCommand request, CancellationToken ct)
+        {
+            await work.ExecuteInTransactionAsync(async () =>
+            {
+                await work.MemberRepository.LockHouseholdAsync(request.Identity.IdTenant, ct);
+                var user = await HouseholdAccess.RequireAsync(work, request.Identity, "finance.write", ct);
+                var obligation = await work.ExpenseRepository.FindAsync(user.IdTenant, request.Code, ct) ?? throw new NotFoundException("Despesa não encontrada.");
+                if (obligation.Version != request.Payload.Version) throw new ConflictException("Despesa alterada. Atualize a página antes de salvar.");
+                obligation.EditCancelReason(request.Payload.Reason, user.Code.ToString());
+                work.ExpenseRepository.Update(obligation);
+                return true;
+            }, ct);
+            return await ExpenseMapper.GetAsync(work, request.Identity.IdTenant, request.Code, ct);
+        }
+    }
+    /// <summary>A20: owner only, like the reversal itself. Only the text changes; the reversal and its movements stay.</summary>
+    public class EditReversalReasonHandler(IUnitOfWork work) : IRequestHandler<EditReversalReasonCommand, PaymentDto>
+    {
+        public async Task<PaymentDto> Handle(EditReversalReasonCommand request, CancellationToken ct)
+        {
+            await work.ExecuteInTransactionAsync(async () =>
+            {
+                await work.MemberRepository.LockHouseholdAsync(request.Identity.IdTenant, ct);
+                var user = await HouseholdAccess.RequireAsync(work, request.Identity, "payments.reverse", ct);
+                var payment = await work.ExpenseRepository.FindPaymentAsync(user.IdTenant, request.Code, ct) ?? throw new NotFoundException("Pagamento não encontrado.");
+                payment.EditReversalReason(request.Payload.Reason);
+                work.ExpenseRepository.UpdateReversalReason(payment);
+                return true;
+            }, ct);
+            return await ListPaymentsHandler.ReadAsync(work, request.Identity.IdTenant, request.Code, ct);
         }
     }
     /// <summary>

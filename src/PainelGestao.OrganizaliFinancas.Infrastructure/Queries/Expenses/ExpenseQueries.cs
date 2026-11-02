@@ -12,7 +12,12 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             SELECT o.Code,o.Description,o.Competence,o.DueDate,o.Amount,({AdjustmentSum}) Adjustments,({LivePaid}) Paid,o.Status,o.IsEstimated,
                 o.CancelReason,t.Code ExpenseTypeCode,t.Name ExpenseTypeName,o.ExpenseTypeVersion,c.Code CategoryCode,c.Name CategoryName,
                 cr.Code CreditorCode,cr.Name CreditorName,pm.Code PaymentMethodCode,pp.Code PayerPersonCode,pp.Name PayerPersonName,
-                r.Code RecurrenceCode,o.IsDetached,ip.Code InstallmentPlanCode,o.InstallmentNumber,o.InstallmentCount,o.FieldValuesJson,o.SplitMode,o.Version,ci.Code CardInvoiceCode
+                r.Code RecurrenceCode,o.IsDetached,ip.Code InstallmentPlanCode,o.InstallmentNumber,o.InstallmentCount,o.FieldValuesJson,o.SplitMode,o.Version,ci.Code CardInvoiceCode,
+                cc.Name CardName,(SELECT COUNT(*) FROM CardItem x WHERE x.IdTenant=ci.IdTenant AND x.IdCardInvoice=ci.Id AND x.IsActive=1) CardItemCount,
+                EXISTS (SELECT 1 FROM PaymentAllocation a JOIN Payment p ON p.Id=a.IdPayment AND p.IdTenant=a.IdTenant
+                    WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id AND p.DtReversed IS NULL AND p.IdCardPurchase IS NOT NULL) PaidOnCard,
+                (SELECT MAX(p.PaymentDate) FROM PaymentAllocation a JOIN Payment p ON p.Id=a.IdPayment AND p.IdTenant=a.IdTenant
+                    WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id AND p.DtReversed IS NULL) LastPaymentDate
             FROM Obligation o
             LEFT JOIN ExpenseType t ON t.Id=o.IdExpenseType AND t.IdTenant=o.IdTenant
             LEFT JOIN Category c ON c.Id=o.IdCategory AND c.IdTenant=o.IdTenant
@@ -22,6 +27,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             LEFT JOIN RecurringExpense r ON r.Id=o.IdRecurringExpense AND r.IdTenant=o.IdTenant
             LEFT JOIN InstallmentPlan ip ON ip.Id=o.IdInstallmentPlan AND ip.IdTenant=o.IdTenant
             LEFT JOIN CardInvoice ci ON ci.Id=o.IdCardInvoice AND ci.IdTenant=o.IdTenant
+            LEFT JOIN CreditCard cc ON cc.Id=ci.IdCreditCard AND cc.IdTenant=ci.IdTenant
             """;
         public const string List = SelectObligation + $"""
              WHERE o.IdTenant=@IdTenant AND o.IsActive=1 AND (o.DueDate BETWEEN @From AND @To
@@ -121,6 +127,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             FROM Payment p JOIN Obligation o ON o.IdTenant=p.IdTenant AND o.Code=@ObligationCode
             WHERE p.IdTenant=@IdTenant AND p.Code=@PaymentCode
             """;
+        public const string UpdateReversalReason = "UPDATE Payment SET ReversalReason=@ReversalReason WHERE IdTenant=@IdTenant AND Id=@Id AND DtReversed IS NOT NULL";
         public const string MarkPaymentReversed = """
             UPDATE Payment SET DtReversed=@DtReversed,ReversedBy=@ReversedBy,ReversalReason=@ReversalReason
             WHERE IdTenant=@IdTenant AND Id=@Id AND DtReversed IS NULL

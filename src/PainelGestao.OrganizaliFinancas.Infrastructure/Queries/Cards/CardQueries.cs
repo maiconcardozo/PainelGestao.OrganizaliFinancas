@@ -68,24 +68,6 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Cards
             LEFT JOIN Category c ON c.Id=p.IdCategory AND c.IdTenant=p.IdTenant
             WHERE x.IdTenant=@IdTenant AND i.Code=@InvoiceCode ORDER BY p.PurchaseDate,x.Id
             """;
-        /// <summary>Despesas rows (A19): the invoice obligation is aliased "o" so the shared adjustment and payment sums apply to the invoice.</summary>
-        public const string ItemsDue = $"""
-            SELECT x.Code,p.Code PurchaseCode,i.Code InvoiceCode,c.Code CardCode,c.Name CardName,p.Description,p.PurchaseDate,x.Kind,x.InstallmentNumber,p.InstallmentCount,
-                x.Amount,x.Note,i.ReferenceMonth,i.DueDate,o.Amount InvoiceAmount,({ExpenseSql.AdjustmentSum}) InvoiceAdjustments,({ExpenseSql.LivePaid}) InvoicePaid,
-                cat.Code CategoryCode,cat.Name CategoryName,b.Code BuyerPersonCode,b.Name BuyerName,t.Code ExpenseTypeCode,t.Name ExpenseTypeName,p.ExpenseTypeVersion,p.FieldValuesJson
-            FROM CardItem x
-            JOIN CardPurchase p ON p.Id=x.IdCardPurchase AND p.IdTenant=x.IdTenant
-            JOIN CardInvoice i ON i.Id=x.IdCardInvoice AND i.IdTenant=x.IdTenant
-            JOIN CreditCard c ON c.Id=i.IdCreditCard AND c.IdTenant=i.IdTenant
-            JOIN Obligation o ON o.IdCardInvoice=i.Id AND o.IdTenant=i.IdTenant
-            LEFT JOIN Category cat ON cat.Id=p.IdCategory AND cat.IdTenant=p.IdTenant
-            LEFT JOIN Person b ON b.Id=p.IdBuyerPerson AND b.IdTenant=p.IdTenant
-            LEFT JOIN ExpenseType t ON t.Id=p.IdExpenseType AND t.IdTenant=p.IdTenant
-            WHERE x.IdTenant=@IdTenant AND x.IsActive=1
-                AND NOT EXISTS (SELECT 1 FROM Payment py WHERE py.IdTenant=p.IdTenant AND py.IdCardPurchase=p.Id)
-                AND (i.DueDate BETWEEN @From AND @To OR (@IncludeOverdue AND i.DueDate<@From AND {OpenBalance}>0))
-            ORDER BY i.DueDate,i.Id,p.PurchaseDate,x.Id
-            """;
         private const string SelectPurchase = """
             SELECT p.Code,c.Code CardCode,c.Name CardName,p.Description,p.PurchaseDate,p.TotalAmount,p.InstallmentCount,p.RefundedAmount,
                 cat.Code CategoryCode,cat.Name CategoryName,b.Code BuyerPersonCode,b.Name BuyerName,t.Code ExpenseTypeCode,p.ExpenseTypeVersion,p.FieldValuesJson,p.Version,
@@ -111,6 +93,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Cards
         public const string UpdatePurchaseDetails = """
             UPDATE CardPurchase SET Description=@Description,IdExpenseType=@IdExpenseType,ExpenseTypeVersion=@ExpenseTypeVersion,IdCategory=@IdCategory,
                 FieldValuesJson=@FieldValuesJson,IdBuyerPerson=@IdBuyerPerson,Version=@Version,DtUpdated=@DtUpdated,UpdatedBy=@UpdatedBy
+            WHERE IdTenant=@IdTenant AND Id=@Id
+            """;
+        public const string UpdatePurchaseSchedule = """
+            UPDATE CardPurchase SET PurchaseDate=@PurchaseDate,TotalAmount=@TotalAmount,InstallmentCount=@InstallmentCount,Version=@Version,DtUpdated=@DtUpdated,UpdatedBy=@UpdatedBy
             WHERE IdTenant=@IdTenant AND Id=@Id
             """;
         public const string PurchasePaidInvoices = """

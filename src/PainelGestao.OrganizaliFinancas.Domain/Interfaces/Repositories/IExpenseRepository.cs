@@ -14,6 +14,10 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         public Guid? RecurrenceCode { get; init; } public bool IsDetached { get; init; } public Guid? InstallmentPlanCode { get; init; }
         public int? InstallmentNumber { get; init; } public int? InstallmentCount { get; init; } public string FieldValuesJson { get; init; } = "{}";
         public string? SplitMode { get; init; } public int Version { get; init; } public Guid? CardInvoiceCode { get; init; }
+        /// <summary>Card invoice only: the card's name and how many active items (purchases and installments) the invoice holds (A19).</summary>
+        public string? CardName { get; init; } public int CardItemCount { get; init; }
+        /// <summary>True when a live payment of this obligation was made on a credit card (A17): the amount already sits inside an invoice.</summary>
+        public bool PaidOnCard { get; init; } public DateTime? LastPaymentDate { get; init; }
     }
     public sealed record ShareRecord
     {
@@ -108,6 +112,8 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         /// <summary>Payment and obligation may both be new in the transaction; they are resolved by Code.</summary>
         void AddAllocation(int idTenant, Guid paymentCode, Guid obligationCode, decimal amount, string actor);
         void MarkPaymentReversed(Payment payment);
+        /// <summary>Rewrites only the reason of a payment already reversed.</summary>
+        void UpdateReversalReason(Payment payment);
         /// <summary>Links a card payment to the purchase that carries it into the invoice; both rows may be new in the transaction and are resolved by Code.</summary>
         void LinkPaymentToPurchase(int idTenant, Guid paymentCode, Guid purchaseCode);
 

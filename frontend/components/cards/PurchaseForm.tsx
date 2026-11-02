@@ -74,17 +74,26 @@ export function PurchaseModal({ cards, catalogs, today, onClose, onSaved }: { ca
   </form></Modal>;
 }
 
-/** Edits what describes the purchase. Amount, date and installments stay fixed because the items are already in the invoices. */
-export function PurchaseEditModal({ purchase, catalogs, onClose, onSaved }: { purchase: Purchase; catalogs: Catalogs; onClose: () => void; onSaved: (message: string) => void }) {
+/**
+ * Edits what describes the purchase and, while no invoice holding it was paid and there was no refund (A20), also its amount, date and
+ * installments: the items are then planned again in the invoices, as if the purchase were entered anew.
+ */
+export function PurchaseEditModal({ purchase, catalogs, today, onClose, onSaved }: { purchase: Purchase; catalogs: Catalogs; today: string; onClose: () => void; onSaved: (message: string) => void }) {
   const action = useFinanceAction();
   const [typeCode, setTypeCode] = useState(purchase.expenseTypeCode ?? "");
   const type = catalogs.types.find(item => item.code === typeCode);
-  const message = "Compra atualizada. Valor, data e parcelas não mudaram.";
+  const reschedulable = !purchase.paymentCode && Number(purchase.refunded) === 0;
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const total = reschedulable ? toApiMoney(data.get("total")) : null;
+    const count = reschedulable ? Number(data.get("count")) : null;
+    const purchaseDate = reschedulable ? String(data.get("purchaseDate")) : null;
+    const changed = reschedulable && (total !== purchase.total || count !== purchase.count || purchaseDate !== purchase.purchaseDate);
+    const message = changed ? "Compra atualizada. As parcelas foram refeitas nas faturas." : "Compra atualizada.";
     const saved = await action.send(`card-purchases/${purchase.code}`, "PUT", {
       buyerPersonCode: data.get("buyer") || null, version: purchase.version,
+      purchaseDate: changed ? purchaseDate : null, total: changed ? total : null, count: changed ? count : null, firstInvoiceShift: changed ? Number(data.get("shift") ?? 0) : 0,
       details: { description: data.get("description"), expenseTypeCode: type?.code ?? null, expenseTypeVersion: type?.version ?? null, categoryCode: data.get("category") || null,
         creditorCode: null, paymentMethodCode: null, payerPersonCode: null, fields: type ? fieldValues(data, type.fields) : null, splitMode: null, shares: null },
     }, message);
@@ -103,7 +112,17 @@ export function PurchaseEditModal({ purchase, catalogs, onClose, onSaved }: { pu
       <label>Quem comprou<select name="buyer" defaultValue={purchase.buyerPersonCode ?? ""}><option value="">Não informado</option>
         {catalogs.people.filter(person => person.isActive || person.code === purchase.buyerPersonCode).map(person => <option key={person.code} value={person.code}>{person.name}</option>)}</select></label>
     </div>
-    <p className="form-hint">{money(purchase.total)} em {purchase.count}x, comprado em {civilDate(purchase.purchaseDate)} no {purchase.cardName}. Para mudar valor, data ou parcelas, exclua a compra e lance de novo.</p>
+    {reschedulable ? <>
+      <div className="form-row">
+        <label>Valor total<input name="total" required inputMode="decimal" defaultValue={purchase.total.replace(".", ",")} /></label>
+        <label>Parcelas<input type="number" name="count" required min={1} max={120} defaultValue={purchase.count} /></label>
+        <label>Data da compra<input type="date" name="purchaseDate" required defaultValue={purchase.purchaseDate} max={today} /></label>
+      </div>
+      <label>Primeira parcela (se mudar valor, data ou parcelas)<select name="shift" defaultValue="0">
+        <option value="0">Na fatura indicada pelo fechamento</option><option value="-1">Uma fatura antes</option><option value="1">Uma fatura depois</option></select></label>
+      <p className="form-hint">Compra no {purchase.cardName}. Mudar valor, data ou parcelas refaz as parcelas nas faturas do cartão; a mudança é recusada se uma fatura com esta compra já foi paga.</p>
+    </> : <p className="form-hint">{money(purchase.total)} em {purchase.count}x, comprado em {civilDate(purchase.purchaseDate)} no {purchase.cardName}.
+      {purchase.paymentCode ? " É o pagamento de uma despesa no cartão: para mudar o valor, estorne o pagamento em Despesas e pague de novo." : " Já teve estorno da loja, então valor, data e parcelas não mudam mais."}</p>}
     <ModalActions busy={action.busy} label="Salvar compra" onCancel={onClose} />
   </form></Modal>;
 }

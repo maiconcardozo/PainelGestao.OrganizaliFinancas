@@ -59,6 +59,9 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             (await Post<PaymentDto>(owner, $"/api/payments/{payment.Code}/reversals", new ReversalPayload("Débito em duplicidade", null), Guid.NewGuid(), HttpStatusCode.Created))
                 .IsReversed.Should().BeTrue();
             await PostStatus(owner, $"/api/payments/{payment.Code}/reversals", new ReversalPayload("De novo", null), Guid.NewGuid(), HttpStatusCode.Conflict);
+            // A20: the owner corrects the reason of a reversal already made; a reader cannot.
+            (await reader.PutAsJsonAsync($"/api/payments/{payment.Code}/reversal-reason", new ReversalReasonPayload("Outro"))).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            (await Put<PaymentDto>(owner, $"/api/payments/{payment.Code}/reversal-reason", new ReversalReasonPayload("Débito duplicado pelo banco"))).ReversalReason.Should().Be("Débito duplicado pelo banco");
             detail = await Detail(owner, expense.Code);
             (detail.Expense.Status, detail.Expense.OpenBalance).Should().Be(("open", "255.00"));
             detail.Payments.Should().ContainSingle().Which.IsReversed.Should().BeTrue();
@@ -84,6 +87,16 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             var cancelled = await Ok<ExpenseDto>(owner, $"/api/expenses/{unpaid.Code}/cancel", new CancelExpensePayload("Serviço cancelado", unpaid.Version));
             (cancelled.Status, cancelled.CancelReason).Should().Be(("cancelled", "Serviço cancelado"));
             await PostStatus(owner, "/api/payments", Pay(account.Code, today, unpaid.Code, "1.00"), Guid.NewGuid(), HttpStatusCode.Conflict);
+            // A20: the reason can be corrected and the cancellation undone; the expense counts again with the same values.
+            var reasoned = await Put<ExpenseDto>(owner, $"/api/expenses/{unpaid.Code}/cancel-reason", new CancelExpensePayload("Assinatura encerrada", cancelled.Version));
+            reasoned.CancelReason.Should().Be("Assinatura encerrada");
+            await PostStatus(owner, $"/api/expenses/{unpaid.Code}/reactivate", new ReactivateExpensePayload(cancelled.Version), null, HttpStatusCode.Conflict);
+            await PostStatus(reader, $"/api/expenses/{unpaid.Code}/reactivate", new ReactivateExpensePayload(reasoned.Version), null, HttpStatusCode.Forbidden);
+            var reactivated = await Ok<ExpenseDto>(owner, $"/api/expenses/{unpaid.Code}/reactivate", new ReactivateExpensePayload(reasoned.Version));
+            (reactivated.Status, reactivated.CancelReason, reactivated.OpenBalance).Should().Be(("open", (string?)null, "30.00"));
+            await PostStatus(owner, $"/api/expenses/{unpaid.Code}/reactivate", new ReactivateExpensePayload(reactivated.Version), null, HttpStatusCode.Conflict);
+            cancelled = await Ok<ExpenseDto>(owner, $"/api/expenses/{unpaid.Code}/cancel", new CancelExpensePayload("Serviço cancelado", reactivated.Version));
+            cancelled.Status.Should().Be("cancelled");
 
             // A18: an entry made by mistake is deleted for good; a paid one must have its payment reversed first; a reader cannot delete.
             (await owner.DeleteAsync($"/api/expenses/{expense.Code}")).StatusCode.Should().Be(HttpStatusCode.Conflict, "Luz has a live payment");

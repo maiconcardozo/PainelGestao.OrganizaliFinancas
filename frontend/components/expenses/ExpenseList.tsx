@@ -1,7 +1,7 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Ban, CreditCard, Eye, HandCoins, Trash2 } from "lucide-react";
+import { Ban, CreditCard, Eye, HandCoins, Pencil, RotateCcw, ShoppingBag, Trash2 } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Attachments } from "@/components/common/Attachments";
@@ -19,24 +19,33 @@ type Props = Rights & { items: Expense[]; accounts: Account[]; cards: Card[]; ca
 
 export function ExpenseList({ items, accounts, cards, catalogs, today, canEdit, canSettle }: Props) {
   if (items.length === 0) return <Empty title={canEdit ? "Nenhuma despesa neste mês. Use “Nova despesa” para lançar contas avulsas, recorrentes ou compras parceladas." : "Nenhuma despesa neste mês."} />;
-  return <ul className="expense-list">{items.map(item => <ExpenseRow key={`${item.code}-${item.version}-${item.paid}-${item.adjustments}`} expense={item}
-    accounts={accounts} cards={cards} catalogs={catalogs} today={today} canEdit={canEdit} canSettle={canSettle} />)}</ul>;
+  // A19: a card invoice is one line with the total of its purchases; everything else is an obligation of the household.
+  return <ul className="expense-list">{items.map(item => item.cardInvoiceCode
+    ? <InvoiceRow key={`${item.code}-${item.version}-${item.paid}-${item.adjustments}`} expense={item} accounts={accounts} catalogs={catalogs} today={today} canEdit={canEdit} canSettle={canSettle} />
+    : <ExpenseRow key={`${item.code}-${item.version}-${item.paid}-${item.adjustments}`} expense={item}
+      accounts={accounts} cards={cards} catalogs={catalogs} today={today} canEdit={canEdit} canSettle={canSettle} />)}</ul>;
 }
 
 const smallButton = "inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] px-3 py-1.5 text-xs font-semibold transition hover:bg-[var(--surface-2)]";
 
 function ExpenseRow({ expense, accounts, cards, catalogs, today, canEdit, canSettle }: Rights & { expense: Expense; accounts: Account[]; cards: Card[]; catalogs: Catalogs; today: string }) {
   const action = useFinanceAction();
-  const [panel, setPanel] = useState<"" | "pay" | "detail" | "cancel" | "delete">("");
+  const [panel, setPanel] = useState<"" | "pay" | "detail" | "cancel" | "delete" | "reactivate" | "reason">("");
   const [detail, setDetail] = useState<ExpenseDetail | null>(null);
   const open = expense.status === "open" || expense.status === "partial";
-  // A19: a card purchase is read-only here; it is edited, refunded or deleted in Cartões and settled by its invoice.
-  if (expense.cardPurchaseCode) return <CardPurchaseRow expense={expense} />;
   // A18: only an entry nobody paid can leave for good; a paid one keeps the cash history until its payment is reversed.
   const removable = canEdit && (expense.status === "open" || expense.status === "cancelled");
   const paidNotice = canEdit && (expense.status === "paid" || expense.status === "partial");
   async function remove() {
     if (await action.send(`expenses/${expense.code}`, "DELETE", undefined, "Despesa excluída.")) setPanel("");
+  }
+  // A20: a cancellation made by mistake is undone, and the reason written at cancellation can be corrected.
+  async function reactivate() {
+    if (await action.send(`expenses/${expense.code}/reactivate`, "POST", { version: expense.version }, "Cancelamento desfeito. A despesa voltou a contar no mês.")) setPanel("");
+  }
+  async function editReason(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (await action.send(`expenses/${expense.code}/cancel-reason`, "PUT", { reason: new FormData(event.currentTarget).get("reason"), version: expense.version }, "Motivo atualizado.")) setPanel("");
   }
   async function showDetail() {
     const loaded = await action.read<ExpenseDetail>(`expenses/${expense.code}`);
@@ -61,16 +70,29 @@ function ExpenseRow({ expense, accounts, cards, catalogs, today, canEdit, canSet
       <p className="status-line">
         <span className={`status-tag ${expense.isOverdue ? "overdue" : expense.status}`}>{expense.isOverdue ? "Vencida" : statusLabels[expense.status]}</span>
         {expense.isEstimated && open && <span className="status-tag estimate">Estimada</span>}
-        {expense.status === "cancelled" && expense.cancelReason && <span className="entry-meta">Motivo: {expense.cancelReason}</span>}
+        {expense.status === "paid" && expense.paidOn && <span className="entry-meta">Paga em {civilDate(expense.paidOn)}</span>}
+        {expense.status === "cancelled" && expense.cancelReason && <span className="entry-meta">Motivo: {expense.cancelReason}
+          {canEdit && <button type="button" onClick={() => setPanel("reason")} aria-label="Corrigir o motivo do cancelamento" title="Corrigir motivo"
+            className="ml-1 inline-flex rounded p-0.5 align-middle text-[var(--text-secondary)] hover:text-[var(--primary)]"><Pencil size={12} /></button>}</span>}
       </p>
       <div className="row-actions">
         {canSettle && open && (accounts.some(account => account.isActive) || cards.length > 0) && <button type="button" onClick={() => setPanel("pay")}
           className="inline-flex items-center gap-1.5 rounded-md bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[var(--primary-strong)]"><HandCoins size={14} />Pagar</button>}
         <button type="button" disabled={action.busy} onClick={() => void showDetail()} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--primary)]`}><Eye size={14} />Detalhes</button>
         {canEdit && expense.status === "open" && <button type="button" onClick={() => setPanel("cancel")} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--critical)]`}><Ban size={14} />Cancelar despesa</button>}
+        {canEdit && expense.status === "cancelled" && <button type="button" onClick={() => setPanel("reactivate")} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--primary)]`}><RotateCcw size={14} />Desfazer cancelamento</button>}
         {(removable || paidNotice) && <button type="button" onClick={() => setPanel("delete")} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--critical)]`}><Trash2 size={14} />Excluir</button>}
       </div>
     </div>
+    {panel === "reactivate" && <ConfirmModal title={`Desfazer o cancelamento de ${expense.description}`} label="Reativar despesa" busy={action.busy} error={action.error} onConfirm={() => void reactivate()} onClose={() => setPanel("")}>
+      <p className="text-sm">{expense.description} de {money(expense.amount)}, vencimento {civilDate(expense.dueDate)}, volta a ficar em aberto e a contar no mês e no orçamento, com os mesmos valores e responsáveis.</p>
+    </ConfirmModal>}
+    {panel === "reason" && <Modal title="Corrigir o motivo do cancelamento" onClose={() => setPanel("")} error={action.error} width="max-w-md">
+      <form className="data-form" onSubmit={editReason}>
+        <label>Motivo<input name="reason" required maxLength={300} autoComplete="off" defaultValue={expense.cancelReason ?? ""} /></label>
+        <ModalActions busy={action.busy} label="Salvar motivo" onCancel={() => setPanel("")} />
+      </form>
+    </Modal>}
     {panel === "delete" && paidNotice && <Modal title={`Excluir ${expense.description}`} onClose={() => setPanel("")} width="max-w-md">
       <p className="text-sm">Esta despesa já tem pagamento registrado ({money(expense.paid)}). Para excluir, primeiro estorne o pagamento em <strong>Pagamentos recentes</strong>, no fim desta página:
         o dinheiro volta para a conta e a despesa reabre. Depois o botão Excluir apaga a despesa de vez.</p>
@@ -95,27 +117,46 @@ function ExpenseRow({ expense, accounts, cards, catalogs, today, canEdit, canSet
   </li>;
 }
 
-/** A card purchase in the month of its invoice: what it is, where it came from and how the invoice stands; the actions live in Cartões. */
-function CardPurchaseRow({ expense }: { expense: Expense }) {
-  const origin = expense.installmentNumber ? ` · parcela ${expense.installmentNumber}/${expense.installmentCount}` : "";
-  const status = expense.isOverdue ? "Fatura vencida" : expense.status === "paid" ? "Paga na fatura" : expense.status === "partial" ? "Fatura paga em parte" : "Na fatura";
+/**
+ * A19: one line per card invoice due in the month, with the total of the card's purchases. It is paid as one (bank account only) and
+ * "Ver compras" opens the invoice in Cartões, where the purchases are entered, edited, refunded or removed.
+ */
+function InvoiceRow({ expense, accounts, catalogs, today, canEdit, canSettle }: Rights & { expense: Expense; accounts: Account[]; catalogs: Catalogs; today: string }) {
+  const action = useFinanceAction();
+  const [panel, setPanel] = useState<"" | "pay" | "detail">("");
+  const [detail, setDetail] = useState<ExpenseDetail | null>(null);
+  const open = expense.status === "open" || expense.status === "partial";
+  const count = expense.cardItemCount ?? 0;
+  async function showDetail() {
+    const loaded = await action.read<ExpenseDetail>(`expenses/${expense.code}`);
+    if (loaded) { setDetail(loaded); setPanel("detail"); }
+  }
   return <li className={`expense-row status-${expense.status}${expense.isOverdue ? " is-overdue" : ""}`}>
     <div className="expense-main">
       <div><strong>{expense.description}</strong>
-        <span className="entry-meta">Fatura vence {civilDate(expense.dueDate)} · competência {monthLabel(expense.competence)}
-          {expense.categoryName && ` · ${expense.categoryName}`}{expense.payerPersonName && ` · ${expense.payerPersonName}`}</span>
-        <span className="entry-meta"><CreditCard size={12} className="mr-1 inline" aria-hidden="true" />Cartão {expense.cardName}
-          {expense.purchaseDate && `, compra de ${civilDate(expense.purchaseDate)}`}{origin}</span>
+        <span className="entry-meta"><CreditCard size={12} className="mr-1 inline" aria-hidden="true" />Vence {civilDate(expense.dueDate)} · {count} {count === 1 ? "compra" : "compras"} no cartão{" "}
+          {expense.cardName} · competência {monthLabel(expense.competence)}</span>
       </div>
       <div className="number"><strong>{money(expense.status === "paid" ? expense.amount : expense.openBalance)}</strong>
-        {expense.status === "partial" && <span className="entry-meta">em aberto de {money(expense.amount)}</span>}</div>
+        {expense.status === "partial" && <span className="entry-meta">em aberto de {money((Number(expense.amount) + Number(expense.adjustments)).toFixed(2))}</span>}</div>
     </div>
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <p className="status-line"><span className={`status-tag ${expense.isOverdue ? "overdue" : expense.status}`}>{status}</span></p>
+      <p className="status-line">
+        <span className={`status-tag ${expense.isOverdue ? "overdue" : expense.status}`}>{expense.isOverdue ? "Vencida" : statusLabels[expense.status]}</span>
+        {expense.status === "paid" && expense.paidOn && <span className="entry-meta">Paga em {civilDate(expense.paidOn)}</span>}
+      </p>
       <div className="row-actions">
-        <Link href="/cards" className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--primary)]`}><CreditCard size={14} />Ver em Cartões</Link>
+        {canSettle && open && accounts.some(account => account.isActive) && <button type="button" onClick={() => setPanel("pay")}
+          className="inline-flex items-center gap-1.5 rounded-md bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[var(--primary-strong)]"><HandCoins size={14} />Pagar fatura</button>}
+        <Link href={`/cards?invoice=${expense.cardInvoiceCode}`} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--primary)]`}><ShoppingBag size={14} />Ver compras</Link>
+        <button type="button" disabled={action.busy} onClick={() => void showDetail()} className={`${smallButton} text-[var(--text-secondary)] hover:text-[var(--primary)]`}><Eye size={14} />Detalhes</button>
       </div>
     </div>
+    {panel === "" && action.error && <p className="form-error" role="alert">{action.error}</p>}
+    {panel === "pay" && <PayModal expense={expense} accounts={accounts} people={catalogs.people} today={today} onClose={() => setPanel("")} />}
+    {panel === "detail" && detail && <Modal title={expense.description} onClose={() => setPanel("")} width="max-w-3xl">
+      <DetailPanel detail={detail} catalogs={catalogs} canEdit={canEdit} canSettle={canSettle} />
+    </Modal>}
   </li>;
 }
 

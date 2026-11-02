@@ -21,7 +21,7 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
             var expenses = endpoints.MapGroup("/api/expenses").WithTags("Despesas").RequireAuthorization();
             expenses.MapGet("", async (DateOnly? from, DateOnly? to, bool? includeOverdue, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
                 Ok(context, "Despesas", "Vencimentos do período e vencidas em aberto.", await mediator.Send(new ListExpensesQuery(user.SessionIdentity(), from, to, includeOverdue ?? true), ct)))
-                .WithSummary("Lista despesas por vencimento (padrão: mês atual; até 366 dias) e, por padrão, as vencidas ainda abertas de antes do período. Faturas de cartão ficam fora: elas vivem em Cartões.")
+                .WithSummary("Lista despesas por vencimento (padrão: mês atual; até 366 dias) e, por padrão, as vencidas ainda abertas de antes do período. Cada fatura de cartão que vence no período é uma linha (`cardInvoiceCode`, `cardName`, `cardItemCount`) com o total das compras; despesa paga no cartão não aparece de novo.")
                 .Produces<SuccessDetails<ExpenseListDto>>().ProducesProblem(400);
             expenses.MapGet("/{code:guid}", async (Guid code, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
                 Ok(context, "Despesa", "Saldo aberto, ajustes e pagamentos.", await mediator.Send(new GetExpenseQuery(user.SessionIdentity(), code), ct)))
@@ -40,6 +40,14 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                 Ok(context, "Despesa cancelada", "Saldo futuro cancelado; histórico mantido.", await mediator.Send(new CancelExpenseCommand(user.SessionIdentity(), code, payload), ct)))
                 .WithSummary("Cancela despesa sem pagamento ativo, com motivo. Paga exige estornar o pagamento antes.")
                 .Produces<SuccessDetails<ExpenseDto>>().ProducesProblem(400).ProducesProblem(404).ProducesProblem(409);
+            expenses.MapPost("/{code:guid}/reactivate", async (Guid code, ReactivateExpensePayload payload, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
+                Ok(context, "Despesa reativada", "A despesa volta a contar no mês com os mesmos valores.", await mediator.Send(new ReactivateExpenseCommand(user.SessionIdentity(), code, payload), ct)))
+                .WithSummary("Desfaz o cancelamento de uma despesa (valor, datas e rateio mantidos). Titular ou editor.")
+                .Produces<SuccessDetails<ExpenseDto>>().ProducesProblem(400).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
+            expenses.MapPut("/{code:guid}/cancel-reason", async (Guid code, CancelExpensePayload payload, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
+                Ok(context, "Motivo atualizado", "Só o motivo do cancelamento mudou.", await mediator.Send(new EditCancelReasonCommand(user.SessionIdentity(), code, payload), ct)))
+                .WithSummary("Corrige o motivo de uma despesa cancelada. Titular ou editor.")
+                .Produces<SuccessDetails<ExpenseDto>>().ProducesProblem(400).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
             expenses.MapDelete("/{code:guid}", async (Guid code, ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
             {
                 await mediator.Send(new DeleteExpenseCommand(user.SessionIdentity(), code), ct);
@@ -65,6 +73,10 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                 .WithSummary("Paga total ou parcialmente uma ou mais despesas a partir de uma conta. Juros, multa e desconto ficam separados. Titular ou editor.")
                 .WithDescription(KeyHelp + " Cada alocação não pode superar o saldo aberto (depois dos ajustes informados). O valor do pagamento é a soma das alocações.")
                 .Produces<SuccessDetails<PaymentDto>>(201).ProducesProblem(400).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
+            payments.MapPut("/{code:guid}/reversal-reason", async (Guid code, ReversalReasonPayload payload, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
+                Ok(context, "Justificativa atualizada", "Só o texto do estorno mudou.", await mediator.Send(new EditReversalReasonCommand(user.SessionIdentity(), code, payload), ct)))
+                .WithSummary("Corrige a justificativa de um pagamento já estornado. Somente titular.")
+                .Produces<SuccessDetails<PaymentDto>>().ProducesProblem(400).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
             payments.MapPost("/{code:guid}/reversals", async (Guid code, ReversalPayload payload, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
                 Created(context, "Pagamento estornado", "Saldo da conta e da despesa restaurados; o original foi mantido.",
                     await mediator.Send(new ReversePaymentCommand(user.SessionIdentity(), IdempotencyKey(context), code, payload), ct)))

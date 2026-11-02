@@ -92,7 +92,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             var single2 = await Create<ExpenseTypeDto>(owner, "/api/expense-types", new ExpenseTypePayload("Conta comum", true, 0, "single", null, []));
             await PostStatus(owner, "/api/card-purchases", single with { Details = Details("Errado", single2) }, Guid.NewGuid(), HttpStatusCode.Conflict);
             var cardType = await Create<ExpenseTypeDto>(owner, "/api/expense-types", new ExpenseTypePayload("Streaming", true, 0, "card", null, []));
-            await PostStatus(owner, "/api/card-purchases", single with { Details = Details("Assinatura de vídeo", cardType), Total = "39.90" }, Guid.NewGuid(), HttpStatusCode.Created);
+            var streaming = await Post<PurchaseDto>(owner, "/api/card-purchases", single with { Details = Details("Assinatura de vídeo", cardType), Total = "39.90" }, Guid.NewGuid(), HttpStatusCode.Created);
 
             // A17: an expense paid with the card never touches the bank; it enters the invoice chosen by the closing day and the expense reads as paid.
             var elo = await Create<CardDto>(owner, "/api/cards", new CardPayload(holder.Code, "Elo da casa", 25, 10, null, "next", true, 0));
@@ -113,28 +113,29 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             (eloInvoice.Amount, eloInvoice.DueDate).Should().Be(("120.00", eloCycle.DueDate));
             (await owner.GetFromJsonAsync<SuccessDetails<InvoiceDetailDto>>($"/api/card-invoices/{eloInvoice.Code}"))!.Data.Items
                 .Should().ContainSingle(x => x.Description == "Internet" && x.Amount == "120.00" && x.PurchaseCode == onCard.PurchaseCode);
-            // A18: the invoice is not listed as an expense (Internet already is), so the month total is not doubled; it is paid in Cartões and cannot be deleted here.
-            var dueMonthStart = new DateOnly(eloCycle.DueDate.Year, eloCycle.DueDate.Month, 1);
-            var dueMonth = (await owner.GetFromJsonAsync<SuccessDetails<ExpenseListDto>>(
-                $"/api/expenses?from={dueMonthStart:yyyy-MM-dd}&to={dueMonthStart.AddMonths(1).AddDays(-1):yyyy-MM-dd}&includeOverdue=false"))!.Data;
-            dueMonth.Items.Should().NotContain(x => x.Code == eloInvoice.ExpenseCode || x.CardPurchaseCode == onCard.PurchaseCode, "Internet is already the expense");
-            // A19: ordinary card purchases are listed in Despesas in the month their invoice is due and follow the invoice's payments; the invoice itself never is.
+            // A19: Despesas lists one line per card invoice due in the month ("Fatura Cartão – mês/ano", total of the purchases), paid as one; the purchases are
+            // not separate lines, and an expense paid on the card is inside the invoice line instead of a second line.
             async Task<ExpenseListDto> MonthOf(DateOnly due)
             {
                 var start = new DateOnly(due.Year, due.Month, 1);
                 return (await owner.GetFromJsonAsync<SuccessDetails<ExpenseListDto>>($"/api/expenses?from={start:yyyy-MM-dd}&to={start.AddMonths(1).AddDays(-1):yyyy-MM-dd}&includeOverdue=false"))!.Data;
             }
+            string[] months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+            string Label(string cardName, string referenceMonth) => $"Fatura {cardName} – {months[int.Parse(referenceMonth[5..]) - 1]}/{referenceMonth[2..4]}";
+            var dueMonth = await MonthOf(eloCycle.DueDate);
+            var eloLine = dueMonth.Items.Single(x => x.Code == eloInvoice.ExpenseCode);
+            (eloLine.Description, eloLine.Amount, eloLine.Status, eloLine.CardName, eloLine.CardItemCount, eloLine.CardInvoiceCode)
+                .Should().Be((Label("Elo da casa", eloInvoice.ReferenceMonth), "120.00", "open", (string?)"Elo da casa", (int?)1, (Guid?)eloInvoice.Code));
+            (await MonthOf(today)).Items.Should().NotContain(x => x.Code == internet.Code, "Internet was paid on the card and is inside the invoice line");
             var visaMonth = await MonthOf(invoice.DueDate);
-            visaMonth.Items.Should().NotContain(x => x.Code == invoice.ExpenseCode);
-            var market = visaMonth.Items.Single(x => x.CardPurchaseCode == purchase.Code && x.Amount == "300.00");
-            (market.Status, market.Paid, market.OpenBalance, market.CardName, market.DueDate, market.Competence, market.PurchaseDate)
-                .Should().Be(("paid", "300.00", "0.00", (string?)"Visa da casa", invoice.DueDate, invoice.ReferenceMonth, (DateOnly?)today));
-            visaMonth.Items.Should().Contain(x => x.CardPurchaseCode == purchase.Code && x.Amount == "-50.00" && x.Status == "paid", "the store credit follows the paid invoice");
-            visaMonth.Items.Should().NotContain(x => x.CardPurchaseCode == tv.Code, "cancelled installments are not expenses");
-            Money.Parse(visaMonth.Total).Should().BeGreaterThanOrEqualTo(289.90m, "the purchases of the invoice count in the month total");
-            var pharmacy = (await MonthOf(partial.DueDate)).Items.Single(x => x.CardPurchaseCode != null && x.Description == "Farmácia");
-            (pharmacy.Status, pharmacy.Paid, pharmacy.OpenBalance, pharmacy.CardInvoiceCode).Should().Be(("partial", "100.00", "200.00", (Guid?)partial.Code));
-            (await owner.DeleteAsync($"/api/expenses/{market.Code}")).StatusCode.Should().Be(HttpStatusCode.NotFound, "a card row is not an obligation");
+            var visaLine = visaMonth.Items.Single(x => x.Code == invoice.ExpenseCode);
+            (visaLine.Description, visaLine.Amount, visaLine.Paid, visaLine.Status, visaLine.CardItemCount, visaLine.DueDate, visaLine.Competence, visaLine.PaidOn)
+                .Should().Be((Label("Visa da casa", invoice.ReferenceMonth), "289.90", "300.00", "paid", (int?)3, invoice.DueDate, invoice.ReferenceMonth, (DateOnly?)today),
+                    "300 market + 39.90 streaming − 50 credit, the cancelled TV installment out");
+            visaMonth.Items.Should().NotContain(x => x.Description == "Mercado do mês" || x.Description == "Televisão", "purchases are not separate lines");
+            Money.Parse(visaMonth.Total).Should().BeGreaterThanOrEqualTo(289.90m, "the invoice counts in the month total");
+            var masterLine = (await MonthOf(partial.DueDate)).Items.Single(x => x.Code == partial.ExpenseCode);
+            (masterLine.Status, masterLine.Paid, masterLine.OpenBalance, masterLine.CardName).Should().Be(("partial", "100.00", "200.00", (string?)"Master"));
             (await owner.DeleteAsync($"/api/expenses/{eloInvoice.ExpenseCode}")).StatusCode.Should().Be(HttpStatusCode.Conflict);
             var settlement = (await owner.GetFromJsonAsync<SuccessDetails<PurchaseDto[]>>("/api/card-purchases"))!.Data.Single(x => x.Code == onCard.PurchaseCode);
             settlement.PaymentCode.Should().Be(onCard.Code);
@@ -145,6 +146,18 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             (await owner.GetFromJsonAsync<SuccessDetails<ExpenseDetailDto>>($"/api/expenses/{internet.Code}"))!.Data.Expense.OpenBalance.Should().Be("120.00");
             (await Invoices(owner, elo.Code)).Single(x => x.Code == eloInvoice.Code).Amount.Should().Be("0.00", "the reversal takes the item out of the invoice");
             (await owner.GetFromJsonAsync<SuccessDetails<PurchaseDto[]>>("/api/card-purchases"))!.Data.Single(x => x.Code == settlement.Code).Refunded.Should().Be("120.00");
+            (await MonthOf(today)).Items.Should().Contain(x => x.Code == internet.Code && x.Status == "open", "once the card payment is reversed the expense is a line again");
+            // A20: amount, date and installments of a purchase change while no invoice holding it was paid and there was no refund; the items are planned again.
+            (await owner.PutAsJsonAsync($"/api/card-purchases/{streaming.Code}", new UpdatePurchasePayload(null, Details("Assinatura de vídeo", cardType), streaming.Version, null, "49.90", null)))
+                .StatusCode.Should().Be(HttpStatusCode.Conflict, "the Visa invoice holding it was paid");
+            var amex = await Create<CardDto>(owner, "/api/cards", new CardPayload(holder.Code, "Amex da casa", 25, 5, null, "next", true, 0));
+            var shoes = await Post<PurchaseDto>(owner, "/api/card-purchases", new PurchasePayload(amex.Code, null, Details("Tênis"), today, "90.00", 1, 0), Guid.NewGuid(), HttpStatusCode.Created);
+            var edited = await PutOk<PurchaseDto>(owner, $"/api/card-purchases/{shoes.Code}", new UpdatePurchasePayload(holder.Code, Details("Tênis de corrida"), shoes.Version, today.AddDays(-1), "120.00", 2));
+            (edited.Description, edited.Total, edited.Count, edited.PurchaseDate, edited.BuyerName).Should().Be(("Tênis de corrida", "120.00", 2, today.AddDays(-1), (string?)"Titular do cartão"));
+            var amexInvoices = await Invoices(owner, amex.Code);
+            amexInvoices.Where(x => x.ItemCount > 0).Select(x => x.Amount).Should().Equal("60.00", "60.00");
+            amexInvoices.Sum(x => Money.Parse(x.Amount)).Should().Be(120m, "the old single item left its invoice");
+            (await Cards(owner)).Single(x => x.Code == amex.Code).Committed.Should().Be("120.00");
             // Once the invoice that received the expense is paid, the card payment can no longer be reversed: the cash history stays whole.
             var water = await Post<ExpenseDto>(owner, "/api/expenses", new ExpensePayload(Details("Água"), null, today, "80.00", 0, null), Guid.NewGuid(), HttpStatusCode.Created);
             var onPaidCard = await Post<PaymentDto>(owner, "/api/payments", new PaymentPayload(null, today, null, null, null,
@@ -160,6 +173,12 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
         private static async Task<T> PostOk<T>(HttpClient client, string path, object payload)
         {
             var response = await client.PostAsJsonAsync(path, payload);
+            response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
+            return (await response.Content.ReadFromJsonAsync<SuccessDetails<T>>())!.Data;
+        }
+        private static async Task<T> PutOk<T>(HttpClient client, string path, object payload)
+        {
+            var response = await client.PutAsJsonAsync(path, payload);
             response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
             return (await response.Content.ReadFromJsonAsync<SuccessDetails<T>>())!.Data;
         }
