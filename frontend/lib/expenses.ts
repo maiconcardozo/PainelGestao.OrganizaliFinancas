@@ -11,6 +11,8 @@ export type Expense = {
   splitMode: string | null; shares: Share[]; fields: Record<string, unknown>; version: number;
   /** Set on a card invoice listed in Despesas (A19): the card and how many purchases the invoice holds; paidOn is the last live payment's date. */
   cardName: string | null; cardItemCount: number | null; paidOn: string | null;
+  /** A21: the part of the expense paid on a credit card, with the card and the invoice (yyyy-MM) that carries it; it is not summed again in the month. */
+  cardPayment: { cardName: string; invoiceMonth: string; amount: string } | null;
 };
 export type ExpenseList = { from: string; to: string; today: string; total: string; paid: string; open: string; overdue: string; items: Expense[] };
 export type Adjustment = { code: string; kind: string; amount: string; date: string; reason: string };

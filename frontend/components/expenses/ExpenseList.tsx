@@ -6,7 +6,7 @@ import { Modal } from "@/components/common/Modal";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Attachments } from "@/components/common/Attachments";
 import { Empty, ModalActions } from "@/components/common/Ui";
-import { civilDate, monthLabel, money, toApiMoney, type Account } from "@/lib/finance";
+import { civilDate, monthLabel, money, shortMonth, toApiMoney, type Account } from "@/lib/finance";
 import type { Card } from "@/lib/cards";
 import { adjustmentKinds, paidWith, paymentSource, statusLabels, type Expense, type ExpenseDetail } from "@/lib/expenses";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
@@ -70,7 +70,10 @@ function ExpenseRow({ expense, accounts, cards, catalogs, today, canEdit, canSet
       <p className="status-line">
         <span className={`status-tag ${expense.isOverdue ? "overdue" : expense.status}`}>{expense.isOverdue ? "Vencida" : statusLabels[expense.status]}</span>
         {expense.isEstimated && open && <span className="status-tag estimate">Estimada</span>}
-        {expense.status === "paid" && expense.paidOn && <span className="entry-meta">Paga em {civilDate(expense.paidOn)}</span>}
+        {/* A21: paid on a credit card, the expense stays here as history; the amount counts once, inside the invoice line of that month. */}
+        {expense.cardPayment ? <span className="entry-meta" title="Já está dentro do total da fatura; não soma de novo no mês">
+          <CreditCard size={12} className="mr-1 inline" aria-hidden="true" />Paga · cartão {expense.cardPayment.cardName} · fatura {shortMonth(expense.cardPayment.invoiceMonth)}</span>
+          : expense.status === "paid" && expense.paidOn && <span className="entry-meta">Paga em {civilDate(expense.paidOn)}</span>}
         {expense.status === "cancelled" && expense.cancelReason && <span className="entry-meta">Motivo: {expense.cancelReason}
           {canEdit && <button type="button" onClick={() => setPanel("reason")} aria-label="Corrigir o motivo do cancelamento" title="Corrigir motivo"
             className="ml-1 inline-flex rounded p-0.5 align-middle text-[var(--text-secondary)] hover:text-[var(--primary)]"><Pencil size={12} /></button>}</span>}

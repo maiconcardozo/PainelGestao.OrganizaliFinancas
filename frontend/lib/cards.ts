@@ -12,4 +12,7 @@ export type Purchase = { code: string; cardCode: string; cardName: string; descr
   paymentCode: string | null };
 export type PurchasePreview = { total: string; count: number; items: { number: number; referenceMonth: string; closingDate: string; dueDate: string; amount: string }[] };
 
-export const invoiceStatus: Record<Invoice["status"], string> = { open: "Aberta", closed: "Fechada", partial: "Paga em parte", paid: "Paga", credit: "Com crédito" };
+/** A21: how far back Cartões lists invoices and purchases; `earlier` is the next "Ver anteriores" step, null at the limit the API accepts. */
+export type ListRange = { from: string; earlier: string | null; isDefault: boolean };
+
+export const invoiceStatus: Record<Invoice["status"], string> ={ open: "Aberta", closed: "Fechada", partial: "Paga em parte", paid: "Paga", credit: "Com crédito" };

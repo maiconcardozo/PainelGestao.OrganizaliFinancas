@@ -18,6 +18,9 @@ const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" 
 export function money(value: string | null | undefined) { return value == null ? "—" : brl.format(Number(value)); }
 export function signOf(value: string | null | undefined) { return value == null ? 0 : Math.sign(Number(value)); }
 export function civilDate(value: string) { const [year, month, day] = value.split("-"); return `${day}/${month}/${year}`; }
+const shortMonths = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+/** "2026-12" → "dez/26", as the invoice lines in Despesas read. */
+export function shortMonth(value: string) { const [year, month] = value.split("-"); return `${shortMonths[Number(month) - 1]}/${year.slice(2)}`; }
 export function monthLabel(value: string) {
   const [year, month] = value.split("-").map(Number);
   return new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, 1)));

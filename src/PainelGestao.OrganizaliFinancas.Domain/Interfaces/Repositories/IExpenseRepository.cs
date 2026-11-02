@@ -16,8 +16,12 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         public string? SplitMode { get; init; } public int Version { get; init; } public Guid? CardInvoiceCode { get; init; }
         /// <summary>Card invoice only: the card's name and how many active items (purchases and installments) the invoice holds (A19).</summary>
         public string? CardName { get; init; } public int CardItemCount { get; init; }
-        /// <summary>True when a live payment of this obligation was made on a credit card (A17): the amount already sits inside an invoice.</summary>
-        public bool PaidOnCard { get; init; } public DateTime? LastPaymentDate { get; init; }
+        /// <summary>
+        /// Amount of this obligation settled by live payments on a credit card (A17), with the card and the invoice that holds it (A21): that amount already
+        /// sits inside the invoice line, so Despesas shows it as "Paga · cartão X · fatura m/aa" without counting it again in the month.
+        /// </summary>
+        public decimal CardPaid { get; init; } public string? PaidCardName { get; init; } public DateTime? PaidInvoiceMonth { get; init; }
+        public DateTime? LastPaymentDate { get; init; }
     }
     public sealed record ShareRecord
     {

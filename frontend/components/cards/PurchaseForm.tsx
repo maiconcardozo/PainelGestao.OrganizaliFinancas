@@ -9,14 +9,23 @@ import { Modal } from "@/components/common/Modal";
 import { ModalActions } from "@/components/common/Ui";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
 
-/** RF24: purchase on the card with a preview of the invoices; the first invoice can be moved one cycle before saving (D13 premise A06). */
-export function PurchaseModal({ cards, catalogs, today, onClose, onSaved }: { cards: Card[]; catalogs: Catalogs; today: string; onClose: () => void; onSaved: (message: string) => void }) {
+const purchaseSaved = "Compra lançada. As parcelas já aparecem nas faturas; nenhuma conta foi movimentada.";
+
+/**
+ * RF24: purchase on the card with a preview of the invoices; the first invoice can be moved one cycle before saving (D13 premise A06).
+ * A21: when the first installment falls in an invoice before the household's first month of use (or, without a start date, in an invoice already
+ * due), the purchase is confirmed before it is saved, so a wrong date does not slip into an old invoice unnoticed.
+ */
+export function PurchaseModal({ cards, catalogs, today, startDate, onClose, onSaved }: { cards: Card[]; catalogs: Catalogs; today: string; startDate: string | null;
+  onClose: () => void; onSaved: (message: string) => void }) {
   const action = useFinanceAction();
   const [typeCode, setTypeCode] = useState("");
   const [preview, setPreview] = useState<PurchasePreview | null>(null);
   const [running, setRunning] = useState(false);
+  const [pending, setPending] = useState<{ payload: unknown; month: string } | null>(null);
   const active = cards.filter(card => card.isActive);
   const type = catalogs.types.find(item => item.code === typeCode);
+  const firstMonth = startDate?.slice(0, 7) ?? null;
   function previewPayload(data: FormData) {
     return { cardCode: data.get("card"), purchaseDate: data.get("purchaseDate"), total: toApiMoney(data.get("total")), count: Number(data.get("count")),
       firstInvoiceShift: running ? 0 : Number(data.get("shift")), currentInstallment: running ? Number(data.get("currentInstallment")) : 1,
@@ -25,18 +34,39 @@ export function PurchaseModal({ cards, catalogs, today, onClose, onSaved }: { ca
   async function showPreview(event: React.MouseEvent<HTMLButtonElement>) {
     setPreview(await action.send<PurchasePreview>("card-purchases/preview", "POST", previewPayload(new FormData(event.currentTarget.form!)), "Prévia pronta. Nada foi gravado."));
   }
+  async function submit(payload: unknown) {
+    setPending(null);
+    if (await action.send("card-purchases", "POST", payload, purchaseSaved, true)) onSaved(purchaseSaved);
+  }
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const saved = await action.send("card-purchases", "POST", {
+    const payload = {
       ...previewPayload(data), buyerPersonCode: data.get("buyer") || null,
       details: { description: data.get("description"), expenseTypeCode: type?.code ?? null, expenseTypeVersion: type?.version ?? null, categoryCode: data.get("category") || null,
         creditorCode: null, paymentMethodCode: null, payerPersonCode: null, fields: type ? fieldValues(data, type.fields) : null, splitMode: null, shares: null },
-    }, "Compra lançada. As parcelas já aparecem nas faturas; nenhuma conta foi movimentada.", true);
-    if (saved) onSaved("Compra lançada. As parcelas já aparecem nas faturas; nenhuma conta foi movimentada.");
+    };
+    const plan = preview ?? await action.send<PurchasePreview>("card-purchases/preview", "POST", previewPayload(data), "Prévia pronta. Nada foi gravado.");
+    if (!plan) return;
+    if (!preview) setPreview(plan);
+    const first = plan.items[0];
+    const early = first !== undefined && (firstMonth ? first.referenceMonth < firstMonth : first.dueDate < today);
+    if (early) setPending({ payload, month: first.referenceMonth }); else await submit(payload);
   }
   if (active.length === 0) return null;
-  return <Modal title="Lançar compra no cartão" onClose={onClose} error={action.error} width="max-w-3xl"><form className="data-form" onSubmit={save}>
+  return <Modal title="Lançar compra no cartão" onClose={onClose} error={action.error} width="max-w-3xl">
+    {pending && <Modal title="Compra em fatura antiga" onClose={() => setPending(null)} width="max-w-md">
+      <div className="data-form">
+        <p className="text-sm">Essa compra cai na fatura de <strong>{monthLabel(pending.month)}</strong>, que {firstMonth
+          ? <>é anterior a <strong>{monthLabel(firstMonth)}</strong>, o primeiro mês do painel (Data de início de uso, em Casa)</> : "já venceu"}.
+          Confira a <strong>Data da compra</strong> e as <strong>Parcelas</strong> antes de confirmar: o que já foi pago antes do painel não deve entrar.</p>
+        <div className="modal-actions">
+          <button type="button" className="secondary-button" onClick={() => setPending(null)}>Voltar e corrigir</button>
+          <button type="button" className="primary-button" disabled={action.busy} onClick={() => void submit(pending.payload)}>Lançar mesmo assim</button>
+        </div>
+      </div>
+    </Modal>}
+    <form className="data-form" onSubmit={save}>
     {preview && action.message && <p role="status">{action.message}</p>}
     <div className="form-row">
       <label>Cartão<select name="card" required onChange={() => setPreview(null)}>{active.map(card => <option key={card.code} value={card.code}>{card.name}</option>)}</select></label>

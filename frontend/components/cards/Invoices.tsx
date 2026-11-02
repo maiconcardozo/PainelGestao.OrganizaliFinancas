@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { civilDate, money, monthLabel, type Account } from "@/lib/finance";
-import { invoiceStatus, type Card, type Invoice, type InvoiceDetail, type Purchase } from "@/lib/cards";
+import { invoiceStatus, type Card, type Invoice, type InvoiceDetail, type ListRange, type Purchase } from "@/lib/cards";
 import type { Person } from "@/components/households/HouseholdForms";
 import { ShoppingBag, Trash2, Undo2 } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
@@ -13,10 +14,18 @@ import type { Catalogs } from "@/components/expenses/DetailInputs";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
 import { PurchaseEditModal } from "./PurchaseForm";
 
-type Props = { cards: Card[]; invoices: Invoice[]; accounts: Account[]; people: Person[]; today: string; canSettle: boolean; focusInvoice?: string };
+type Props = { cards: Card[]; invoices: Invoice[]; accounts: Account[]; people: Person[]; today: string; canSettle: boolean; focusInvoice?: string; range: ListRange };
+
+/** A21: how far back the list goes, with "Ver anteriores" as a link so the page renders the wider period with everything else up to date. */
+function RangeNote({ range, what }: { range: ListRange; what: string }) {
+  const link = "font-semibold text-[var(--primary)] underline-offset-2 hover:underline";
+  return <p className="form-hint mt-2">{range.isDefault ? `Mostrando ${what} dos últimos meses.` : `Mostrando ${what} desde ${monthLabel(range.from)}.`}
+    {range.earlier && <> <Link href={`/cards?from=${range.earlier}`} className={link}>Ver {what} anteriores</Link></>}
+    {!range.isDefault && <> · <Link href="/cards" className={link}>Só as recentes</Link></>}</p>;
+}
 
 /** RF25: one row per invoice; paying uses the invoice's own obligation, so cash leaves the account only once. */
-export function Invoices({ cards, invoices, accounts, people, today, canSettle, focusInvoice }: Props) {
+export function Invoices({ cards, invoices, accounts, people, today, canSettle, focusInvoice, range }: Props) {
   const [chosen, setCardCode] = useState("");
   // A card created after the first render must still be selectable, so the default is derived on every render; a focused invoice picks its card.
   const focused = invoices.find(invoice => invoice.code === focusInvoice);
@@ -26,13 +35,14 @@ export function Invoices({ cards, invoices, accounts, people, today, canSettle, 
   return <>
     {cards.length > 1 && <label className="inline-select">Cartão<select value={cardCode} onChange={event => setCardCode(event.target.value)}>
       {cards.map(card => <option key={card.code} value={card.code}>{card.name}</option>)}</select></label>}
-    {shown.length === 0 ? <Empty title="Nenhuma fatura com compras neste cartão." /> :
+    {shown.length === 0 ? <Empty title="Nenhuma fatura com compras neste cartão no período." /> :
       <ul className="expense-list">{shown.map(invoice => <InvoiceRow key={`${invoice.code}-${invoice.amount}-${invoice.paid}`} invoice={invoice} accounts={accounts}
         people={people} today={today} canSettle={canSettle} autoOpen={invoice.code === focusInvoice} />)}</ul>}
+    <RangeNote range={range} what="faturas" />
   </>;
 }
 
-function InvoiceRow({ invoice, accounts, people, today, canSettle, autoOpen = false }: Omit<Props, "cards" | "invoices" | "focusInvoice"> & { invoice: Invoice; autoOpen?: boolean }) {
+function InvoiceRow({ invoice, accounts, people, today, canSettle, autoOpen = false }: Omit<Props, "cards" | "invoices" | "focusInvoice" | "range"> & { invoice: Invoice; autoOpen?: boolean }) {
   const action = useFinanceAction();
   const [panel, setPanel] = useState<"" | "items" | "pay">("");
   const [detail, setDetail] = useState<InvoiceDetail | null>(null);
@@ -75,15 +85,18 @@ function InvoiceRow({ invoice, accounts, people, today, canSettle, autoOpen = fa
       <span className={`number ${item.kind === "credit" ? "positive" : ""}`}>{money(item.amount)}</span></li>)}</ul>}
   </li>;
 }
-type PurchasesProps = { purchases: Purchase[]; catalogs: Catalogs; today: string; canEdit: boolean; onDone: (message: string) => void };
+type PurchasesProps = { purchases: Purchase[]; catalogs: Catalogs; today: string; canEdit: boolean; onDone: (message: string) => void; range: ListRange };
 
 /** Recent purchases with edit, delete and the merchant refund (cancels open installments and credits the rest; no bank entry). */
-export function Purchases({ purchases, catalogs, today, canEdit, onDone }: PurchasesProps) {
-  if (purchases.length === 0) return <Empty title="Nenhuma compra nos últimos meses." />;
-  return <ListFrame>{purchases.map(purchase => <PurchaseRow key={`${purchase.code}-${purchase.version}`} purchase={purchase} catalogs={catalogs} today={today} canEdit={canEdit} onDone={onDone} />)}</ListFrame>;
+export function Purchases({ purchases, catalogs, today, canEdit, onDone, range }: PurchasesProps) {
+  return <>
+    {purchases.length === 0 ? <Empty title="Nenhuma compra no período." /> :
+      <ListFrame>{purchases.map(purchase => <PurchaseRow key={`${purchase.code}-${purchase.version}`} purchase={purchase} catalogs={catalogs} today={today} canEdit={canEdit} onDone={onDone} />)}</ListFrame>}
+    <RangeNote range={range} what="compras" />
+  </>;
 }
 
-function PurchaseRow({ purchase, catalogs, today, canEdit, onDone }: Omit<PurchasesProps, "purchases"> & { purchase: Purchase }) {
+function PurchaseRow({ purchase, catalogs, today, canEdit, onDone }: Omit<PurchasesProps, "purchases" | "range"> & { purchase: Purchase }) {
   const action = useFinanceAction();
   const [dialog, setDialog] = useState<"" | "refund" | "edit" | "delete">("");
   const remaining = Number(purchase.total) - Number(purchase.refunded);

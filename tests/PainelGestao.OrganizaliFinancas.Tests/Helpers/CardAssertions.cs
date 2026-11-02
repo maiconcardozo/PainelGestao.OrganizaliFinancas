@@ -103,6 +103,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             await PostStatus(owner, "/api/payments", PayInternet(null, null), Guid.NewGuid(), HttpStatusCode.BadRequest);
             await PostStatus(reader, "/api/payments", PayInternet(null, elo.Code), Guid.NewGuid(), HttpStatusCode.Forbidden);
             var before = await Balance(owner, account.Code);
+            var monthBefore = await MonthOf(today);
             var onCard = await Post<PaymentDto>(owner, "/api/payments", PayInternet(null, elo.Code), Guid.NewGuid(), HttpStatusCode.Created);
             (onCard.AccountCode, onCard.CardCode, onCard.CardName, onCard.PurchaseCode.HasValue).Should().Be(((Guid?)null, (Guid?)elo.Code, (string?)"Elo da casa", true));
             (await Balance(owner, account.Code)).Should().Be(before, "a payment on the card is not a bank movement");
@@ -114,7 +115,7 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             (await owner.GetFromJsonAsync<SuccessDetails<InvoiceDetailDto>>($"/api/card-invoices/{eloInvoice.Code}"))!.Data.Items
                 .Should().ContainSingle(x => x.Description == "Internet" && x.Amount == "120.00" && x.PurchaseCode == onCard.PurchaseCode);
             // A19: Despesas lists one line per card invoice due in the month ("Fatura Cartão – mês/ano", total of the purchases), paid as one; the purchases are
-            // not separate lines, and an expense paid on the card is inside the invoice line instead of a second line.
+            // not separate lines. A21: an expense paid on the card stays in its month as history, tagged with the card and the invoice, without counting twice.
             async Task<ExpenseListDto> MonthOf(DateOnly due)
             {
                 var start = new DateOnly(due.Year, due.Month, 1);
@@ -126,7 +127,11 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             var eloLine = dueMonth.Items.Single(x => x.Code == eloInvoice.ExpenseCode);
             (eloLine.Description, eloLine.Amount, eloLine.Status, eloLine.CardName, eloLine.CardItemCount, eloLine.CardInvoiceCode)
                 .Should().Be((Label("Elo da casa", eloInvoice.ReferenceMonth), "120.00", "open", (string?)"Elo da casa", (int?)1, (Guid?)eloInvoice.Code));
-            (await MonthOf(today)).Items.Should().NotContain(x => x.Code == internet.Code, "Internet was paid on the card and is inside the invoice line");
+            var paidMonth = await MonthOf(today);
+            var internetLine = paidMonth.Items.Single(x => x.Code == internet.Code);
+            (internetLine.Status, internetLine.CardPayment?.CardName, internetLine.CardPayment?.InvoiceMonth, internetLine.CardPayment?.Amount)
+                .Should().Be(("paid", "Elo da casa", eloInvoice.ReferenceMonth, "120.00"), "A21: the expense stays in its month, tagged with the card and the invoice");
+            (paidMonth.Total, paidMonth.Paid).Should().Be((Money.Format(Money.Parse(monthBefore.Total) - 120m), monthBefore.Paid), "the amount paid on the card counts only inside the invoice line");
             var visaMonth = await MonthOf(invoice.DueDate);
             var visaLine = visaMonth.Items.Single(x => x.Code == invoice.ExpenseCode);
             (visaLine.Description, visaLine.Amount, visaLine.Paid, visaLine.Status, visaLine.CardItemCount, visaLine.DueDate, visaLine.Competence, visaLine.PaidOn)
@@ -146,7 +151,9 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             (await owner.GetFromJsonAsync<SuccessDetails<ExpenseDetailDto>>($"/api/expenses/{internet.Code}"))!.Data.Expense.OpenBalance.Should().Be("120.00");
             (await Invoices(owner, elo.Code)).Single(x => x.Code == eloInvoice.Code).Amount.Should().Be("0.00", "the reversal takes the item out of the invoice");
             (await owner.GetFromJsonAsync<SuccessDetails<PurchaseDto[]>>("/api/card-purchases"))!.Data.Single(x => x.Code == settlement.Code).Refunded.Should().Be("120.00");
-            (await MonthOf(today)).Items.Should().Contain(x => x.Code == internet.Code && x.Status == "open", "once the card payment is reversed the expense is a line again");
+            var monthAfter = await MonthOf(today);
+            monthAfter.Items.Should().Contain(x => x.Code == internet.Code && x.Status == "open" && x.CardPayment == null, "once the card payment is reversed the expense is open again");
+            monthAfter.Total.Should().Be(monthBefore.Total, "the reversal brings the amount back to the month");
             // A20: amount, date and installments of a purchase change while no invoice holding it was paid and there was no refund; the items are planned again.
             (await owner.PutAsJsonAsync($"/api/card-purchases/{streaming.Code}", new UpdatePurchasePayload(null, Details("Assinatura de vídeo", cardType), streaming.Version, null, "49.90", null)))
                 .StatusCode.Should().Be(HttpStatusCode.Conflict, "the Visa invoice holding it was paid");

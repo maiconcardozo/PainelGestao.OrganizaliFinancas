@@ -92,7 +92,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                 shares.Where(s => s.ObligationCode == x.Code).Select(s => new ShareDto(s.PersonCode, s.PersonName, Money.Format(s.Amount),
                     s.Percent is decimal percent ? percent.ToString("0.####", CultureInfo.InvariantCulture) : null)).ToArray(),
                 Fields(x.FieldValuesJson), x.Version, invoice ? x.CardName : null, invoice ? x.CardItemCount : null,
-                x.LastPaymentDate is DateTime paidOn && x.Paid > 0 ? DateOnly.FromDateTime(paidOn) : null);
+                x.LastPaymentDate is DateTime paidOn && x.Paid > 0 ? DateOnly.FromDateTime(paidOn) : null,
+                x.CardPaid > 0 && x.PaidCardName is not null ? new CardPaymentDto(x.PaidCardName, (x.PaidInvoiceMonth ?? x.Competence).ToString("yyyy-MM"), Money.Format(x.CardPaid)) : null);
         }
         public static async Task<IReadOnlyList<ExpenseDto>> ReadAsync(IUnitOfWork work, int idTenant, IReadOnlyList<ObligationRecord> records, DateOnly today, CancellationToken ct)
         {
@@ -114,25 +115,24 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
 
     /// <summary>
     /// What Despesas shows for a period (A19): the household's obligations plus one line per card invoice due in it, with the invoice's total.
-    /// An expense settled on a credit card (A17) is left out once fully paid: its amount already sits inside the invoice line, so nothing counts twice.
-    /// Invoices left without items, payments or adjustments (every purchase refunded or removed) are not shown.
+    /// An expense settled on a credit card (A17) stays in its month as history (A21), but the part paid on the card is taken out of the month's
+    /// total and paid sums: it already sits inside the invoice line, so nothing counts twice. Invoices left without items, payments or
+    /// adjustments (every purchase refunded or removed) are not shown.
     /// </summary>
     internal static class ExpenseListing
     {
-        public static bool Shown(ObligationRecord x)
-        {
-            if (x.CardInvoiceCode is not null) return x.Amount != 0 || x.Paid != 0 || x.Adjustments != 0;
-            return !(x.PaidOnCard && x.Status != "cancelled" && x.Amount + x.Adjustments - x.Paid <= 0);
-        }
+        public static bool Shown(ObligationRecord x) => x.CardInvoiceCode is null || x.Amount != 0 || x.Paid != 0 || x.Adjustments != 0;
+        public static decimal OnCard(ExpenseDto x) => x.CardPayment is null ? 0 : Money.Parse(x.CardPayment.Amount);
         public static async Task<ExpenseListDto> ReadAsync(IUnitOfWork work, int idTenant, DateOnly from, DateOnly to, bool includeOverdue, DateOnly today, CancellationToken ct)
         {
             var (start, end) = (HouseholdCalendar.Day(from), HouseholdCalendar.Day(to));
             var records = (await work.ExpenseRepository.ListAsync(idTenant, start, end, includeOverdue, ct)).Where(Shown).ToArray();
             var items = await ExpenseMapper.ReadAsync(work, idTenant, records, today, ct);
             var inPeriod = items.Where(x => x.DueDate >= from && x.Status != "cancelled").ToArray();
-            decimal Sum(IEnumerable<ExpenseDto> list, Func<ExpenseDto, string> value) => list.Sum(x => Money.Parse(value(x)));
-            return new ExpenseListDto(from, to, today, Money.Format(inPeriod.Sum(x => Money.Parse(x.Amount) + Money.Parse(x.Adjustments))),
-                Money.Format(Sum(inPeriod, x => x.Paid)), Money.Format(Sum(inPeriod, x => x.OpenBalance)), Money.Format(Sum(items.Where(x => x.IsOverdue), x => x.OpenBalance)), items);
+            decimal Sum(IEnumerable<ExpenseDto> list, Func<ExpenseDto, decimal> value) => list.Sum(value);
+            return new ExpenseListDto(from, to, today, Money.Format(Sum(inPeriod, x => Money.Parse(x.Amount) + Money.Parse(x.Adjustments) - OnCard(x))),
+                Money.Format(Sum(inPeriod, x => Money.Parse(x.Paid) - OnCard(x))), Money.Format(Sum(inPeriod, x => Money.Parse(x.OpenBalance))),
+                Money.Format(Sum(items.Where(x => x.IsOverdue), x => Money.Parse(x.OpenBalance))), items);
         }
     }
 

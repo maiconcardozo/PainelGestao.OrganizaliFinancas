@@ -14,8 +14,15 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
                 cr.Code CreditorCode,cr.Name CreditorName,pm.Code PaymentMethodCode,pp.Code PayerPersonCode,pp.Name PayerPersonName,
                 r.Code RecurrenceCode,o.IsDetached,ip.Code InstallmentPlanCode,o.InstallmentNumber,o.InstallmentCount,o.FieldValuesJson,o.SplitMode,o.Version,ci.Code CardInvoiceCode,
                 cc.Name CardName,(SELECT COUNT(*) FROM CardItem x WHERE x.IdTenant=ci.IdTenant AND x.IdCardInvoice=ci.Id AND x.IsActive=1) CardItemCount,
-                EXISTS (SELECT 1 FROM PaymentAllocation a JOIN Payment p ON p.Id=a.IdPayment AND p.IdTenant=a.IdTenant
-                    WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id AND p.DtReversed IS NULL AND p.IdCardPurchase IS NOT NULL) PaidOnCard,
+                COALESCE((SELECT SUM(a.Amount) FROM PaymentAllocation a JOIN Payment p ON p.Id=a.IdPayment AND p.IdTenant=a.IdTenant
+                    WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id AND p.DtReversed IS NULL AND p.IdCardPurchase IS NOT NULL),0) CardPaid,
+                (SELECT pc.Name FROM PaymentAllocation a JOIN Payment p ON p.Id=a.IdPayment AND p.IdTenant=a.IdTenant
+                    JOIN CardPurchase cp ON cp.Id=p.IdCardPurchase AND cp.IdTenant=p.IdTenant JOIN CreditCard pc ON pc.Id=cp.IdCreditCard AND pc.IdTenant=cp.IdTenant
+                    WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id AND p.DtReversed IS NULL ORDER BY p.Id DESC LIMIT 1) PaidCardName,
+                (SELECT MAX(pi.ReferenceMonth) FROM PaymentAllocation a JOIN Payment p ON p.Id=a.IdPayment AND p.IdTenant=a.IdTenant
+                    JOIN CardItem px ON px.IdCardPurchase=p.IdCardPurchase AND px.IdTenant=p.IdTenant AND px.IsActive=1
+                    JOIN CardInvoice pi ON pi.Id=px.IdCardInvoice AND pi.IdTenant=px.IdTenant
+                    WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id AND p.DtReversed IS NULL) PaidInvoiceMonth,
                 (SELECT MAX(p.PaymentDate) FROM PaymentAllocation a JOIN Payment p ON p.Id=a.IdPayment AND p.IdTenant=a.IdTenant
                     WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id AND p.DtReversed IS NULL) LastPaymentDate
             FROM Obligation o

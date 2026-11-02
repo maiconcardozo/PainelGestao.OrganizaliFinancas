@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { NewButton, Notices, PageHeader } from "@/components/common/Ui";
 import { money, type Account } from "@/lib/finance";
-import type { Card, Invoice, Purchase } from "@/lib/cards";
+import type { Card, Invoice, ListRange, Purchase } from "@/lib/cards";
 import type { Catalogs } from "@/components/expenses/DetailInputs";
 import type { Person } from "@/components/households/HouseholdForms";
 import { CardList, CardModal } from "./Cards";
@@ -12,10 +12,14 @@ import { Invoices, Purchases } from "./Invoices";
 
 type Props = { cards: Card[]; invoices: Invoice[]; purchases: Purchase[]; accounts: Account[]; people: Person[]; catalogs: Catalogs; today: string; canEdit: boolean; canSettle: boolean;
   /** Invoice to show first with its purchases open (link "Ver compras" from Despesas). */
-  focusInvoice?: string };
+  focusInvoice?: string;
+  /** How far back invoices and purchases are listed (A21). */
+  range: ListRange;
+  /** The household's first day of use: a purchase falling in an invoice before that month is confirmed first (A21). */
+  startDate: string | null };
 
 /** Cartões: the card cadastro and the purchase entry open from the header, as in RevendaPRO's "Novo …" flow. */
-export function CardsView({ cards, invoices, purchases, accounts, people, catalogs, today, canEdit, canSettle, focusInvoice }: Props) {
+export function CardsView({ cards, invoices, purchases, accounts, people, catalogs, today, canEdit, canSettle, focusInvoice, range, startDate }: Props) {
   const [editing, setEditing] = useState<Card | "new" | null>(null);
   const [buying, setBuying] = useState(false);
   const [notice, setNotice] = useState("");
@@ -36,10 +40,10 @@ export function CardsView({ cards, invoices, purchases, accounts, people, catalo
     </dl>}
     <CardList cards={cards} canEdit={canEdit} onEdit={setEditing} onDone={done} />
     <h2>Faturas</h2>
-    <Invoices cards={cards} invoices={invoices} accounts={accounts} people={people} today={today} canSettle={canSettle} focusInvoice={focusInvoice} />
+    <Invoices cards={cards} invoices={invoices} accounts={accounts} people={people} today={today} canSettle={canSettle} focusInvoice={focusInvoice} range={range} />
     <h2>Compras recentes</h2>
-    <Purchases purchases={purchases} catalogs={catalogs} today={today} canEdit={canEdit} onDone={done} />
+    <Purchases purchases={purchases} catalogs={catalogs} today={today} canEdit={canEdit} onDone={done} range={range} />
     {editing && <CardModal card={editing === "new" ? null : editing} people={people} onClose={() => setEditing(null)} onSaved={done} />}
-    {buying && <PurchaseModal cards={cards} catalogs={catalogs} today={today} onClose={() => setBuying(false)} onSaved={done} />}
+    {buying && <PurchaseModal cards={cards} catalogs={catalogs} today={today} startDate={startDate} onClose={() => setBuying(false)} onSaved={done} />}
   </section>;
 }
