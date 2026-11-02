@@ -40,7 +40,9 @@ Frontend: `components/expenses/ExpenseList.tsx` (`InvoiceRow`, Desfazer cancelam
 
 ## Execução
 
-(preenchido após a validação no servidor)
+Validação em 02/11/2026 no servidor 192.168.1.7 (PowerShell Remoting, `git archive` do commit `3c7284b` expandido em `C:\apps\organizali-work\repo`, contêineres descartáveis): `dotnet test` em Release com MariaDB descartável (Testcontainers) resultou em 96 de 97 aprovados, só a falha conhecida de `SmtpRecoveryDeliveryTests.Delivery_SendsOneTimeLinkWithTokenInFragment` (não depende desta entrega); frontend `npm ci`, `tsc --noEmit`, `eslint` e `next build` com saída 0.
+
+Publicação: zip expandido sobre `C:\apps\OrganizaliFinancas`, `ORGANIZALI_VERSION=3c7284b` em `deploy\.env.production`, tarefa agendada `OrganizaliDeploy` (`UP_EXIT=0`, `FIM` às 11:48); contêineres `organizali-api:3c7284b` e `organizali-frontend:3c7284b` no ar (frontend healthy). Smoke do notebook: `GET /api/health` 200 `{"status":"Healthy"}`, `GET /api/backend/expenses` sem sessão 401, `/login` 200. Os critérios de aceite na tela (valores do Bradesco, Hiper, Itaú Tim, Nubank, Amazon; Ver compras; Pagar fatura) ficam para a conferência da família com o login do piloto.
 
 ## Limitações e pendências
 
