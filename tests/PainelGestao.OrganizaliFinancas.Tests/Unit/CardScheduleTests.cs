@@ -79,13 +79,13 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Unit
             ((Action)(() => purchase.UpdateDetails(new ObligationDetails(" ", null, null, null, null, null, null, "{}", null), null, "editor"))).Should().Throw<ArgumentException>();
         }
         [Theory]
-        [InlineData(3, "next", "2026-11-03", "2026-11-01", "2026-11-02", "2026-12-01")]
+        [InlineData(3, "next", "2026-11-03", "2026-12-01", "2026-12-02", "2027-01-01")]
         [InlineData(3, "next", "2026-11-04", "2026-12-01", "2026-12-02", "2027-01-01")]
-        [InlineData(3, "current", "2026-11-03", "2026-12-01", "2026-12-03", "2027-01-01")]
+        [InlineData(3, "current", "2026-11-03", "2026-11-01", "2026-11-03", "2026-12-01")]
         [InlineData(25, "next", "2026-11-02", "2026-12-01", "2026-11-24", "2027-01-01")]
         public void LandingFor_SaysWhichInvoiceTodayFallsInAndUntilWhen(int closingDay, string rule, string today, string reference, string lastDay, string next)
         {
-            // A22, "Hoje, em qual fatura cai?": Hiper closes on the 3rd and is due on the 10th; on 03/11 (rule next) a purchase still lands in nov, from 04/11 in dez.
+            // A22, "Hoje, em qual fatura cai?": Hiper closes on the 3rd and is due on the 10th. With rule "current" a purchase on 03/11 still lands in nov (until 03/11, then dez); with rule "next" the closing day already belongs to dez (until 02/12).
             var (cycle, last, following) = CardSchedule.LandingFor(DateOnly.Parse(today), closingDay, 10, rule);
             (cycle.ReferenceMonth, last, following).Should().Be((DateOnly.Parse(reference), DateOnly.Parse(lastDay), DateOnly.Parse(next)));
             cycle.DueDate.Should().Be(CardSchedule.Day(cycle.ReferenceMonth.Year, cycle.ReferenceMonth.Month, 10));

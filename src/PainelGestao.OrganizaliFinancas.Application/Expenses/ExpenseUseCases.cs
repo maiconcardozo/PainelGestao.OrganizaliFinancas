@@ -84,7 +84,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                 if (obligation.Version != payload.Version) throw new ConflictException("Despesa alterada. Atualize a página antes de salvar.");
                 var behavior = obligation.IdRecurringExpense is not null ? "recurring" : obligation.IdInstallmentPlan is not null ? "installments" : "single";
                 var previous = new ObligationDetails(obligation.Description, obligation.IdExpenseType, obligation.ExpenseTypeVersion, obligation.IdCategory,
-                    obligation.IdCreditor, obligation.IdPaymentMethod, obligation.IdPayerPerson, obligation.FieldValuesJson, obligation.SplitMode);
+                    obligation.IdCreditor, obligation.IdPaymentMethod, obligation.IdPayerPerson, obligation.FieldValuesJson, obligation.SplitMode, obligation.IdCreditCard);
                 var resolved = await ExpenseDetailsResolver.ResolveAsync(work, user.IdTenant, payload.Details, behavior, previous, ct);
                 var amount = Money.Parse(payload.Amount);
                 var totals = (await work.ExpenseRepository.TotalsAsync(user.IdTenant, [obligation.Id], ct)).Single();

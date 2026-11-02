@@ -1,6 +1,4 @@
-
-            RuleFor(x => x.Payload.MinimumReserve).Must(value => value is null || Money.TryParse(value, out var amount) && amount >= 0)
-                .WithMessage("Informe a reserva mínima como valor maior ou igual a zero, por exemplo 15000.00.");using FluentValidation;
+using FluentValidation;
 using MediatR;
 using PainelGestao.OrganizaliFinancas.Application.Authentication.Services;
 using PainelGestao.OrganizaliFinancas.Domain.Entities;
@@ -36,6 +34,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Households
             RuleFor(x => x.Payload.TimeZone).NotEmpty().Must(IsSupported).WithMessage("Informe um fuso IANA válido.");
             RuleFor(x => x.Payload.Version).GreaterThanOrEqualTo(0);
             RuleFor(x => x.Payload.StartDate).Must(date => date is null || date.Value.Year >= 1000).WithMessage("Data inválida.");
+            RuleFor(x => x.Payload.MinimumReserve).Must(value => value is null || Money.TryParse(value, out var amount) && amount >= 0)
+                .WithMessage("Informe a reserva mínima como valor maior ou igual a zero, por exemplo 15000.00.");
         }
         private static bool IsSupported(string zone) => !string.IsNullOrWhiteSpace(zone) && zone.Length <= 100 &&
             TimeZoneInfo.TryConvertIanaIdToWindowsId(zone, out _) && TimeZoneInfo.TryFindSystemTimeZoneById(zone, out _);

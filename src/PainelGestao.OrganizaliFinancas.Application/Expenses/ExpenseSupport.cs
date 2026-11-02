@@ -49,7 +49,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
             if (payload.CardCode is Guid cardCode)
             {
                 var card = await work.CardRepository.FindCardAsync(idTenant, cardCode, ct) ?? throw new NotFoundException("Cartão não encontrado nesta casa.");
-                if (!card.IsActive && previous?.IdCreditCard != card.Id) throw new ConflictException( O cartão {card.Name} está inativo; escolha um cartão ativo.");
+                if (!card.IsActive && previous?.IdCreditCard != card.Id) throw new ConflictException($"O cartão {card.Name} está inativo; escolha um cartão ativo.");
                 idCard = card.Id;
             }
             int? idPayer = null;
