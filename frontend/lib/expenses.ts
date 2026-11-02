@@ -13,6 +13,8 @@ export type Expense = {
   cardName: string | null; cardItemCount: number | null; paidOn: string | null;
   /** A21: the part of the expense paid on a credit card, with the card and the invoice (yyyy-MM) that carries it; it is not summed again in the month. */
   cardPayment: { cardName: string; invoiceMonth: string; amount: string } | null;
+  /** A22: the card the household usually pays this bill with; while open, its money leaves on that card's invoice (margin and cash flow). */
+  payCardCode: string | null; payCardName: string | null;
 };
 export type ExpenseList = { from: string; to: string; today: string; total: string; paid: string; open: string; overdue: string; items: Expense[] };
 export type Adjustment = { code: string; kind: string; amount: string; date: string; reason: string };
@@ -34,7 +36,8 @@ export function paidWith(item: { accountName: string | null; cardName: string | 
 export type SharePayload = { personCode: string; value: string };
 export type Recurrence = { code: string; description: string; isActive: boolean; version: number; validFrom: string; endDate: string | null; frequency: string; amount: string;
   isEstimated: boolean; expenseTypeCode: string | null; expenseTypeVersion: number | null; categoryCode: string | null; categoryName: string | null; creditorCode: string | null;
-  paymentMethodCode: string | null; payerPersonCode: string | null; payerPersonName: string | null; splitMode: string | null; shares: SharePayload[]; fields: Record<string, unknown> };
+  paymentMethodCode: string | null; payerPersonCode: string | null; payerPersonName: string | null; splitMode: string | null; shares: SharePayload[]; fields: Record<string, unknown>;
+  payCardCode: string | null; payCardName: string | null };
 export type OccurrencePreview = { date: string; amount: string; change: "new" | "update" | "keep" | "preserved" };
 export type RecurrencePlan = { inserted: number; updated: number; cancelled: number; preserved: number; next: OccurrencePreview[] };
 export type InstallmentPreview = { total: string; count: number; items: { number: number; dueDate: string; competence: string; amount: string }[] };

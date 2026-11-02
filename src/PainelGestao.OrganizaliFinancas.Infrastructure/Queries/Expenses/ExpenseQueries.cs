@@ -24,7 +24,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
                     JOIN CardInvoice pi ON pi.Id=px.IdCardInvoice AND pi.IdTenant=px.IdTenant
                     WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id AND p.DtReversed IS NULL) PaidInvoiceMonth,
                 (SELECT MAX(p.PaymentDate) FROM PaymentAllocation a JOIN Payment p ON p.Id=a.IdPayment AND p.IdTenant=a.IdTenant
-                    WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id AND p.DtReversed IS NULL) LastPaymentDate
+                    WHERE a.IdTenant=o.IdTenant AND a.IdObligation=o.Id AND p.DtReversed IS NULL) LastPaymentDate,
+                dc.Code PayCardCode,dc.Name PayCardName
             FROM Obligation o
             LEFT JOIN ExpenseType t ON t.Id=o.IdExpenseType AND t.IdTenant=o.IdTenant
             LEFT JOIN Category c ON c.Id=o.IdCategory AND c.IdTenant=o.IdTenant
@@ -35,6 +36,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             LEFT JOIN InstallmentPlan ip ON ip.Id=o.IdInstallmentPlan AND ip.IdTenant=o.IdTenant
             LEFT JOIN CardInvoice ci ON ci.Id=o.IdCardInvoice AND ci.IdTenant=o.IdTenant
             LEFT JOIN CreditCard cc ON cc.Id=ci.IdCreditCard AND cc.IdTenant=ci.IdTenant
+            LEFT JOIN CreditCard dc ON dc.Id=o.IdCreditCard AND dc.IdTenant=o.IdTenant
             """;
         public const string List = SelectObligation + $"""
              WHERE o.IdTenant=@IdTenant AND o.IsActive=1 AND (o.DueDate BETWEEN @From AND @To
@@ -59,7 +61,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
         public const string Update = """
             UPDATE Obligation SET Description=@Description,IdExpenseType=@IdExpenseType,ExpenseTypeVersion=@ExpenseTypeVersion,IdCategory=@IdCategory,
                 IdCreditor=@IdCreditor,IdPaymentMethod=@IdPaymentMethod,IdPayerPerson=@IdPayerPerson,FieldValuesJson=@FieldValuesJson,SplitMode=@SplitMode,
-                Competence=@Competence,DueDate=@DueDate,Amount=@Amount,IsEstimated=@IsEstimated,Status=@Status,CancelReason=@CancelReason,
+                IdCreditCard=@IdCreditCard,Competence=@Competence,DueDate=@DueDate,Amount=@Amount,IsEstimated=@IsEstimated,Status=@Status,CancelReason=@CancelReason,
                 IsDetached=@IsDetached,Version=@Version,DtUpdated=@DtUpdated,UpdatedBy=@UpdatedBy
             WHERE IdTenant=@IdTenant AND Id=@Id
             """;
@@ -143,7 +145,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
         public const string Recurrences = """
             SELECT r.Code,r.Description,r.IsActive,r.Version,v.ValidFrom,v.EndDate,v.Frequency,v.Amount,v.IsEstimated,t.Code ExpenseTypeCode,r.ExpenseTypeVersion,
                 c.Code CategoryCode,c.Name CategoryName,cr.Code CreditorCode,pm.Code PaymentMethodCode,pp.Code PayerPersonCode,pp.Name PayerPersonName,
-                r.FieldValuesJson,r.SplitMode,r.SharesJson
+                r.FieldValuesJson,r.SplitMode,r.SharesJson,dc.Code PayCardCode,dc.Name PayCardName
             FROM RecurringExpense r
             JOIN RecurringExpenseVersion v ON v.IdRecurringExpense=r.Id AND v.IdTenant=r.IdTenant AND v.Version=r.Version
             LEFT JOIN ExpenseType t ON t.Id=r.IdExpenseType AND t.IdTenant=r.IdTenant
@@ -151,6 +153,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             LEFT JOIN Creditor cr ON cr.Id=r.IdCreditor AND cr.IdTenant=r.IdTenant
             LEFT JOIN PaymentMethod pm ON pm.Id=r.IdPaymentMethod AND pm.IdTenant=r.IdTenant
             LEFT JOIN Person pp ON pp.Id=r.IdPayerPerson AND pp.IdTenant=r.IdTenant
+            LEFT JOIN CreditCard dc ON dc.Id=r.IdCreditCard AND dc.IdTenant=r.IdTenant
             WHERE r.IdTenant=@IdTenant ORDER BY r.IsActive DESC,r.Description
             """;
         public const string FindRecurrence = "SELECT * FROM RecurringExpense WHERE IdTenant=@IdTenant AND Code=@Code";
@@ -161,7 +164,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
         public const string UpdateRecurrence = """
             UPDATE RecurringExpense SET Description=@Description,IdExpenseType=@IdExpenseType,ExpenseTypeVersion=@ExpenseTypeVersion,IdCategory=@IdCategory,
                 IdCreditor=@IdCreditor,IdPaymentMethod=@IdPaymentMethod,IdPayerPerson=@IdPayerPerson,FieldValuesJson=@FieldValuesJson,SplitMode=@SplitMode,
-                SharesJson=@SharesJson,Version=@Version,IsActive=@IsActive,DtUpdated=@DtUpdated,UpdatedBy=@UpdatedBy,DtDeleted=@DtDeleted,DeletedBy=@DeletedBy
+                IdCreditCard=@IdCreditCard,SharesJson=@SharesJson,Version=@Version,IsActive=@IsActive,DtUpdated=@DtUpdated,UpdatedBy=@UpdatedBy,DtDeleted=@DtDeleted,DeletedBy=@DeletedBy
             WHERE IdTenant=@IdTenant AND Id=@Id
             """;
         public const string AddRecurrenceVersion = """
@@ -177,10 +180,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             """;
         public const string InsertOccurrence = """
             INSERT INTO Obligation (Code,IdTenant,Description,IdExpenseType,ExpenseTypeVersion,IdCategory,IdCreditor,IdPaymentMethod,IdPayerPerson,
-                FieldValuesJson,SplitMode,Competence,DueDate,Amount,IsEstimated,Status,IdRecurringExpense,RecurrenceVersion,OccurrenceDate,IsDetached,
+                FieldValuesJson,SplitMode,IdCreditCard,Competence,DueDate,Amount,IsEstimated,Status,IdRecurringExpense,RecurrenceVersion,OccurrenceDate,IsDetached,
                 Version,IsActive,DtCreated,CreatedBy)
             SELECT @Code,@IdTenant,r.Description,r.IdExpenseType,r.ExpenseTypeVersion,r.IdCategory,r.IdCreditor,r.IdPaymentMethod,r.IdPayerPerson,
-                r.FieldValuesJson,r.SplitMode,@Competence,@OccurrenceDate,@Amount,@IsEstimated,'open',r.Id,@RecurrenceVersion,@OccurrenceDate,0,
+                r.FieldValuesJson,r.SplitMode,r.IdCreditCard,@Competence,@OccurrenceDate,@Amount,@IsEstimated,'open',r.Id,@RecurrenceVersion,@OccurrenceDate,0,
                 0,1,UTC_TIMESTAMP(6),@Actor
             FROM RecurringExpense r WHERE r.IdTenant=@IdTenant AND r.Code=@RuleCode
             """;
@@ -188,7 +191,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Expenses
             UPDATE Obligation o JOIN RecurringExpense r ON r.Id=o.IdRecurringExpense AND r.IdTenant=o.IdTenant
             SET o.Description=r.Description,o.IdExpenseType=r.IdExpenseType,o.ExpenseTypeVersion=r.ExpenseTypeVersion,o.IdCategory=r.IdCategory,
                 o.IdCreditor=r.IdCreditor,o.IdPaymentMethod=r.IdPaymentMethod,o.IdPayerPerson=r.IdPayerPerson,o.FieldValuesJson=r.FieldValuesJson,
-                o.SplitMode=r.SplitMode,o.Amount=@Amount,o.IsEstimated=@IsEstimated,o.RecurrenceVersion=@RecurrenceVersion,o.IsActive=1,
+                o.SplitMode=r.SplitMode,o.IdCreditCard=r.IdCreditCard,o.Amount=@Amount,o.IsEstimated=@IsEstimated,o.RecurrenceVersion=@RecurrenceVersion,o.IsActive=1,
                 o.DtDeleted=NULL,o.DeletedBy=NULL,o.Version=o.Version+1,o.DtUpdated=UTC_TIMESTAMP(6),o.UpdatedBy=@Actor
             WHERE o.IdTenant=@IdTenant AND o.Code=@Code AND o.Status='open' AND o.IsDetached=0
             """;

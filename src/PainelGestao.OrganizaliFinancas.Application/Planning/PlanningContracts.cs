@@ -36,6 +36,21 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
     public sealed record CategoryTotalDto(Guid? CategoryCode, string Name, string Amount);
     public sealed record AnalysisDto(string Month, Guid? CategoryCode, Guid? PersonCode, Guid? AccountCode, string? Status, string Total, string Paid,
         IReadOnlyList<CategoryTotalDto> ByCategory, IReadOnlyList<AnalysisLineDto> Lines);
+    /// <summary>A22: bills of a month the household pays with a card, grouped by category (or description), with the invoice their cash leaves on.</summary>
+    public sealed record MarginGroupDto(string Name, int Count, string Amount, string CardName, string InvoiceMonth, DateOnly InvoiceDueDate);
+    /// <summary>
+    /// One month of "Margem do mês": Opening + Inflow + Outflow + Other = Closing; Bills and Invoices split the still-open part of Outflow; Margin = Closing − reserve;
+    /// Status green/yellow/red (Shortfall says how far below the reserve); ToCard is what leaves later through a card invoice, listed in ToCardGroups.
+    /// </summary>
+    public sealed record MarginMonthDto(string Month, string Opening, string Inflow, string Outflow, string Bills, string Invoices, string Other, string Closing, string Margin,
+        string Status, string Shortfall, string ToCard, IReadOnlyList<MarginGroupDto> ToCardGroups);
+    /// <summary>"Hoje, em qual fatura cai?": a purchase made today on the card lands in ReferenceMonth (closes ClosingDate, due DueDate) until LastDay; after that, NextReferenceMonth.</summary>
+    public sealed record CardLandingDto(Guid CardCode, string CardName, int ClosingDay, int DueDay, string ReferenceMonth, DateOnly ClosingDate, DateOnly DueDate, DateOnly LastDay,
+        string NextReferenceMonth);
+    /// <summary>The same months recomputed with a spend of Amount today: in cash (Date = today) or on a card (Date = the invoice due date it lands in).</summary>
+    public sealed record MarginSimulationDto(string Amount, DateOnly Date, string? CardName, string? InvoiceMonth, DateOnly? InvoiceDueDate, IReadOnlyList<MarginMonthDto> Months);
+    public sealed record MarginDto(DateOnly Today, string Reserve, string AttentionThreshold, IReadOnlyList<MarginMonthDto> Months, IReadOnlyList<CardLandingDto> Cards,
+        MarginSimulationDto? Simulation);
 
     public sealed record GetBudgetQuery(SessionIdentity Identity, DateOnly? Month) : IRequest<BudgetDto>;
     public sealed record SaveBudgetsCommand(SessionIdentity Identity, DateOnly Month, SaveBudgetsPayload Payload) : IRequest<BudgetDto>;
@@ -48,6 +63,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
     public sealed record GetAgendaQuery(SessionIdentity Identity) : IRequest<AgendaDto>;
     public sealed record GetDashboardQuery(SessionIdentity Identity, DateOnly? Month) : IRequest<DashboardDto>;
     public sealed record GetAnalysisQuery(SessionIdentity Identity, DateOnly? Month, Guid? CategoryCode, Guid? PersonCode, Guid? AccountCode, string? Status) : IRequest<AnalysisDto>;
+    /// <summary>Amount (optional) simulates a spend today; CardCode puts it on that card's invoice instead of leaving the account now.</summary>
+    public sealed record GetMarginQuery(SessionIdentity Identity, string? Amount, Guid? CardCode) : IRequest<MarginDto>;
 
     public class SaveBudgetsValidator : AbstractValidator<SaveBudgetsCommand>
     {
@@ -86,5 +103,13 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
     public class GetProjectionValidator : AbstractValidator<GetProjectionQuery>
     {
         public GetProjectionValidator() => RuleFor(x => x.Days).InclusiveBetween(7, 400).When(x => x.Days is not null);
+    }
+    public class GetMarginValidator : AbstractValidator<GetMarginQuery>
+    {
+        public GetMarginValidator()
+        {
+            RuleFor(x => x.Amount).Must(value => value is null || Money.IsPositive(value)).WithMessage("Informe o valor a simular como número positivo, por exemplo 1000.00.");
+            RuleFor(x => x.CardCode).Null().When(x => x.Amount is null).WithMessage("Informe o valor a simular no cartão.");
+        }
     }
 }

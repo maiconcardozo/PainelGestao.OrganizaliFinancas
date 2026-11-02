@@ -8,6 +8,8 @@ import type { CatalogItem } from "@/lib/catalogs";
 import type { Card } from "@/lib/cards";
 import type { ExpenseType } from "@/lib/expense-types";
 import type { Person } from "@/components/households/HouseholdForms";
+import type { Margin } from "@/lib/planning";
+import { MarginCard } from "@/components/planning/MarginCard";
 import { ExpenseList } from "@/components/expenses/ExpenseList";
 import { ExpensesView } from "@/components/expenses/ExpensesView";
 import { Payments } from "@/components/expenses/Payments";
@@ -22,17 +24,17 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
   const first = `${month}-01`;
   const lastDay = (value: string) => new Date(Date.parse(`${addMonths(value, 1)}-01T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
   const monthTotals = (value: string) => fetchFromApi<ListData>("expenses", { from: `${value}-01`, to: lastDay(value), includeOverdue: "false" });
-  const [list, previous, next, payments, recurrences, contributions, people, types, categories, creditors, methods, cards] = await Promise.all([
+  const [list, previous, next, payments, recurrences, contributions, people, types, categories, creditors, methods, cards, margin] = await Promise.all([
     // The overdue figure still covers earlier months; the list itself shows only what is due in the chosen month.
     fetchFromApi<ListData>("expenses", { from: first, to: lastDay(month) }), monthTotals(addMonths(month, -1)), monthTotals(addMonths(month, 1)),
     fetchFromApi<Payment[]>("payments"), fetchFromApi<Recurrence[]>("expense-recurrences"), fetchFromApi<ContributionData>("expenses/contributions", { month: first }),
     fetchFromApi<Person[]>("people"), fetchFromApi<ExpenseType[]>("expense-types"), fetchFromApi<CatalogItem[]>("catalogs/categories"),
-    fetchFromApi<CatalogItem[]>("catalogs/creditors"), fetchFromApi<CatalogItem[]>("catalogs/payment-methods"), fetchFromApi<Card[]>("cards")]);
-  const catalogs = { types, categories, creditors, methods, people };
+    fetchFromApi<CatalogItem[]>("catalogs/creditors"), fetchFromApi<CatalogItem[]>("catalogs/payment-methods"), fetchFromApi<Card[]>("cards"), fetchFromApi<Margin>("margin")]);
+  // Only active cards can take a payment; the list is the same one offered in "Pagar", in "Já foi paga" and in "Pago normalmente com".
+  const activeCards = cards.filter(card => card.isActive);
+  const catalogs = { types, categories, creditors, methods, people, cards: activeCards };
   const canEdit = session.permissions.includes("finance.write");
   const canSettle = session.permissions.includes("payments.settle");
-  // Only active cards can take a payment; the list is the same one offered in "Pagar" and in "Já foi paga".
-  const activeCards = cards.filter(card => card.isActive);
   return <ExpensesView catalogs={catalogs} accounts={accounts.accounts} cards={activeCards} today={list.today} canEdit={canEdit} canSettle={canSettle}>
     <nav className="month-nav" aria-label="Mês das despesas">
       <Link href={`/expenses?month=${addMonths(month, -1)}`} aria-label="Mês anterior"><ChevronLeft aria-hidden="true" size={20} /><span className="nav-text">Anterior</span></Link>
@@ -43,6 +45,8 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
       <MonthPeek href={`/expenses?month=${addMonths(month, -1)}`} label="Mês anterior" data={previous} />
       <MonthPeek href={`/expenses?month=${addMonths(month, 1)}`} label="Próximo mês" data={next} />
     </div>
+    {/* A22: the month's margin above the reserve sits on top, with the same months the Painel shows. */}
+    <MarginCard margin={margin} cards={activeCards} month={month} compact />
     <dl className="money-summary money-grid">
       <div><dt>Despesas do mês</dt><dd>{money(list.total)}</dd></div>
       <div><dt>Pago</dt><dd>{money(list.paid)}</dd></div>
@@ -54,7 +58,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
     <h2>Rateio de {monthLabel(month)}</h2>
     <Contributions data={contributions} />
     <h2>Contas recorrentes</h2>
-    <Recurrences recurrences={recurrences} canEdit={canEdit} today={list.today} />
+    <Recurrences recurrences={recurrences} canEdit={canEdit} today={list.today} cards={activeCards} />
     <h2>Pagamentos recentes</h2>
     <Payments payments={payments} canReverse={session.permissions.includes("payments.reverse")} canEdit={canEdit} />
   </ExpensesView>;

@@ -138,26 +138,11 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
             var horizon = (month > last ? month : last).AddMonths(1).AddDays(-1);
             var (projection, _) = await planner.ProjectionAsync(horizon, ct);
             var projected = projection.Days.SelectMany(x => x.Events.Select(e => (Day: x.Date, e.Amount))).ToArray();
-
-            var months = new List<MonthFlowDto>();
-            var realizedFrom = month < first ? month : first;
-            var realized = (await work.PlanningRepository.MonthlyCashAsync(idTenant, HouseholdCalendar.Day(realizedFrom), HouseholdCalendar.Day(today.AddDays(1)), ct))
-                .ToDictionary(x => DateOnly.FromDateTime(x.Period));
-            var opening = await work.PlanningRepository.BalanceBeforeAsync(idTenant, HouseholdCalendar.Day(first), ct);
-            for (var m = first; m <= last; m = m.AddMonths(1))
-            {
-                var next = m.AddMonths(1);
-                var real = realized.GetValueOrDefault(m) ?? new CashTotalRecord();
-                var future = projected.Where(x => x.Day >= m && x.Day < next).ToArray();
-                var inflow = real.Inflow + future.Where(x => x.Amount > 0).Sum(x => x.Amount);
-                var outflow = real.Outflow + future.Where(x => x.Amount < 0).Sum(x => x.Amount);
-                var closing = m <= current
-                    ? await work.PlanningRepository.BalanceBeforeAsync(idTenant, HouseholdCalendar.Day(next <= today ? next : today.AddDays(1)), ct) + future.Sum(x => x.Amount)
-                    : opening + inflow + outflow;
-                months.Add(new MonthFlowDto(m.ToString("yyyy-MM"), Money.Format(opening), Money.Format(inflow), Money.Format(outflow),
-                    Money.Format(closing - opening - inflow - outflow), Money.Format(closing), m >= current));
-                opening = closing;
-            }
+            // Rule 9 (A22): the series shares the planner's dates, so a bill paid with a card leaves on its invoice due date here as well.
+            var months = (await planner.MonthsAsync(month < first ? month : first, last, projection.Days.SelectMany(x => x.Events).ToArray(), ct))
+                .Where(x => x.Month >= first)
+                .Select(m => new MonthFlowDto(m.Month.ToString("yyyy-MM"), Money.Format(m.Opening), Money.Format(m.Inflow), Money.Format(m.Outflow), Money.Format(m.Other),
+                    Money.Format(m.Closing), m.Month >= current)).ToArray();
 
             var monthStart = await work.PlanningRepository.BalanceBeforeAsync(idTenant, HouseholdCalendar.Day(month), ct);
             var monthEnd = month.AddMonths(1);
@@ -180,6 +165,16 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
                     days.Add(new DayFlowDto(day, Money.Format(inflow), Money.Format(outflow), Money.Format(balance), isProjected));
             }
             return new CashFlowDto(month.ToString("yyyy-MM"), today, Money.Format(monthStart), Money.Format(balance), days, months);
+        }
+    }
+    /// <summary>A22: margin above the minimum reserve, month by month, with the optional "E se eu gastar…" simulation.</summary>
+    public class GetMarginHandler(IUnitOfWork work) : IRequestHandler<GetMarginQuery, MarginDto>
+    {
+        public async Task<MarginDto> Handle(GetMarginQuery request, CancellationToken ct)
+        {
+            await HouseholdAccess.RequireAsync(work, request.Identity, "household.read", ct);
+            var planner = await HouseholdPlanner.CreateAsync(work, request.Identity.IdTenant, ct);
+            return await planner.MarginAsync(request.Amount is null ? null : Money.Parse(request.Amount), request.CardCode, ct);
         }
     }
     /// <summary>RF26: one consistent picture of the month. Every number links to the screen that explains it.</summary>

@@ -78,5 +78,18 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Unit
             (purchase.TotalAmount, purchase.InstallmentCount, purchase.PurchaseDate).Should().Be((300m, 3, new DateTime(2026, 10, 10)));
             ((Action)(() => purchase.UpdateDetails(new ObligationDetails(" ", null, null, null, null, null, null, "{}", null), null, "editor"))).Should().Throw<ArgumentException>();
         }
+        [Theory]
+        [InlineData(3, "next", "2026-11-03", "2026-11-01", "2026-11-02", "2026-12-01")]
+        [InlineData(3, "next", "2026-11-04", "2026-12-01", "2026-12-02", "2027-01-01")]
+        [InlineData(3, "current", "2026-11-03", "2026-12-01", "2026-12-03", "2027-01-01")]
+        [InlineData(25, "next", "2026-11-02", "2026-12-01", "2026-11-24", "2027-01-01")]
+        public void LandingFor_SaysWhichInvoiceTodayFallsInAndUntilWhen(int closingDay, string rule, string today, string reference, string lastDay, string next)
+        {
+            // A22, "Hoje, em qual fatura cai?": Hiper closes on the 3rd and is due on the 10th; on 03/11 (rule next) a purchase still lands in nov, from 04/11 in dez.
+            var (cycle, last, following) = CardSchedule.LandingFor(DateOnly.Parse(today), closingDay, 10, rule);
+            (cycle.ReferenceMonth, last, following).Should().Be((DateOnly.Parse(reference), DateOnly.Parse(lastDay), DateOnly.Parse(next)));
+            cycle.DueDate.Should().Be(CardSchedule.Day(cycle.ReferenceMonth.Year, cycle.ReferenceMonth.Month, 10));
+        }
+
     }
 }

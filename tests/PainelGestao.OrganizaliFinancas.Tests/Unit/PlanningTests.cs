@@ -77,5 +77,18 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Unit
             AlertCenter.Merge(conditions, [new AlertMemory("due:a", "v1", "read", null)], today).Single(x => x.Condition.Key == "due:a").Status.Should().Be("read",
                 "reading does not resolve the cause");
         }
+        [Theory]
+        [InlineData("18342.72", "15000.00", "3342.72", "green", "0.00")]
+        [InlineData("15999.99", "15000.00", "999.99", "yellow", "0.00")]
+        [InlineData("16000.00", "15000.00", "1000.00", "green", "0.00")]
+        [InlineData("13525.73", "15000.00", "-1474.27", "red", "1474.27")]
+        [InlineData("13525.73", "10000.00", "3525.73", "green", "0.00")]
+        public void ReserveMargin_IsClosingMinusReserveWithThreeColours(string closing, string reserve, string margin, string status, string shortfall)
+        {
+            // A22 examples from the request: nov closes at 13.525,73 → 1.474,27 below the reserve (red); dez at 18.342,72 → margin 3.342,72 (green).
+            var (c, r) = (decimal.Parse(closing, System.Globalization.CultureInfo.InvariantCulture), decimal.Parse(reserve, System.Globalization.CultureInfo.InvariantCulture));
+            (Money.Format(ReserveMargin.Margin(c, r)), ReserveMargin.Status(c, r), Money.Format(ReserveMargin.Shortfall(c, r))).Should().Be((margin, status, shortfall));
+        }
+
     }
 }

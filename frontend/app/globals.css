@@ -1546,6 +1546,176 @@ a {
     padding-left: 1.2rem;
   }
 
+  /* A22: "Margem do mês" — closing balance minus the reserve, coloured by how much room is left. */
+  .margin-card {
+    display: grid;
+    gap: 0.75rem;
+    margin: 1rem 0;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--success);
+    border-radius: var(--card-radius);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .margin-card.margin-yellow {
+    border-left-color: var(--warning);
+  }
+
+  .margin-card.margin-red {
+    border-left-color: var(--critical);
+  }
+
+  .margin-card h2 {
+    margin: 0;
+    font-size: 1.125rem;
+  }
+
+  .margin-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 0.9375rem;
+  }
+
+  .margin-lines {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0;
+  }
+
+  .margin-lines > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .margin-lines dt {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .margin-lines dt .entry-meta {
+    display: block;
+  }
+
+  .margin-lines dd {
+    margin: 0;
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .margin-lines .figure-note {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+
+  .margin-lines .margin-total {
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .margin-lines .margin-result dt,
+  .margin-lines .margin-result dd {
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+
+  .margin-green .margin-result dd,
+  .margin-tag-green,
+  .margin-chip.margin-green strong {
+    color: var(--success);
+  }
+
+  .margin-yellow .margin-result dd,
+  .margin-tag-yellow,
+  .margin-chip.margin-yellow strong {
+    color: var(--warning);
+  }
+
+  .margin-red .margin-result dd,
+  .margin-tag-red,
+  .margin-chip.margin-red strong,
+  .margin-lines .alert-figure {
+    color: var(--critical);
+  }
+
+  .margin-card-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  .margin-card-line svg {
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    color: var(--signal);
+  }
+
+  .margin-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .margin-chip {
+    display: grid;
+    gap: 0.1rem;
+    min-width: 6.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .margin-chip strong {
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .margin-chip.is-selected {
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 6%, transparent);
+  }
+
+  .margin-sim {
+    display: grid;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .margin-sim-result {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--card-radius);
+    background: var(--surface-2);
+    font-size: 0.875rem;
+  }
+
+  .margin-sim-result p,
+  .margin-sim-result ul {
+    margin: 0;
+  }
+
+  .margin-sim-result ul {
+    padding-left: 1.2rem;
+  }
+
+  .margin-landing {
+    margin-top: 1rem;
+  }
+
   .agenda section {
     margin-bottom: 0.75rem;
   }

@@ -9,9 +9,10 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
 {
     /// <summary>Value is money ("50.00") when splitting by value or a percentage ("33.3333") when splitting by percent.</summary>
     public sealed record SharePayload(Guid PersonCode, string Value);
-    /// <summary>Descriptive data common to a single bill, a recurrence and an installment purchase.</summary>
+    /// <summary>Descriptive data common to a single bill, a recurrence and an installment purchase. CardCode (A22) is the credit card the household usually pays it with:
+    /// the money then leaves the account on that card's invoice due date, which the margin and the cash flow use instead of the bill's own due date.</summary>
     public sealed record ExpenseDetailsPayload(string Description, Guid? ExpenseTypeCode, int? ExpenseTypeVersion, Guid? CategoryCode, Guid? CreditorCode,
-        Guid? PaymentMethodCode, Guid? PayerPersonCode, Dictionary<string, JsonElement>? Fields, string? SplitMode, SharePayload[]? Shares);
+        Guid? PaymentMethodCode, Guid? PayerPersonCode, Dictionary<string, JsonElement>? Fields, string? SplitMode, SharePayload[]? Shares, Guid? CardCode = null);
     /// <summary>Exactly one of AccountCode (bank) or CardCode (credit card, A17) identifies where the money comes from.</summary>
     public sealed record ImmediatePaymentPayload(Guid? AccountCode, DateOnly PaymentDate, Guid? PayerPersonCode, Guid? CardCode = null);
     public sealed record ExpensePayload(ExpenseDetailsPayload Details, DateOnly? Competence, DateOnly DueDate, string Amount, int Version, ImmediatePaymentPayload? Payment);
@@ -38,7 +39,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
         int? ExpenseTypeVersion, Guid? CategoryCode, string? CategoryName, Guid? CreditorCode, string? CreditorName, Guid? PaymentMethodCode,
         Guid? PayerPersonCode, string? PayerPersonName, Guid? RecurrenceCode, bool IsDetached, Guid? InstallmentPlanCode, int? InstallmentNumber,
         int? InstallmentCount, Guid? CardInvoiceCode, string? SplitMode, IReadOnlyList<ShareDto> Shares, JsonElement Fields, int Version,
-        string? CardName = null, int? CardItemCount = null, DateOnly? PaidOn = null, CardPaymentDto? CardPayment = null);
+        string? CardName = null, int? CardItemCount = null, DateOnly? PaidOn = null, CardPaymentDto? CardPayment = null, Guid? PayCardCode = null, string? PayCardName = null);
+    /// <summary>PayCardCode/PayCardName (A22): the card the household usually pays the expense with; while open, its cash leaves on that card's invoice.</summary>
     /// <summary>A21: the part of an expense paid on a credit card, the card and the invoice (yyyy-MM) that carries it; that amount is not counted again in the month.</summary>
     public sealed record CardPaymentDto(string CardName, string InvoiceMonth, string Amount);
     /// <summary>Totals cover the obligations due in the period; overdue items from earlier periods are listed and summed separately.</summary>
@@ -54,7 +56,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
         DateOnly PaymentDate, string Amount, string Description, bool IsReversed, string? ReversalReason, IReadOnlyList<PaymentAllocationDto> Allocations);
     public sealed record RecurrenceDto(Guid Code, string Description, bool IsActive, int Version, DateOnly ValidFrom, DateOnly? EndDate, string Frequency,
         string Amount, bool IsEstimated, Guid? ExpenseTypeCode, int? ExpenseTypeVersion, Guid? CategoryCode, string? CategoryName, Guid? CreditorCode,
-        Guid? PaymentMethodCode, Guid? PayerPersonCode, string? PayerPersonName, string? SplitMode, IReadOnlyList<SharePayload> Shares, JsonElement Fields);
+        Guid? PaymentMethodCode, Guid? PayerPersonCode, string? PayerPersonName, string? SplitMode, IReadOnlyList<SharePayload> Shares, JsonElement Fields,
+        Guid? PayCardCode = null, string? PayCardName = null);
     public sealed record OccurrencePreviewDto(DateOnly Date, string Amount, string Change);
     /// <summary>Preserved occurrences were paid, adjusted, cancelled or edited individually and keep their values.</summary>
     public sealed record RecurrencePlanDto(int Inserted, int Updated, int Cancelled, int Preserved, IReadOnlyList<OccurrencePreviewDto> Next);

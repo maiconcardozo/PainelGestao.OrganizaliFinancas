@@ -1,15 +1,20 @@
-using FluentValidation;
+
+            RuleFor(x => x.Payload.MinimumReserve).Must(value => value is null || Money.TryParse(value, out var amount) && amount >= 0)
+                .WithMessage("Informe a reserva mínima como valor maior ou igual a zero, por exemplo 15000.00.");using FluentValidation;
 using MediatR;
 using PainelGestao.OrganizaliFinancas.Application.Authentication.Services;
 using PainelGestao.OrganizaliFinancas.Domain.Entities;
 using PainelGestao.OrganizaliFinancas.Domain.Interfaces;
+using PainelGestao.OrganizaliFinancas.Domain.ValueObjects;
 using PainelGestao.OrganizaliFinancas.Shared.Exceptions;
 namespace PainelGestao.OrganizaliFinancas.Application.Households
 {
     public sealed record PersonDto(Guid Code, string Name, bool IsActive, int Version);
     public sealed record PersonPayload(string Name, bool IsActive, int Version);
-    public sealed record SettingsDto(string TimeZone, string Language, string Currency, DateOnly? StartDate, int Version);
-    public sealed record SettingsPayload(string TimeZone, DateOnly? StartDate, int Version);
+    /// <summary>MinimumReserve (A22) is the balance the household keeps untouched; the spending margin of a month is its projected closing balance minus it.</summary>
+    public sealed record SettingsDto(string TimeZone, string Language, string Currency, DateOnly? StartDate, int Version, string MinimumReserve = "0.00");
+    /// <summary>MinimumReserve null keeps the stored reserve.</summary>
+    public sealed record SettingsPayload(string TimeZone, DateOnly? StartDate, int Version, string? MinimumReserve = null);
     public sealed record ListPeopleQuery(SessionIdentity Identity) : IRequest<IReadOnlyList<PersonDto>>;
     public sealed record SavePersonCommand(SessionIdentity Identity, Guid? Code, PersonPayload Payload) : IRequest<PersonDto>;
     public sealed record GetSettingsQuery(SessionIdentity Identity) : IRequest<SettingsDto>;
@@ -75,7 +80,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Households
             return Map(settings);
         }
         internal static SettingsDto Map(HouseholdSettings settings) => new(settings.TimeZone, settings.Language, settings.Currency,
-            settings.StartDate is DateTime date ? DateOnly.FromDateTime(date) : null, settings.Version);
+            settings.StartDate is DateTime date ? DateOnly.FromDateTime(date) : null, settings.Version, Money.Format(settings.MinimumReserve));
     }
     public class SaveSettingsHandler(IUnitOfWork work) : IRequestHandler<SaveSettingsCommand, SettingsDto>
     {
@@ -86,7 +91,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Households
             var stored = await work.HouseholdRepository.GetSettingsAsync(user.IdTenant, ct);
             var settings = stored ?? HouseholdSettings.Create(user.IdTenant, user.Code.ToString());
             if (settings.Version != request.Payload.Version) throw new ConflictException("Configuração alterada. Atualize a página antes de salvar.");
-            settings.Update(request.Payload.TimeZone, request.Payload.StartDate, user.Code.ToString());
+            settings.Update(request.Payload.TimeZone, request.Payload.StartDate,
+                request.Payload.MinimumReserve is string reserve ? Money.Parse(reserve) : settings.MinimumReserve, user.Code.ToString());
             work.HouseholdRepository.SaveSettings(settings, stored is not null);
             return GetSettingsHandler.Map(settings);
         }, ct);

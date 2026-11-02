@@ -2,9 +2,10 @@ using PainelGestao.OrganizaliFinancas.Domain.ValueObjects;
 using PainelGestao.OrganizaliFinancas.Shared.Exceptions;
 namespace PainelGestao.OrganizaliFinancas.Domain.Entities
 {
-    /// <summary>Descriptive data shared by an obligation and the templates (recurrence, installment plan) that generate it.</summary>
+    /// <summary>Descriptive data shared by an obligation and the templates (recurrence, installment plan) that generate it. IdCreditCard (A22) is the card the household
+    /// usually pays it with: the cash then leaves on that card's invoice due date, not on the bill's own due date.</summary>
     public sealed record ObligationDetails(string Description, int? IdExpenseType, int? ExpenseTypeVersion, int? IdCategory, int? IdCreditor,
-        int? IdPaymentMethod, int? IdPayerPerson, string FieldValuesJson, string? SplitMode)
+        int? IdPaymentMethod, int? IdPayerPerson, string FieldValuesJson, string? SplitMode, int? IdCreditCard = null)
     {
         public ObligationDetails Normalized()
         {
@@ -31,6 +32,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
         public int? IdPayerPerson { get; private set; }
         public string FieldValuesJson { get; private set; } = "{}";
         public string? SplitMode { get; private set; }
+        public int? IdCreditCard { get; private set; }
         public DateTime Competence { get; private set; }
         public DateTime DueDate { get; private set; }
         public decimal Amount { get; private set; }
@@ -71,13 +73,15 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
             return obligation;
         }
         public bool IsInvoice() => IdCardInvoice is not null;
+        /// <summary>A22: an open bill the household pays with a card leaves the account on that card's invoice, not on its own due date.</summary>
+        public bool IsPaidWithCard() => IdCreditCard is not null;
         public static DateOnly Month(DateOnly date) => new(date.Year, date.Month, 1);
         private void Apply(ObligationDetails details, DateOnly competence, DateOnly dueDate, decimal amount)
         {
             if (amount <= 0 || Money.Round(amount) != amount) throw new ArgumentException("Valor deve ser positivo em centavos.", nameof(amount));
-            (Description, IdExpenseType, ExpenseTypeVersion, IdCategory, IdCreditor, IdPaymentMethod, IdPayerPerson, FieldValuesJson, SplitMode) =
+            (Description, IdExpenseType, ExpenseTypeVersion, IdCategory, IdCreditor, IdPaymentMethod, IdPayerPerson, FieldValuesJson, SplitMode, IdCreditCard) =
                 (details.Description, details.IdExpenseType, details.ExpenseTypeVersion, details.IdCategory, details.IdCreditor, details.IdPaymentMethod,
-                 details.IdPayerPerson, details.FieldValuesJson, details.SplitMode);
+                 details.IdPayerPerson, details.FieldValuesJson, details.SplitMode, details.IdCreditCard);
             Competence = Month(competence).ToDateTime(TimeOnly.MinValue);
             DueDate = dueDate.ToDateTime(TimeOnly.MinValue);
             Amount = amount;
@@ -270,6 +274,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
         public int? IdPayerPerson { get; private set; }
         public string FieldValuesJson { get; private set; } = "{}";
         public string? SplitMode { get; private set; }
+        public int? IdCreditCard { get; private set; }
         public string SharesJson { get; private set; } = "[]";
         public int Version { get; private set; } = 1;
         public static RecurringExpense Create(int idTenant, ObligationDetails details, string sharesJson, string actor)
@@ -281,12 +286,12 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Entities
         }
         private void Apply(ObligationDetails details, string sharesJson)
         {
-            (Description, IdExpenseType, ExpenseTypeVersion, IdCategory, IdCreditor, IdPaymentMethod, IdPayerPerson, FieldValuesJson, SplitMode) =
+            (Description, IdExpenseType, ExpenseTypeVersion, IdCategory, IdCreditor, IdPaymentMethod, IdPayerPerson, FieldValuesJson, SplitMode, IdCreditCard) =
                 (details.Description, details.IdExpenseType, details.ExpenseTypeVersion, details.IdCategory, details.IdCreditor, details.IdPaymentMethod,
-                 details.IdPayerPerson, details.FieldValuesJson, details.SplitMode);
+                 details.IdPayerPerson, details.FieldValuesJson, details.SplitMode, details.IdCreditCard);
             SharesJson = sharesJson;
         }
-        public ObligationDetails Details() => new(Description, IdExpenseType, ExpenseTypeVersion, IdCategory, IdCreditor, IdPaymentMethod, IdPayerPerson, FieldValuesJson, SplitMode);
+        public ObligationDetails Details() => new(Description, IdExpenseType, ExpenseTypeVersion, IdCategory, IdCreditor, IdPaymentMethod, IdPayerPerson, FieldValuesJson, SplitMode, IdCreditCard);
         /// <summary>"This and next": a new version governs the dates from its start; earlier and locked occurrences are kept.</summary>
         public void Update(ObligationDetails details, string sharesJson, bool active, string actor)
         {

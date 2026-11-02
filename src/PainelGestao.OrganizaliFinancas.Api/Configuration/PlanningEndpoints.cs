@@ -24,6 +24,11 @@ namespace PainelGestao.OrganizaliFinancas.Api.Configuration
                 Ok(context, "Saldo projetado", "A projeção não altera o saldo real.", await mediator.Send(new GetProjectionQuery(user.SessionIdentity(), days), ct)))
                 .WithSummary("Saldo projetado dia a dia (padrão 60 dias), com eventos de origem e primeira data de déficit.")
                 .Produces<SuccessDetails<ProjectionDto>>().ProducesProblem(400);
+            group.MapGet("/margin", async (string? amount, Guid? cardCode, ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
+                Ok(context, "Margem do mês", "Saldo previsto menos a reserva mínima, mês a mês.", await mediator.Send(new GetMarginQuery(user.SessionIdentity(), amount, cardCode), ct)))
+                .WithSummary("Margem para gastar (A22): saldo no início, entradas, o que sai da conta, o que vai para o cartão e sai na fatura, saldo previsto e margem acima da reserva, " +
+                    "do mês atual até seis à frente; `amount` (e `cardCode`) simula um gasto de hoje; inclui em qual fatura cai uma compra de hoje por cartão.")
+                .Produces<SuccessDetails<MarginDto>>().ProducesProblem(400).ProducesProblem(404);
             group.MapGet("/agenda", async (ClaimsPrincipal user, IMediator mediator, HttpContext context, CancellationToken ct) =>
                 Ok(context, "Agenda", "Vencidos, hoje, próximos 7 e 30 dias.", await mediator.Send(new GetAgendaQuery(user.SessionIdentity()), ct)))
                 .WithSummary("Agenda financeira: contas, faturas e rendas previstas, com valores estimados sinalizados.").Produces<SuccessDetails<AgendaDto>>();

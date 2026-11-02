@@ -26,7 +26,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
         public static RecurrenceDto Map(RecurringExpenseRecord x) => new(x.Code, x.Description, x.IsActive, x.Version, DateOnly.FromDateTime(x.ValidFrom),
             x.EndDate is DateTime end ? DateOnly.FromDateTime(end) : null, x.Frequency, Money.Format(x.Amount), x.IsEstimated, x.ExpenseTypeCode,
             x.ExpenseTypeVersion, x.CategoryCode, x.CategoryName, x.CreditorCode, x.PaymentMethodCode, x.PayerPersonCode, x.PayerPersonName, x.SplitMode,
-            System.Text.Json.JsonSerializer.Deserialize<SharePayload[]>(x.SharesJson) ?? [], ExpenseMapper.Fields(x.FieldValuesJson));
+            System.Text.Json.JsonSerializer.Deserialize<SharePayload[]>(x.SharesJson) ?? [], ExpenseMapper.Fields(x.FieldValuesJson), x.PayCardCode, x.PayCardName);
         public static async Task<RecurrenceDto> ReadAsync(IUnitOfWork work, int idTenant, Guid code, CancellationToken ct) =>
             Map((await work.ExpenseRepository.ListRecurrencesAsync(idTenant, ct)).Single(x => x.Code == code));
     }

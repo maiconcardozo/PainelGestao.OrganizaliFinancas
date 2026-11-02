@@ -7,8 +7,10 @@ import { ListFrame } from "@/components/common/ViewSwitch";
 import { civilDate, frequencies, money, toApiMoney } from "@/lib/finance";
 import { changeLabels, type Recurrence, type RecurrencePlan } from "@/lib/expenses";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
+import type { Card } from "@/lib/cards";
+import { PayCardSelect } from "./DetailInputs";
 
-export function Recurrences({ recurrences, canEdit, today }: { recurrences: Recurrence[]; canEdit: boolean; today: string }) {
+export function Recurrences({ recurrences, canEdit, today, cards = [] }: { recurrences: Recurrence[]; canEdit: boolean; today: string; cards?: Card[] }) {
   const action = useFinanceAction();
   const [editing, setEditing] = useState<Recurrence | null>(null);
   if (recurrences.length === 0) return <Empty title="Nenhuma conta recorrente. Aluguel, água e internet podem ser lançados uma vez como recorrentes em “Nova despesa”." />;
@@ -21,17 +23,17 @@ export function Recurrences({ recurrences, canEdit, today }: { recurrences: Recu
     <ListFrame>{recurrences.map(item => <li key={`${item.code}-${item.version}`} className={`recurrence-item flex items-center gap-3 px-3 py-2.5 transition hover:bg-[var(--surface-2)] sm:gap-4 sm:px-4 ${item.isActive ? "" : "opacity-60"}`}>
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[var(--surface-2)] text-[var(--signal)]"><Repeat size={17} /></span>
       <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{item.description}</span>
-        <span className="mt-0.5 block text-xs text-[var(--text-muted)]">{frequencies[item.frequency]} desde {civilDate(item.validFrom)}{item.endDate && ` até ${civilDate(item.endDate)}`}{item.categoryName && ` · ${item.categoryName}`}</span></span>
+        <span className="mt-0.5 block text-xs text-[var(--text-muted)]">{frequencies[item.frequency]} desde {civilDate(item.validFrom)}{item.endDate && ` até ${civilDate(item.endDate)}`}{item.categoryName && ` · ${item.categoryName}`}{item.payCardName && ` · no cartão ${item.payCardName}`}</span></span>
       <span className="shrink-0 text-right"><span className="num block text-sm font-semibold">{money(item.amount)}</span>{item.isEstimated && <span className="block text-xs text-[var(--warning)]">estimado</span>}</span>
       {!item.isActive && <Pill tone="muted">Encerrada</Pill>}
       {canEdit && <EditButton name={`${item.description} a partir de uma data`} onClick={() => setEditing(item)} />}
     </li>)}</ListFrame>
-    {editing && <RecurrenceModal key={`${editing.code}-${editing.version}`} recurrence={editing} today={today} onClose={() => setEditing(null)} />}
+    {editing && <RecurrenceModal key={`${editing.code}-${editing.version}`} recurrence={editing} today={today} cards={cards} onClose={() => setEditing(null)} />}
   </>;
 }
 
 /** "This and next": the change starts at the chosen date; paid, adjusted or individually edited occurrences are preserved. */
-function RecurrenceModal({ recurrence, today, onClose }: { recurrence: Recurrence; today: string; onClose: () => void }) {
+function RecurrenceModal({ recurrence, today, cards, onClose }: { recurrence: Recurrence; today: string; cards: Card[]; onClose: () => void }) {
   const action = useFinanceAction();
   const [plan, setPlan] = useState<RecurrencePlan | null>(null);
   const start = recurrence.validFrom > today ? recurrence.validFrom : today;
@@ -48,7 +50,7 @@ function RecurrenceModal({ recurrence, today, onClose }: { recurrence: Recurrenc
     const saved = await action.send(`expense-recurrences/${recurrence.code}`, "PUT", {
       details: { description: data.get("description"), expenseTypeCode: recurrence.expenseTypeCode, expenseTypeVersion: recurrence.expenseTypeVersion,
         categoryCode: recurrence.categoryCode, creditorCode: recurrence.creditorCode, paymentMethodCode: recurrence.paymentMethodCode, payerPersonCode: recurrence.payerPersonCode,
-        fields: recurrence.expenseTypeCode ? recurrence.fields : null, splitMode: recurrence.shares.length ? "percent" : null, shares: recurrence.shares.length ? recurrence.shares : null },
+        cardCode: data.get("payCard") || null, fields: recurrence.expenseTypeCode ? recurrence.fields : null, splitMode: recurrence.shares.length ? "percent" : null, shares: recurrence.shares.length ? recurrence.shares : null },
       terms: terms(data), version: recurrence.version,
     }, "Recorrência alterada a partir da data escolhida.");
     if (saved) onClose();
@@ -65,6 +67,7 @@ function RecurrenceModal({ recurrence, today, onClose }: { recurrence: Recurrenc
         <label>Último vencimento (opcional)<input type="date" name="endDate" defaultValue={recurrence.endDate ?? ""} /></label>
         <label>Periodicidade<select name="frequency" defaultValue={recurrence.frequency}>{Object.entries(frequencies).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
       </div>
+      <PayCardSelect cards={cards} value={recurrence.payCardCode} />
       <label className="checkbox-label"><input type="checkbox" name="isEstimated" defaultChecked={recurrence.isEstimated} />Valor estimado</label>
       <label className="checkbox-label"><input type="checkbox" name="isActive" defaultChecked={recurrence.isActive} />Recorrência ativa (desmarque para encerrar os próximos vencimentos)</label>
       <div><button type="button" className="secondary-button" disabled={action.busy} onClick={preview}>Ver o que muda</button></div>

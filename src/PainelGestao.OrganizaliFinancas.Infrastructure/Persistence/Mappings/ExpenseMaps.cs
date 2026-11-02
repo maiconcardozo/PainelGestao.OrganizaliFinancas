@@ -27,6 +27,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Persistence.Mappings
             ExpenseMapping.References(builder);
             builder.Property(x => x.SharesJson).HasColumnType("longtext").IsRequired();
             builder.HasAlternateKey(x => new { x.IdTenant, x.Id });
+            builder.HasOne<CreditCard>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdCreditCard })
+                .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
         }
     }
     public class RecurringExpenseVersionMap : EntityMap<RecurringExpenseVersion>, IEntityTypeConfiguration<RecurringExpenseVersion>
@@ -81,6 +83,9 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Persistence.Mappings
             // A card invoice has exactly one backing obligation.
             builder.HasIndex(x => new { x.IdTenant, x.IdCardInvoice }).IsUnique();
             builder.HasOne<CardInvoice>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdCardInvoice })
+                .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
+            // A22: the card the household usually pays the bill with (cash leaves on that card's invoice).
+            builder.HasOne<CreditCard>().WithMany().HasForeignKey(x => new { x.IdTenant, x.IdCreditCard })
                 .HasPrincipalKey(x => new { x.IdTenant, x.Id }).OnDelete(DeleteBehavior.Restrict);
         }
     }

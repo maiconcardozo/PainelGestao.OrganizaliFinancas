@@ -7,12 +7,22 @@ using PainelGestao.OrganizaliFinancas.Domain.ValueObjects;
 namespace PainelGestao.OrganizaliFinancas.Application.Planning
 {
     /// <summary>
+    /// An open item of the household as the plan sees it. <see cref="Event"/> is dated when the cash really leaves or arrives: a bill the
+    /// household pays with a credit card (A22) sits on that card's invoice due date, not on its own <see cref="DueDate"/>, which the agenda
+    /// and the due-date alerts keep using.
+    /// </summary>
+    internal sealed record OpenItem(CashEvent Event, bool Overdue, string Link, DateOnly DueDate, string? CardName, DateOnly? InvoiceMonth, string? CategoryName);
+    /// <summary>One month of the series: opening + inflow + outflow + other = closing. Other holds opening balances of accounts created in the month.</summary>
+    internal sealed record MonthFlow(DateOnly Month, decimal Opening, decimal Inflow, decimal Outflow, decimal Other, decimal Closing, decimal Bills, decimal Invoices);
+
+    /// <summary>
     /// Read-only view of one household's plan for "today": budget, cash projection, agenda and alert conditions.
     /// Every figure is recomputed from the ledger, obligations and forecasts; nothing here writes or moves money.
     /// </summary>
     internal sealed class HouseholdPlanner
     {
         public const int ProjectionDays = 60;
+        public const int MarginMonths = 6;
         private readonly IUnitOfWork work;
         private readonly int idTenant;
         public DateOnly Today { get; }
@@ -40,17 +50,29 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
             return (dto, summary);
         }
 
-        /// <summary>Open obligations (bills and invoices) and open fixed income forecasts up to the date; overdue ones are kept with their due date.</summary>
-        public async Task<IReadOnlyList<(CashEvent Event, bool Overdue, string Link)>> OpenItemsAsync(DateOnly until, CancellationToken ct)
+        /// <summary>
+        /// Open obligations (bills and invoices) and open fixed income forecasts up to the date; overdue ones are kept with their due date.
+        /// A bill whose default card (A22) is active is dated on the due date of the invoice a purchase on its due date (or today, when overdue)
+        /// would land in; the bill itself keeps its due date for the agenda. An inactive card counts as a bank payment.
+        /// </summary>
+        public async Task<IReadOnlyList<OpenItem>> OpenItemsAsync(DateOnly until, CancellationToken ct)
         {
-            var items = new List<(CashEvent, bool, string)>();
+            var items = new List<OpenItem>();
+            var cards = (await work.CardRepository.ListCardsAsync(idTenant, ct)).Where(x => x.IsActive).ToDictionary(x => x.Code);
             foreach (var x in await work.ExpenseRepository.ListAsync(idTenant, HouseholdCalendar.Day(Today), HouseholdCalendar.Day(until), true, ct))
             {
-                var state = ObligationBalance.Of(x.Amount, x.Adjustments, x.Paid, x.Status == "cancelled", DateOnly.FromDateTime(x.DueDate), Today);
+                var due = DateOnly.FromDateTime(x.DueDate);
+                var state = ObligationBalance.Of(x.Amount, x.Adjustments, x.Paid, x.Status == "cancelled", due, Today);
                 if (state.OpenBalance <= 0) continue;
                 var kind = x.CardInvoiceCode is not null ? "invoice" : "bill";
-                items.Add((new CashEvent(DateOnly.FromDateTime(x.DueDate), -state.OpenBalance, kind, x.Description, x.Code, x.IsEstimated), state.IsOverdue,
-                    kind == "invoice" ? "/cards" : "/expenses"));
+                var (cashDate, cardName, invoiceMonth) = (due, (string?)null, (DateOnly?)null);
+                if (kind == "bill" && x.PayCardCode is Guid cardCode && cards.TryGetValue(cardCode, out var card))
+                {
+                    var landing = CardSchedule.LandingFor(due < Today ? Today : due, card.ClosingDay, card.DueDay, card.ClosingDayRule);
+                    (cashDate, cardName, invoiceMonth) = (landing.Cycle.DueDate, card.Name, landing.Cycle.ReferenceMonth);
+                }
+                items.Add(new OpenItem(new CashEvent(cashDate, -state.OpenBalance, kind, x.Description, x.Code, x.IsEstimated), state.IsOverdue,
+                    kind == "invoice" ? "/cards" : "/expenses", due, cardName, invoiceMonth, x.CategoryName));
             }
             foreach (var x in await work.IncomeRepository.ListForecastsAsync(idTenant, HouseholdCalendar.Day(Obligation.Month(Today).AddMonths(-12)), HouseholdCalendar.Day(Obligation.Month(until)), ct))
             {
@@ -58,7 +80,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
                 if (x.Status != "open" || x.ExpectedAmount is not decimal expected || date > until) continue;
                 var residual = expected - x.ReceivedAmount;
                 if (residual <= 0) continue;
-                items.Add((new CashEvent(date, residual, "income", $"{x.SourceName} · {x.PersonName}", x.Code, false), date < Today, "/income"));
+                items.Add(new OpenItem(new CashEvent(date, residual, "income", $"{x.SourceName} · {x.PersonName}", x.Code, false), date < Today, "/income", date, null, null, null));
             }
             return items;
         }
@@ -67,7 +89,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
         public async Task<(CashProjection Projection, ProjectionDto Dto)> ProjectionAsync(DateOnly until, CancellationToken ct)
         {
             var start = await work.PlanningRepository.BalanceBeforeAsync(idTenant, HouseholdCalendar.Day(Today.AddDays(1)), ct);
-            var events = (await OpenItemsAsync(until, ct)).Where(x => x.Event.Amount < 0 || !x.Overdue).Select(x => x.Event).ToArray();
+            var events = ProjectedEvents(await OpenItemsAsync(until, ct));
             var projection = CashProjector.Project(start, Today, until, events);
             CashEventDto Map(CashEvent x) => new(x.Kind, x.Description, Money.Format(x.Amount), x.IsEstimate, x.Code);
             var causes = projection.FirstDeficit is DateOnly deficit
@@ -77,10 +99,93 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
                 Money.Format(projection.Lowest), projection.LowestDate, causes,
                 projection.Days.Select(x => new ProjectionDayDto(x.Date, Money.Format(x.Inflow), Money.Format(x.Outflow), Money.Format(x.Balance), x.Events.Select(Map).ToArray())).ToArray()));
         }
+        private static CashEvent[] ProjectedEvents(IEnumerable<OpenItem> items) => items.Where(x => x.Event.Amount < 0 || !x.Overdue).Select(x => x.Event).ToArray();
+
+        /// <summary>
+        /// Monthly series from realized movements up to today plus the projected events after it. For a month up to the current one the closing
+        /// is the real balance at its end (or today) plus what is still projected inside it, so the series never re-applies realized movements.
+        /// </summary>
+        public async Task<IReadOnlyList<MonthFlow>> MonthsAsync(DateOnly first, DateOnly last, IReadOnlyList<CashEvent> projected, CancellationToken ct)
+        {
+            var current = Obligation.Month(Today);
+            var realized = (await work.PlanningRepository.MonthlyCashAsync(idTenant, HouseholdCalendar.Day(first), HouseholdCalendar.Day(Today.AddDays(1)), ct))
+                .ToDictionary(x => DateOnly.FromDateTime(x.Period));
+            var placed = projected.Select(x => x.Date < Today ? x with { Date = Today } : x).ToArray();
+            var opening = await work.PlanningRepository.BalanceBeforeAsync(idTenant, HouseholdCalendar.Day(first), ct);
+            var months = new List<MonthFlow>();
+            for (var m = first; m <= last; m = m.AddMonths(1))
+            {
+                var next = m.AddMonths(1);
+                var real = realized.GetValueOrDefault(m) ?? new CashTotalRecord();
+                var future = placed.Where(x => x.Date >= m && x.Date < next).ToArray();
+                var inflow = real.Inflow + future.Where(x => x.Amount > 0).Sum(x => x.Amount);
+                var outflow = real.Outflow + future.Where(x => x.Amount < 0).Sum(x => x.Amount);
+                var closing = m <= current
+                    ? await work.PlanningRepository.BalanceBeforeAsync(idTenant, HouseholdCalendar.Day(next <= Today ? next : Today.AddDays(1)), ct) + future.Sum(x => x.Amount)
+                    : opening + inflow + outflow;
+                months.Add(new MonthFlow(m, opening, inflow, outflow, closing - opening - inflow - outflow, closing,
+                    -future.Where(x => x.Kind == "bill").Sum(x => x.Amount), -future.Where(x => x.Kind == "invoice").Sum(x => x.Amount)));
+                opening = closing;
+            }
+            return months;
+        }
+
+        /// <summary>
+        /// A22, "Margem do mês": for the current month and the next <see cref="MarginMonths"/>, what leaves the account, what goes to a card
+        /// (and leaves on the invoice), the projected closing balance and the margin left above the minimum reserve. A simulated spend
+        /// (today, cash or on a card) is projected the same way so the screen can show which margins it eats.
+        /// </summary>
+        public async Task<MarginDto> MarginAsync(decimal? amount, Guid? cardCode, CancellationToken ct)
+        {
+            var settings = await work.HouseholdRepository.GetSettingsAsync(idTenant, ct);
+            var reserve = settings?.MinimumReserve ?? HouseholdSettings.Create(idTenant, "system").MinimumReserve;
+            var first = Obligation.Month(Today);
+            var last = first.AddMonths(MarginMonths);
+            var until = last.AddMonths(1).AddDays(-1);
+            var items = await OpenItemsAsync(until, ct);
+            var cards = (await work.CardRepository.ListCardsAsync(idTenant, ct)).Where(x => x.IsActive).ToArray();
+            var baseEvents = ProjectedEvents(items);
+            var toCard = items.Where(x => x.CardName is not null).ToLookup(x => Obligation.Month(x.DueDate));
+
+            async Task<IReadOnlyList<MarginMonthDto>> SeriesAsync(IReadOnlyList<CashEvent> events) =>
+                (await MonthsAsync(first, last, events, ct)).Select(m =>
+                {
+                    var groups = toCard[m.Month].GroupBy(x => (Name: x.CategoryName ?? x.Event.Description, x.CardName, Month: x.InvoiceMonth!.Value, x.Event.Date))
+                        .Select(g => new MarginGroupDto(g.Key.Name, g.Count(), Money.Format(-g.Sum(x => x.Event.Amount)), g.Key.CardName!, g.Key.Month.ToString("yyyy-MM"), g.Key.Date))
+                        .OrderBy(x => x.InvoiceDueDate).ThenByDescending(x => Money.Parse(x.Amount)).ToArray();
+                    return new MarginMonthDto(m.Month.ToString("yyyy-MM"), Money.Format(m.Opening), Money.Format(m.Inflow), Money.Format(m.Outflow), Money.Format(m.Bills),
+                        Money.Format(m.Invoices), Money.Format(m.Other), Money.Format(m.Closing), Money.Format(ReserveMargin.Margin(m.Closing, reserve)),
+                        ReserveMargin.Status(m.Closing, reserve), Money.Format(ReserveMargin.Shortfall(m.Closing, reserve)),
+                        Money.Format(groups.Sum(x => Money.Parse(x.Amount))), groups);
+                }).ToArray();
+
+            var months = await SeriesAsync(baseEvents);
+            MarginSimulationDto? simulation = null;
+            if (amount is decimal value && value > 0)
+            {
+                var (date, cardName, invoiceMonth) = (Today, (string?)null, (DateOnly?)null);
+                if (cardCode is Guid code)
+                {
+                    var card = cards.FirstOrDefault(x => x.Code == code) ?? throw new Shared.Exceptions.NotFoundException("Cartão não encontrado ou inativo.");
+                    var landing = CardSchedule.LandingFor(Today, card.ClosingDay, card.DueDay, card.ClosingDayRule);
+                    (date, cardName, invoiceMonth) = (landing.Cycle.DueDate, card.Name, landing.Cycle.ReferenceMonth);
+                }
+                var simulated = await SeriesAsync([.. baseEvents, new CashEvent(date, -value, "simulation", "Gasto simulado", null, true)]);
+                simulation = new MarginSimulationDto(Money.Format(value), date, cardName, invoiceMonth?.ToString("yyyy-MM"), cardName is null ? null : date, simulated);
+            }
+            var landings = cards.OrderBy(x => x.Name).Select(x =>
+            {
+                var (cycle, lastDay, nextMonth) = CardSchedule.LandingFor(Today, x.ClosingDay, x.DueDay, x.ClosingDayRule);
+                return new CardLandingDto(x.Code, x.Name, x.ClosingDay, x.DueDay, cycle.ReferenceMonth.ToString("yyyy-MM"), cycle.ClosingDate, cycle.DueDate, lastDay, nextMonth.ToString("yyyy-MM"));
+            }).ToArray();
+            return new MarginDto(Today, Money.Format(reserve), ReserveMargin.AttentionThreshold.ToString("0.00", CultureInfo.InvariantCulture), months, landings, simulation);
+        }
 
         public async Task<AgendaDto> AgendaAsync(CancellationToken ct)
         {
-            var items = (await OpenItemsAsync(Today.AddDays(90), ct)).Select(x => new AgendaItemDto(x.Event.Date, x.Event.Kind, x.Event.Description,
+            // The agenda is about when each bill must be paid, so it keeps the bill's due date; a bill paid with a card says so.
+            var items = (await OpenItemsAsync(Today.AddDays(90), ct)).Select(x => new AgendaItemDto(x.DueDate, x.Event.Kind,
+                x.CardName is null ? x.Event.Description : $"{x.Event.Description} · no cartão {x.CardName}",
                 Money.Format(Math.Abs(x.Event.Amount)), x.Event.IsEstimate, x.Overdue, x.Event.Code!.Value, x.Link)).OrderBy(x => x.Date).ToArray();
             return new AgendaDto(items.Where(x => x.IsOverdue).ToArray(), items.Where(x => !x.IsOverdue && x.Date == Today).ToArray(),
                 items.Where(x => x.Date > Today && x.Date <= Today.AddDays(7)).ToArray(), items.Where(x => x.Date > Today.AddDays(7) && x.Date <= Today.AddDays(30)).ToArray(),
@@ -106,8 +211,10 @@ namespace PainelGestao.OrganizaliFinancas.Application.Planning
             if (projection.FirstDeficit is DateOnly deficit)
                 conditions.Add(new AlertCondition("deficit", deficit.ToString("yyyy-MM-dd"), "deficit", "critical", $"Saldo projetado negativo em {deficit:dd/MM/yyyy}",
                     $"Pelas contas e rendas previstas, o saldo da casa chega a {Brl(projection.Lowest)} em {projection.LowestDate:dd/MM/yyyy}.", "/dashboard", deficit));
-            foreach (var (item, overdue, link) in await OpenItemsAsync(Today.AddDays(30), ct))
+            foreach (var open in await OpenItemsAsync(Today.AddDays(30), ct))
             {
+                // Due-date alerts follow the bill's own due date, even when its cash leaves later through a card invoice.
+                var (item, overdue, link) = (open.Event with { Date = open.DueDate }, open.Overdue, open.Link);
                 var value = Brl(Math.Abs(item.Amount));
                 if (item.Amount > 0)
                 {

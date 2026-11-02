@@ -41,6 +41,17 @@ namespace PainelGestao.OrganizaliFinancas.Domain.ValueObjects
             return purchase < closing || (purchase == closing && rule == "current") ? month : month.AddMonths(1);
         }
 
+        /// <summary>
+        /// A22, "Hoje, em qual fatura cai?": the cycle a purchase made on <paramref name="today"/> lands in, the last day that still lands there and the
+        /// reference month of the invoice after it. A bill the household pays with the card leaves the account on <c>Cycle.DueDate</c>.
+        /// </summary>
+        public static (CardCycle Cycle, DateOnly LastDay, DateOnly NextReferenceMonth) LandingFor(DateOnly today, int closingDay, int dueDay, string rule)
+        {
+            var cycle = ClosingIn(ClosingMonthFor(today, closingDay, rule), closingDay, dueDay);
+            var lastDay = rule == "current" ? cycle.ClosingDate : cycle.ClosingDate.AddDays(-1);
+            return (cycle, lastDay, cycle.ReferenceMonth.AddMonths(1));
+        }
+
         /// <param name="shift">−1, 0 or +1: the preview lets the household correct the first invoice by one cycle.</param>
         /// <param name="currentInstallment">Purchase already running when it is registered (e.g. 5 of 10 in this invoice): earlier installments are not created.</param>
         /// <param name="currentInvoice">Reference month (due month) of the invoice that holds <paramref name="currentInstallment"/>; it replaces the closing calculation and the shift.</param>

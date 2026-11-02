@@ -4,7 +4,9 @@ import { requirePermission } from "@/lib/session";
 import { fetchFromApi } from "@/lib/server";
 import { civilDate, money, monthLabel } from "@/lib/finance";
 import { addMonths, capitalize } from "@/lib/expenses";
-import { eventKinds, type Dashboard } from "@/lib/planning";
+import { eventKinds, type Dashboard, type Margin } from "@/lib/planning";
+import type { Card } from "@/lib/cards";
+import { CardLandingTable, MarginCard } from "@/components/planning/MarginCard";
 import { ProjectionChart } from "@/components/planning/ProjectionChart";
 import { AgendaList, AlertBadge, BudgetBar, BudgetFigures } from "@/components/planning/Widgets";
 
@@ -13,7 +15,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   await requirePermission("household.read");
   const requested = (await searchParams).month;
   const query = typeof requested === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(requested) ? { month: `${requested}-01` } : undefined;
-  const data = await fetchFromApi<Dashboard>("dashboard", query);
+  const [data, margin, cards] = await Promise.all([fetchFromApi<Dashboard>("dashboard", query), fetchFromApi<Margin>("margin"), fetchFromApi<Card[]>("cards")]);
   const month = data.month;
   const projection = data.projection;
   const watched = data.budget.lines.filter(line => line.band !== "none" && line.categoryCode).sort((a, b) => Number(b.usedPercent ?? 0) - Number(a.usedPercent ?? 0)).slice(0, 5);
@@ -30,6 +32,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <div><dt><Link href="/cash-flow">Saldo em {civilDate(projection.to)}</Link></dt><dd className={Number(projection.end) < 0 ? "alert-figure" : ""}>{money(projection.end)}</dd>
         <dd className="figure-note">projetado</dd></div>
     </dl>
+
+    <div className="dashboard-block">
+      <MarginCard margin={margin} cards={cards.filter(card => card.isActive)} month={month} />
+      <CardLandingTable cards={margin.cards} today={margin.today} />
+    </div>
 
     <section className="dashboard-block" aria-labelledby="projection-title-h">
       <div className="statement-header"><h2 id="projection-title-h">Saldo projetado nos próximos 60 dias</h2><Link className="secondary-button" href="/cash-flow">Ver fluxo de caixa</Link></div>

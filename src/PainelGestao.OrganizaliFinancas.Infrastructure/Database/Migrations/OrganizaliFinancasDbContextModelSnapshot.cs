@@ -1294,7 +1294,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(12);
 
                     b.Property<string>("Currency")
                         .IsRequired()
@@ -1305,19 +1305,19 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.Property<string>("DeletedBy")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(15);
+                        .HasColumnOrder(16);
 
                     b.Property<DateTime>("DtCreated")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.Property<DateTime?>("DtDeleted")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(14);
+                        .HasColumnOrder(15);
 
                     b.Property<DateTime?>("DtUpdated")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<int>("IdTenant")
                         .HasColumnType("int")
@@ -1325,13 +1325,18 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<string>("Language")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("varchar(10)")
                         .HasColumnOrder(5);
+
+                    b.Property<decimal>("MinimumReserve")
+                        .HasPrecision(19, 2)
+                        .HasColumnType("decimal(19,2)")
+                        .HasColumnOrder(8);
 
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("date")
@@ -1346,11 +1351,11 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(14);
 
                     b.Property<int>("Version")
                         .HasColumnType("int")
-                        .HasColumnOrder(8);
+                        .HasColumnOrder(9);
 
                     b.HasKey("Id");
 
@@ -2046,12 +2051,12 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.Property<decimal>("Amount")
                         .HasPrecision(19, 2)
                         .HasColumnType("decimal(19,2)")
-                        .HasColumnOrder(18);
+                        .HasColumnOrder(19);
 
                     b.Property<string>("CancelReason")
                         .HasMaxLength(300)
                         .HasColumnType("varchar(300)")
-                        .HasColumnOrder(21);
+                        .HasColumnOrder(22);
 
                     b.Property<Guid>("Code")
                         .HasColumnType("char(36)")
@@ -2059,49 +2064,49 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
 
                     b.Property<DateTime>("Competence")
                         .HasColumnType("date")
-                        .HasColumnOrder(16);
+                        .HasColumnOrder(17);
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(30);
+                        .HasColumnOrder(31);
 
                     b.Property<string>("DeletedBy")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(34);
+                        .HasColumnOrder(35);
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<DateTime>("DtCreated")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(29);
+                        .HasColumnOrder(30);
 
                     b.Property<DateTime?>("DtDeleted")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(33);
+                        .HasColumnOrder(34);
 
                     b.Property<DateTime?>("DtUpdated")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(31);
+                        .HasColumnOrder(32);
 
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("date")
-                        .HasColumnOrder(17);
+                        .HasColumnOrder(18);
 
                     b.Property<int?>("ExpenseTypeVersion")
                         .HasColumnType("int")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(14);
 
                     b.Property<string>("FieldValuesJson")
                         .IsRequired()
                         .HasColumnType("longtext")
-                        .HasColumnOrder(14);
+                        .HasColumnOrder(15);
 
                     b.Property<int?>("IdCardInvoice")
                         .HasColumnType("int")
@@ -2110,6 +2115,10 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.Property<int?>("IdCategory")
                         .HasColumnType("int")
                         .HasColumnOrder(5);
+
+                    b.Property<int?>("IdCreditCard")
+                        .HasColumnType("int")
+                        .HasColumnOrder(12);
 
                     b.Property<int?>("IdCreditor")
                         .HasColumnType("int")
@@ -2141,51 +2150,51 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
 
                     b.Property<int?>("InstallmentCount")
                         .HasColumnType("int")
-                        .HasColumnOrder(26);
+                        .HasColumnOrder(27);
 
                     b.Property<int?>("InstallmentNumber")
                         .HasColumnType("int")
-                        .HasColumnOrder(25);
+                        .HasColumnOrder(26);
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)")
-                        .HasColumnOrder(28);
+                        .HasColumnOrder(29);
 
                     b.Property<bool>("IsDetached")
                         .HasColumnType("tinyint(1)")
-                        .HasColumnOrder(24);
+                        .HasColumnOrder(25);
 
                     b.Property<bool>("IsEstimated")
                         .HasColumnType("tinyint(1)")
-                        .HasColumnOrder(19);
+                        .HasColumnOrder(20);
 
                     b.Property<DateTime?>("OccurrenceDate")
                         .HasColumnType("date")
-                        .HasColumnOrder(23);
+                        .HasColumnOrder(24);
 
                     b.Property<int?>("RecurrenceVersion")
                         .HasColumnType("int")
-                        .HasColumnOrder(22);
+                        .HasColumnOrder(23);
 
                     b.Property<string>("SplitMode")
                         .HasMaxLength(10)
                         .HasColumnType("varchar(10)")
-                        .HasColumnOrder(15);
+                        .HasColumnOrder(16);
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("varchar(10)")
-                        .HasColumnOrder(20);
+                        .HasColumnOrder(21);
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(32);
+                        .HasColumnOrder(33);
 
                     b.Property<int>("Version")
                         .HasColumnType("int")
-                        .HasColumnOrder(27);
+                        .HasColumnOrder(28);
 
                     b.HasKey("Id");
 
@@ -2200,6 +2209,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .IsUnique();
 
                     b.HasIndex("IdTenant", "IdCategory");
+
+                    b.HasIndex("IdTenant", "IdCreditCard");
 
                     b.HasIndex("IdTenant", "IdCreditor");
 
@@ -2965,43 +2976,47 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(17);
+                        .HasColumnOrder(18);
 
                     b.Property<string>("DeletedBy")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(21);
+                        .HasColumnOrder(22);
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)")
-                        .HasColumnOrder(9);
+                        .HasColumnOrder(10);
 
                     b.Property<DateTime>("DtCreated")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(16);
+                        .HasColumnOrder(17);
 
                     b.Property<DateTime?>("DtDeleted")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(20);
+                        .HasColumnOrder(21);
 
                     b.Property<DateTime?>("DtUpdated")
                         .HasColumnType("datetime(6)")
-                        .HasColumnOrder(18);
+                        .HasColumnOrder(19);
 
                     b.Property<int?>("ExpenseTypeVersion")
                         .HasColumnType("int")
-                        .HasColumnOrder(10);
+                        .HasColumnOrder(11);
 
                     b.Property<string>("FieldValuesJson")
                         .IsRequired()
                         .HasColumnType("longtext")
-                        .HasColumnOrder(11);
+                        .HasColumnOrder(12);
 
                     b.Property<int?>("IdCategory")
                         .HasColumnType("int")
                         .HasColumnOrder(5);
+
+                    b.Property<int?>("IdCreditCard")
+                        .HasColumnType("int")
+                        .HasColumnOrder(9);
 
                     b.Property<int?>("IdCreditor")
                         .HasColumnType("int")
@@ -3025,26 +3040,26 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)")
-                        .HasColumnOrder(15);
+                        .HasColumnOrder(16);
 
                     b.Property<string>("SharesJson")
                         .IsRequired()
                         .HasColumnType("longtext")
-                        .HasColumnOrder(13);
+                        .HasColumnOrder(14);
 
                     b.Property<string>("SplitMode")
                         .HasMaxLength(10)
                         .HasColumnType("varchar(10)")
-                        .HasColumnOrder(12);
+                        .HasColumnOrder(13);
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)")
-                        .HasColumnOrder(19);
+                        .HasColumnOrder(20);
 
                     b.Property<int>("Version")
                         .HasColumnType("int")
-                        .HasColumnOrder(14);
+                        .HasColumnOrder(15);
 
                     b.HasKey("Id");
 
@@ -3052,6 +3067,8 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .IsUnique();
 
                     b.HasIndex("IdTenant", "IdCategory");
+
+                    b.HasIndex("IdTenant", "IdCreditCard");
 
                     b.HasIndex("IdTenant", "IdCreditor");
 
@@ -4236,6 +4253,12 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                         .HasPrincipalKey("IdTenant", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.CreditCard", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdCreditCard")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Creditor", null)
                         .WithMany()
                         .HasForeignKey("IdTenant", "IdCreditor")
@@ -4422,6 +4445,12 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Database.Migrations
                     b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.Category", null)
                         .WithMany()
                         .HasForeignKey("IdTenant", "IdCategory")
+                        .HasPrincipalKey("IdTenant", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PainelGestao.OrganizaliFinancas.Domain.Entities.CreditCard", null)
+                        .WithMany()
+                        .HasForeignKey("IdTenant", "IdCreditCard")
                         .HasPrincipalKey("IdTenant", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
 

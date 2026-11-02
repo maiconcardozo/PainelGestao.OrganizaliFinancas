@@ -8,10 +8,10 @@ import { Attachments } from "@/components/common/Attachments";
 import { Empty, ModalActions } from "@/components/common/Ui";
 import { civilDate, monthLabel, money, shortMonth, toApiMoney, type Account } from "@/lib/finance";
 import type { Card } from "@/lib/cards";
-import { adjustmentKinds, paidWith, paymentSource, statusLabels, type Expense, type ExpenseDetail } from "@/lib/expenses";
+import { adjustmentKinds, cardOption, paidWith, paymentSource, statusLabels, type Expense, type ExpenseDetail } from "@/lib/expenses";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
 import type { Person } from "@/components/households/HouseholdForms";
-import { ShareInputs, type Catalogs } from "./DetailInputs";
+import { PayCardSelect, ShareInputs, type Catalogs } from "./DetailInputs";
 import { InvoiceHint, PaymentSourceSelect, defaultSource } from "./PaymentSource";
 
 type Rights = { canEdit: boolean; canSettle: boolean };
@@ -60,7 +60,8 @@ function ExpenseRow({ expense, accounts, cards, catalogs, today, canEdit, canSet
     <div className="expense-main">
       <div><strong>{expense.description}</strong>
         <span className="entry-meta">Vence {civilDate(expense.dueDate)} · competência {monthLabel(expense.competence)}
-          {expense.categoryName && ` · ${expense.categoryName}`}{expense.creditorName && ` · ${expense.creditorName}`}{origin && ` · ${origin}`}</span>
+          {expense.categoryName && ` · ${expense.categoryName}`}{expense.creditorName && ` · ${expense.creditorName}`}{origin && ` · ${origin}`}
+          {expense.payCardName && open && <span title="Sai da conta na fatura deste cartão, não no vencimento"> · <CreditCard size={12} className="inline" aria-hidden="true" /> no cartão {expense.payCardName}</span>}</span>
         {expense.shares.length > 0 && <span className="entry-meta">Responsáveis: {expense.shares.map(share => `${share.personName} ${money(share.amount)}`).join(", ")}</span>}
       </div>
       <div className="number"><strong>{money(expense.status === "paid" || expense.status === "cancelled" ? expense.amount : expense.openBalance)}</strong>
@@ -163,7 +164,7 @@ function InvoiceRow({ expense, accounts, catalogs, today, canEdit, canSettle }: 
   </li>;
 }
 
-export type Payable = Pick<Expense, "code" | "description" | "openBalance" | "payerPersonCode" | "paymentMethodCode">;
+export type Payable = Pick<Expense, "code" | "description" | "openBalance" | "payerPersonCode" | "paymentMethodCode"> & { payCardCode?: string | null };
 /**
  * Partial or total payment in a modal; interest, fine and discount are shown separately before confirming. Also pays card invoices.
  * With `cards`, the payment can be made on a credit card: nothing leaves an account and the amount enters the card's invoice (A17).
@@ -171,7 +172,8 @@ export type Payable = Pick<Expense, "code" | "description" | "openBalance" | "pa
 export function PayModal({ expense, accounts, cards = [], people, today, onClose }: { expense: Payable; accounts: Account[]; cards?: Card[]; people: Person[]; today: string; onClose: () => void }) {
   const action = useFinanceAction();
   const [extra, setExtra] = useState({ interest: "", fine: "", discount: "" });
-  const [source, setSource] = useState(() => defaultSource(accounts, cards));
+  // A22: a bill marked to be paid with a card starts with that card selected.
+  const [source, setSource] = useState(() => expense.payCardCode && cards.some(card => card.code === expense.payCardCode) ? `${cardOption}${expense.payCardCode}` : defaultSource(accounts, cards));
   const [date, setDate] = useState(today);
   const charges = Number(toApiMoney(extra.interest) || 0) + Number(toApiMoney(extra.fine) || 0) - Number(toApiMoney(extra.discount) || 0);
   const due = (Number(expense.openBalance) + charges).toFixed(2);
@@ -221,7 +223,7 @@ function DetailPanel({ detail, catalogs, canEdit, canSettle }: { detail: Expense
     await action.send(`expenses/${expense.code}`, "PUT", {
       details: { description: data.get("description"), expenseTypeCode: expense.expenseTypeCode, expenseTypeVersion: expense.expenseTypeVersion,
         categoryCode: data.get("category") || null, creditorCode: expense.creditorCode, paymentMethodCode: expense.paymentMethodCode, payerPersonCode: expense.payerPersonCode,
-        fields: expense.expenseTypeCode ? expense.fields : null, splitMode: split && shares.length ? mode : null, shares: split && shares.length ? shares : null },
+        cardCode: data.get("payCard") || null, fields: expense.expenseTypeCode ? expense.fields : null, splitMode: split && shares.length ? mode : null, shares: split && shares.length ? shares : null },
       competence: `${data.get("competence")}-01`, dueDate: data.get("dueDate"), amount: toApiMoney(data.get("amount")), version: expense.version, payment: null,
     }, expense.recurrenceCode ? "Esta ocorrência foi alterada; as próximas continuam seguindo a recorrência." : "Despesa atualizada.");
   }
@@ -257,6 +259,7 @@ function DetailPanel({ detail, catalogs, canEdit, canSettle }: { detail: Expense
         <label>Competência<input type="month" name="competence" required defaultValue={expense.competence} /></label>
       </div>
       {Number(expense.paid) > 0 && <p className="form-hint">Já existe pagamento: o valor original fica travado. Use juros, multa, desconto ou ajuste abaixo.</p>}
+      <PayCardSelect cards={catalogs.cards} value={expense.payCardCode} />
       <ShareInputs people={catalogs.people} percentOnly={false} initialMode={expense.splitMode} initial={initialShares} />
       <div><button className="primary-button" disabled={action.busy}>Salvar alteração</button></div>
     </form>}

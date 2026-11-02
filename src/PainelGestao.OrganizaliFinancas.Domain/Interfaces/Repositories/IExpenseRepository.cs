@@ -22,6 +22,8 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         /// </summary>
         public decimal CardPaid { get; init; } public string? PaidCardName { get; init; } public DateTime? PaidInvoiceMonth { get; init; }
         public DateTime? LastPaymentDate { get; init; }
+        /// <summary>A22: the credit card the household usually pays this bill with (null = from a bank account).</summary>
+        public Guid? PayCardCode { get; init; } public string? PayCardName { get; init; }
     }
     public sealed record ShareRecord
     {
@@ -60,6 +62,7 @@ namespace PainelGestao.OrganizaliFinancas.Domain.Interfaces.Repositories
         public Guid? CategoryCode { get; init; } public string? CategoryName { get; init; } public Guid? CreditorCode { get; init; } public Guid? PaymentMethodCode { get; init; }
         public Guid? PayerPersonCode { get; init; } public string? PayerPersonName { get; init; } public string FieldValuesJson { get; init; } = "{}";
         public string? SplitMode { get; init; } public string SharesJson { get; init; } = "[]";
+        public Guid? PayCardCode { get; init; } public string? PayCardName { get; init; }
     }
     public sealed record RecurringVersionRecord
     {

@@ -95,6 +95,8 @@ namespace PainelGestao.OrganizaliFinancas.Tests.Helpers
             (await Analysis(owner, $"month={month:yyyy-MM-dd}&categoryCode={market.Code}&status=paid")).Total.Should().Be("900.00");
             (await Analysis(owner, $"month={month:yyyy-MM-dd}&accountCode={account.Code}")).Lines.Should().ContainSingle(x => x.Code == first.Code);
             (await owner.GetAsync("/api/analysis?status=late")).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+            await MarginAssertions.VerifyAsync(owner, other, reader);
         }
 
         private static async Task<BudgetDto> Budget(HttpClient client, DateOnly month) =>

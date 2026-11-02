@@ -6,9 +6,11 @@ import { Modal } from "@/components/common/Modal";
 import { Card, EditButton, Empty, ModalActions, NewButton, Notices, PageHeader, Pill } from "@/components/common/Ui";
 import { ListBar, ListFrame, useViewMode } from "@/components/common/ViewSwitch";
 import { useFinanceAction } from "@/components/finance/useFinanceAction";
+import { money, toApiMoney } from "@/lib/finance";
 
 export type Person = { code: string; name: string; isActive: boolean; version: number };
-export type Settings = { timeZone: string; language: string; currency: string; startDate: string | null; version: number };
+/** minimumReserve (A22): the balance the household keeps untouched; "Margem do mês" is the projected closing balance minus it. */
+export type Settings = { timeZone: string; language: string; currency: string; startDate: string | null; version: number; minimumReserve: string };
 
 /** Moradores: the RevendaPRO cadastro flow — header with "Novo", mosaic or list, the form in a modal. */
 export function People({ people, canEdit }: { people: Person[]; canEdit: boolean }) {
@@ -68,7 +70,7 @@ export function HouseholdSettings({ settings, canEdit }: { settings: Settings; c
     <Notices error={action.error} message={action.message} />
     <form className="data-form max-w-2xl" key={settings.version} onSubmit={event => {
       event.preventDefault(); const data = new FormData(event.currentTarget);
-      void action.send("household-settings", "PUT", { timeZone: data.get("timeZone"), startDate: data.get("startDate") || null, version: settings.version }, "Configurações salvas.");
+      void action.send("household-settings", "PUT", { timeZone: data.get("timeZone"), startDate: data.get("startDate") || null, minimumReserve: toApiMoney(data.get("minimumReserve")), version: settings.version }, "Configurações salvas.");
     }}>
       <div className="form-row">
         <label>Fuso horário<input name="timeZone" defaultValue={settings.timeZone} list="timezones" maxLength={100} required readOnly={!canEdit} /></label>
@@ -76,6 +78,12 @@ export function HouseholdSettings({ settings, canEdit }: { settings: Settings; c
       </div>
       <datalist id="timezones">{["America/Sao_Paulo", "America/Manaus", "America/Rio_Branco", "America/Noronha", "Europe/Lisbon", "Etc/UTC"].map(zone => <option key={zone} value={zone} />)}</datalist>
       <p className="form-hint">Use o nome IANA, como America/Sao_Paulo. Você pode informar outro fuso válido.</p>
+      <fieldset className="choice-group"><legend>Reserva mínima</legend>
+        <div className="form-row">
+          <label>Valor que a casa não quer gastar<input name="minimumReserve" required inputMode="decimal" defaultValue={settings.minimumReserve.replace(".", ",")} readOnly={!canEdit} /></label>
+        </div>
+        <p className="form-hint">Hoje: {money(settings.minimumReserve)}. A <strong>Margem do mês</strong>, no Painel e em Despesas, é o saldo previsto no fim de cada mês menos esta reserva: o que ainda dá para gastar sem entrar nela.</p>
+      </fieldset>
       <dl className="statement-totals"><div><dt>Idioma</dt><dd>Português (Brasil)</dd></div><div><dt>Moeda</dt><dd>Real brasileiro (BRL)</dd></div></dl>
       {canEdit && <div><button className="primary-button" disabled={action.busy}>Salvar configurações</button></div>}
     </form>

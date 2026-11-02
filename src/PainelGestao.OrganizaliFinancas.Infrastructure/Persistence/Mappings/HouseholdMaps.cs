@@ -23,6 +23,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Persistence.Mappings
             builder.Property(x => x.Language).HasMaxLength(10).IsRequired();
             builder.Property(x => x.Currency).HasMaxLength(3).IsRequired();
             builder.Property(x => x.StartDate).HasColumnType("date");
+            builder.Property(x => x.MinimumReserve).HasPrecision(19, 2);
             builder.HasIndex(x => x.IdTenant).IsUnique();
             builder.HasOne<Tenant>().WithMany().HasForeignKey(x => x.IdTenant).OnDelete(DeleteBehavior.Restrict);
         }

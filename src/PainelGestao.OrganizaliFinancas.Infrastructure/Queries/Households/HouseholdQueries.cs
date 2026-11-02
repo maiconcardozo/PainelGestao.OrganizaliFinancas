@@ -10,7 +10,7 @@ namespace PainelGestao.OrganizaliFinancas.Infrastructure.Queries.Households
                 DtDeleted=@DtDeleted,DeletedBy=@DeletedBy WHERE Id=@Id AND IdTenant=@IdTenant
             """;
         public const string UpdateSettings = """
-            UPDATE HouseholdSettings SET TimeZone=@TimeZone,StartDate=@StartDate,Version=@Version,
+            UPDATE HouseholdSettings SET TimeZone=@TimeZone,StartDate=@StartDate,MinimumReserve=@MinimumReserve,Version=@Version,
                 DtUpdated=@DtUpdated,UpdatedBy=@UpdatedBy WHERE Id=@Id AND IdTenant=@IdTenant
             """;
     }

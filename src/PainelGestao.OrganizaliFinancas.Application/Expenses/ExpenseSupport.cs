@@ -45,6 +45,13 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
             if (categoryCode is Guid category) idCategory = await CatalogIdAsync(work, CatalogKind.Categories, idTenant, category, previous?.IdCategory, "Categoria", ct);
             var idCreditor = payload.CreditorCode is Guid creditor ? await CatalogIdAsync(work, CatalogKind.Creditors, idTenant, creditor, previous?.IdCreditor, "Credor", ct) : (int?)null;
             var idMethod = payload.PaymentMethodCode is Guid method ? await CatalogIdAsync(work, CatalogKind.PaymentMethods, idTenant, method, previous?.IdPaymentMethod, "Forma de pagamento", ct) : (int?)null;
+            int? idCard = null;
+            if (payload.CardCode is Guid cardCode)
+            {
+                var card = await work.CardRepository.FindCardAsync(idTenant, cardCode, ct) ?? throw new NotFoundException("Cartão não encontrado nesta casa.");
+                if (!card.IsActive && previous?.IdCreditCard != card.Id) throw new ConflictException( O cartão {card.Name} está inativo; escolha um cartão ativo.");
+                idCard = card.Id;
+            }
             int? idPayer = null;
             if (payload.PayerPersonCode is Guid payerCode)
                 idPayer = (await PersonAsync(work, idTenant, payerCode, previous?.IdPayerPerson, ct)).Id;
@@ -55,7 +62,7 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                 shares.Add(new ShareInput(person.Code, decimal.Parse(share.Value, CultureInfo.InvariantCulture)));
             }
             var mode = shares.Count > 0 ? payload.SplitMode : null;
-            return new ResolvedDetails(new ObligationDetails(payload.Description, idType, typeVersion, idCategory, idCreditor, idMethod, idPayer, fieldsJson, mode), shares);
+            return new ResolvedDetails(new ObligationDetails(payload.Description, idType, typeVersion, idCategory, idCreditor, idMethod, idPayer, fieldsJson, mode, idCard), shares);
         }
         private static async Task<int> CatalogIdAsync(IUnitOfWork work, CatalogKind kind, int idTenant, Guid code, int? previous, string label, CancellationToken ct)
         {
@@ -93,7 +100,8 @@ namespace PainelGestao.OrganizaliFinancas.Application.Expenses
                     s.Percent is decimal percent ? percent.ToString("0.####", CultureInfo.InvariantCulture) : null)).ToArray(),
                 Fields(x.FieldValuesJson), x.Version, invoice ? x.CardName : null, invoice ? x.CardItemCount : null,
                 x.LastPaymentDate is DateTime paidOn && x.Paid > 0 ? DateOnly.FromDateTime(paidOn) : null,
-                x.CardPaid > 0 && x.PaidCardName is not null ? new CardPaymentDto(x.PaidCardName, (x.PaidInvoiceMonth ?? x.Competence).ToString("yyyy-MM"), Money.Format(x.CardPaid)) : null);
+                x.CardPaid > 0 && x.PaidCardName is not null ? new CardPaymentDto(x.PaidCardName, (x.PaidInvoiceMonth ?? x.Competence).ToString("yyyy-MM"), Money.Format(x.CardPaid)) : null,
+                x.PayCardCode, x.PayCardName);
         }
         public static async Task<IReadOnlyList<ExpenseDto>> ReadAsync(IUnitOfWork work, int idTenant, IReadOnlyList<ObligationRecord> records, DateOnly today, CancellationToken ct)
         {

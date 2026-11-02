@@ -18,6 +18,17 @@ export type AnalysisLine = { source: "bill" | "card"; code: string; description:
 export type Analysis = { month: string; categoryCode: string | null; personCode: string | null; accountCode: string | null; status: string | null; total: string; paid: string;
   byCategory: { categoryCode: string | null; name: string; amount: string }[]; lines: AnalysisLine[] };
 
+/** A22: bills of a month that go to a card, grouped by category (or description), with the invoice their money leaves on. */
+export type MarginGroup = { name: string; count: number; amount: string; cardName: string; invoiceMonth: string; invoiceDueDate: string };
+/** opening + inflow + outflow + other = closing; margin = closing − reserve; status red when closing is below the reserve (shortfall says by how much). */
+export type MarginMonth = { month: string; opening: string; inflow: string; outflow: string; bills: string; invoices: string; other: string; closing: string; margin: string;
+  status: "green" | "yellow" | "red"; shortfall: string; toCard: string; toCardGroups: MarginGroup[] };
+/** "Hoje, em qual fatura cai?": a purchase today lands in referenceMonth until lastDay; after that, nextReferenceMonth. */
+export type CardLanding = { cardCode: string; cardName: string; closingDay: number; dueDay: number; referenceMonth: string; closingDate: string; dueDate: string; lastDay: string;
+  nextReferenceMonth: string };
+export type MarginSimulation = { amount: string; date: string; cardName: string | null; invoiceMonth: string | null; invoiceDueDate: string | null; months: MarginMonth[] };
+export type Margin = { today: string; reserve: string; attentionThreshold: string; months: MarginMonth[]; cards: CardLanding[]; simulation: MarginSimulation | null };
+
 export const bandLabels: Record<BudgetLine["band"], string> = { none: "Sem orçamento", ok: "Dentro do limite", warning: "Perto do limite", limit: "No limite", exceeded: "Passou do limite" };
 export const eventKinds: Record<string, string> = { bill: "Conta", invoice: "Fatura", income: "Renda prevista" };
 export const analysisStatus: Record<AnalysisLine["status"], string> = { open: "Em aberto", paid: "Paga", overdue: "Vencida", card: "No cartão" };

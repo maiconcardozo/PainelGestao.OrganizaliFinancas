@@ -80,14 +80,18 @@ Em cada cartão há três ícones: **Editar** (lápis), **Ativar/Desativar** (en
 
 **Planejamento → Orçamento.** Digite um **Limite** nas categorias que quer controlar e clique em **Salvar orçamento**. Vazio significa sem orçamento; zero é um limite real. No mês seguinte, **Copiar limites de [mês anterior]** preenche tudo para revisão.
 
+### 2.9 Reserva mínima (titular)
+
+**Casa → Configurações da casa → Reserva mínima.** É o valor que a casa não quer gastar (começa em R$ 15.000,00). A **Margem do mês**, no Painel e no alto de Despesas, é o saldo previsto no fim de cada mês menos essa reserva: o que ainda dá para gastar sem entrar nela. Mudar a reserva muda todas as margens na hora.
+
 ## 3. O dia a dia
 
 ### 3.1 Lançar uma despesa
 
 **Dinheiro → Despesas → Nova despesa.** Escolha a aba:
 
-- **Conta avulsa**: uma conta só. **Descrição**, **Tipo de despesa**, **Categoria**, **Credor**, **Forma de pagamento**, **Quem costuma pagar**, **Valor** e **Vencimento**. Se já pagou, marque **Já foi paga** e informe **Conta de saída** e **Data do pagamento**; o pagamento é gravado junto.
-- **Conta recorrente**: aluguel, água, luz, internet. Informe **Valor**, **Periodicidade** e **Primeiro vencimento**. Para contas cujo valor muda, marque **Valor estimado (confirmo quando a conta chegar, ex.: água e luz)**: a despesa aparece como "Estimada" até você confirmar o valor real em **Detalhes**. **Ver próximos vencimentos** mostra a prévia antes de salvar. Os vencimentos são gerados até o mês atual mais 12.
+- **Conta avulsa**: uma conta só. **Descrição**, **Tipo de despesa**, **Categoria**, **Credor**, **Forma de pagamento**, **Quem costuma pagar**, **Valor** e **Vencimento**. Se já pagou, marque **Já foi paga** e informe **Conta de saída** e **Data do pagamento**; o pagamento é gravado junto. **Pago normalmente com**: deixe **Conta** quando o dinheiro sai no vencimento; escolha um cartão quando a conta é paga na fatura (escola, assinaturas). A conta continua no mês dela, mas a **Margem do mês** e o **Fluxo de caixa** só tiram o dinheiro no vencimento da fatura em que ela cai, e **Pagar** já vem com esse cartão escolhido.
+- **Conta recorrente**: aluguel, água, luz, internet. Informe **Valor**, **Periodicidade** e **Primeiro vencimento**. Para contas cujo valor muda, marque **Valor estimado (confirmo quando a conta chegar, ex.: água e luz)**: a despesa aparece como "Estimada" até você confirmar o valor real em **Detalhes**. **Ver próximos vencimentos** mostra a prévia antes de salvar. Os vencimentos são gerados até o mês atual mais 12. **Pago normalmente com** vale para todos os vencimentos gerados.
 - **Compra parcelada**: **Valor total**, **Parcelas** (2 a 120), **Primeiro vencimento** e **Intervalo**. **Ver parcelas** mostra a divisão; os centavos que sobram vão para a última parcela. Cada parcela vira uma despesa no mês do seu vencimento.
 
 **Dividir entre moradores**: aparece quando a casa tem dois ou mais moradores ativos. Na conta avulsa a divisão é **Por percentual** ou **Por valor**; nas recorrentes e parceladas, só por percentual. Deixe em branco quem não participa. Isso define quem é **responsável**; quem **pagou** é informado no pagamento. A tela **Rateio de [mês]** mostra o acerto sugerido entre moradores ("Fulano repassa para Beltrano"). O acerto é só uma sugestão: não cria despesa nem renda.
@@ -144,6 +148,7 @@ Em **O que fazer** escolha, para cada linha: **Ignorar**; **Entrada de renda** (
 ## 4. Acompanhar
 
 - **Painel**: **Saldo hoje**, **Recebido no mês**, **Despesas pagas** e **Saldo em [data]** projetado. O gráfico **Saldo projetado nos próximos 60 dias** parte do saldo real, soma as rendas fixas previstas e desconta contas e faturas em aberto; se ficar negativo, a tela diz em que dia e quais contas levam ao déficit. A **Agenda** agrupa Vencidos, Hoje, Próximos 7 dias e Até 30 dias. Cada número é um link para a tela que o explica.
+- **Margem do mês** (Painel e alto de Despesas): **Saldo no início do mês** + **Entradas previstas** − **Sai da conta este mês** (contas e faturas que vencem no mês) = **Saldo previsto no fim do mês**; menos a **Reserva mínima** = **Margem para gastar**. Verde é folga; amarela, margem abaixo de R$ 1.000; vermelha, o mês fecha abaixo da reserva e a tela diz quanto falta. **Vai para o cartão** lista as contas do mês marcadas para pagar no cartão, agrupadas por categoria, com a fatura em que saem. A faixa de meses mostra a margem dos próximos seis; a sobra de um mês entra no seguinte pelo saldo. Em **E se eu gastar…**, informe um valor e **À vista** ou um cartão para ver a margem de qual mês cai e quanto. **Hoje, em qual fatura cai?** diz, por cartão, até que dia uma compra ainda entra na fatura do mês e a partir de quando vai para a seguinte.
 - **Fluxo de caixa**: entradas e saídas **Mês a mês** (cinco meses atrás, seis à frente; o futuro aparece tracejado como "Previsto") e **Dia a dia** do mês escolhido.
 - **Orçamento**: para cada categoria, o comprometido (despesas da competência, inclusive as parcelas do cartão na fatura do mês), o pago e a situação: "Dentro do limite", "Perto do limite" (80%), "No limite" (100%) ou "Passou do limite", com o excesso em reais.
 - **Análise**: despesas do mês filtradas por **Categoria**, **Morador responsável**, **Conta que pagou** e **Situação**, com o mesmo total no gráfico e na lista.
@@ -153,7 +158,7 @@ Em **O que fazer** escolha, para cada linha: **Ignorar**; **Entrada de renda** (
 
 - **Integrantes** (só titular): quem tem login. **Convidar pessoa** pede **Nome**, **E-mail** e **Perfil** (Titular, Editor ou Leitor) e gera um **Link do convite** válido por 48 horas. O sistema não envia e-mail: copie o link e mande para a pessoa, que abre **Bem-vindo à casa**, define a senha e entra. Para mudar o perfil ou bloquear, use o lápis ("Acesso de [nome]"). A casa sempre precisa de pelo menos um titular ativo.
 - **Moradores** e **Integrantes** são cadastros diferentes: um morador pode não ter login (uma criança), e um integrante pode não ser morador (um contador com perfil Leitor).
-- **Configurações da casa** (titular): **Fuso horário** e **Data de início de uso**. Idioma e moeda são fixos.
+- **Configurações da casa** (titular): **Fuso horário**, **Data de início de uso** e **Reserva mínima**. Idioma e moeda são fixos.
 - **Minha conta** mostra nome e e-mail do acesso.
 
 ## 6. Rotina sugerida
@@ -176,5 +181,6 @@ Em **O que fazer** escolha, para cada linha: **Ignorar**; **Entrada de renda** (
 - **Transferência entre contas da casa** não é renda nem despesa e não entra no fluxo de caixa.
 - **O acerto do rateio** é uma sugestão de repasse entre moradores; se for feito entre contas da casa, registre como transferência.
 - **Renda variável e renda atrasada** não entram no saldo projetado; só rendas fixas previstas.
+- **Margem para gastar** é o saldo previsto no fim do mês menos a reserva mínima, não o saldo da conta. Conta marcada para pagar no cartão só sai da conta no vencimento da fatura, mas continua na lista do mês dela.
 - **Valores** aceitam os formatos "1.250,50" e "1250.50". Datas de recebimento, pagamento e transferência não podem ser futuras.
 - **Enviar de novo não duplica**: se a rede falhar ao salvar, repita; o sistema reconhece o mesmo lançamento.

@@ -3,9 +3,11 @@ import { useState } from "react";
 import type { CatalogItem } from "@/lib/catalogs";
 import type { ExpenseType, FieldDefinition } from "@/lib/expense-types";
 import type { Person } from "@/components/households/HouseholdForms";
+import type { Card } from "@/lib/cards";
 import { fieldValues, sharesFrom } from "@/lib/expenses";
 
-export type Catalogs = { types: ExpenseType[]; categories: CatalogItem[]; creditors: CatalogItem[]; methods: CatalogItem[]; people: Person[] };
+/** `cards` (A22): active credit cards a bill can be marked to be paid with, so its money leaves on the invoice in the margin and cash flow. */
+export type Catalogs = { types: ExpenseType[]; categories: CatalogItem[]; creditors: CatalogItem[]; methods: CatalogItem[]; people: Person[]; cards: Card[] };
 
 /** Inputs for the custom fields of one expense type version, named field_<key>. */
 export function CustomFieldInputs({ fields, values }: { fields: FieldDefinition[]; values?: Record<string, unknown> }) {
@@ -53,7 +55,7 @@ export function ShareInputs({ people, percentOnly, initialMode, initial }: { peo
 /** Description, type, category, creditor, method and expected payer; the type filters by behavior and drives the custom fields. */
 export function DetailInputs({ catalogs, behavior, typeCode, onType, values }: { catalogs: Catalogs; behavior: string; typeCode: string;
   onType: (code: string) => void; values?: { description?: string; categoryCode?: string | null; creditorCode?: string | null; paymentMethodCode?: string | null;
-    payerPersonCode?: string | null; fields?: Record<string, unknown> } }) {
+    payerPersonCode?: string | null; fields?: Record<string, unknown>; payCardCode?: string | null } }) {
   const types = catalogs.types.filter(type => type.behavior === behavior && (type.isActive || type.code === typeCode));
   const type = catalogs.types.find(item => item.code === typeCode);
   const activeOr = (items: CatalogItem[], code?: string | null) => items.filter(item => item.isActive || item.code === code);
@@ -77,7 +79,20 @@ export function DetailInputs({ catalogs, behavior, typeCode, onType, values }: {
       <label>Quem costuma pagar<select name="payer" defaultValue={values?.payerPersonCode ?? ""}><option value="">A casa</option>
         {catalogs.people.filter(person => person.isActive || person.code === values?.payerPersonCode).map(person => <option key={person.code} value={person.code}>{person.name}</option>)}</select></label>
     </div>
+    <PayCardSelect cards={catalogs.cards} value={values?.payCardCode} />
   </>;
+}
+
+/**
+ * A22: which card the household usually pays this bill with. "Conta" means the money leaves on the due date; a card means it leaves on that
+ * card's invoice, so the margin and the cash flow place it there. Paying it is still done in "Pagar", where the card is already selected.
+ */
+export function PayCardSelect({ cards, value }: { cards: Card[]; value?: string | null }) {
+  if (cards.length === 0) return null;
+  return <div className="form-row">
+    <label>Pago normalmente com<select name="payCard" defaultValue={value ?? ""}><option value="">Conta (o dinheiro sai no vencimento)</option>
+      {cards.filter(card => card.isActive || card.code === value).map(card => <option key={card.code} value={card.code}>Cartão {card.name} (sai na fatura)</option>)}</select></label>
+  </div>;
 }
 
 /** Builds the API "details" object from a form that rendered DetailInputs and ShareInputs. */
@@ -88,7 +103,7 @@ export function detailsFrom(data: FormData, catalogs: Catalogs, typeCode: string
   return {
     description: data.get("description"), expenseTypeCode: type?.code ?? null, expenseTypeVersion: type?.version ?? null,
     categoryCode: data.get("category") || null, creditorCode: data.get("creditor") || null, paymentMethodCode: data.get("paymentMethod") || null,
-    payerPersonCode: data.get("payer") || null, fields: type ? fieldValues(data, type.fields) : null,
+    payerPersonCode: data.get("payer") || null, cardCode: data.get("payCard") || null, fields: type ? fieldValues(data, type.fields) : null,
     splitMode: split ? mode : null, shares: split ? sharesFrom(data, catalogs.people, mode) : null,
   };
 }

@@ -45,6 +45,6 @@ export default async function CardsPage({ searchParams }: { searchParams: Promis
   const previous = shiftMonth(from, -12);
   const range: ListRange = { from, earlier: from > floor ? (previous < floor ? floor : previous) : null, isDefault: from === defaultFrom };
   return <CardsView cards={cards} invoices={invoices} purchases={purchases} accounts={accounts.accounts} people={people}
-    catalogs={{ types, categories, creditors: [], methods: [], people }} today={today} focusInvoice={focusInvoice} range={range} startDate={settings.startDate}
+    catalogs={{ types, categories, creditors: [], methods: [], people, cards: [] }} today={today} focusInvoice={focusInvoice} range={range} startDate={settings.startDate}
     canEdit={session.permissions.includes("finance.write")} canSettle={session.permissions.includes("payments.settle")} />;
 }
