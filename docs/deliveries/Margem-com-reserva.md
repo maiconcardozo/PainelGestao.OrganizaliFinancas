@@ -1,6 +1,6 @@
 # Entrega — Margem do mês com reserva mínima
 
-Data: 02/11/2026 (noite). Estado: implementado; **ainda não validado no servidor nem publicado**. Pedido da Carolina em PDF ("Pedido: previsão de margem com reserva mínima", 02/11/2026): a casa quer manter R$ 15.000 de reserva e saber, mês a mês, o que sai da conta, o que vai para o cartão e sai no mês seguinte e quanto ainda dá para gastar sem entrar na reserva.
+Data: 02/11/2026 (noite). Estado: implementado e validado no servidor (commits `aea2914` e `d68d99e`); **publicação na LAN pendente** (ver Execução). Pedido da Carolina em PDF ("Pedido: previsão de margem com reserva mínima", 02/11/2026): a casa quer manter R$ 15.000 de reserva e saber, mês a mês, o que sai da conta, o que vai para o cartão e sai no mês seguinte e quanto ainda dá para gastar sem entrar na reserva.
 
 ## Objetivo e funcionalidades
 
@@ -33,11 +33,13 @@ Migration `20261102120000_ReserveAndDefaultCard`: `HouseholdSettings.MinimumRese
 
 ## Execução
 
-(preenchido após a validação no servidor)
+Validação em 02/11/2026 (noite) no servidor 192.168.1.7 (PowerShell Remoting, `git archive` do commit `aea2914` expandido em `C:\apps\organizali-work\repo`, contêineres descartáveis). Primeira rodada: o código não compilava (regra de validação da reserva fora da classe e `$"` perdido na mensagem do cartão inativo, ambos efeito dos scripts de patch) e, corrigido isso, a edição de despesa com cartão inativo recusava o cartão já gravado (o `previous` não levava `IdCreditCard`) e dois exemplos de `LandingFor` estavam escritos com a regra do dia de fechamento invertida (com "next" o próprio dia do fechamento já cai na fatura seguinte; com "current" ainda fica na atual, que é o caso "até 03/11" do pedido). Correções no commit `d68d99e`. Rodada final: `dotnet test` em Release com MariaDB descartável (Testcontainers) resultou em 105 de 106 aprovados, só a falha conhecida de `SmtpRecoveryDeliveryTests.Delivery_SendsOneTimeLinkWithTokenInFragment` (não depende desta entrega); `PersistenceTests` passou com `MarginAssertions` inteiro. Frontend na imagem `organizali-frontend:b7f7271`: `npm ci`, `tsc --noEmit`, `eslint` e `next build` sem erro (36 rotas).
+
+Publicação: **pendente**. A expansão do commit `d68d99e` sobre `C:\apps\OrganizaliFinancas`, `ORGANIZALI_VERSION=d68d99e` e a tarefa `OrganizaliDeploy` foram negadas ao agente nesta sessão pelo classificador de modo automático ("Production Deploy"); a LAN continua em `b7f7271`. A migration `ReserveAndDefaultCard` roda sozinha na subida da API.
 
 ## Limitações e pendências
 
-- Validação (`dotnet test`, `next build`), publicação na LAN e push ainda pendentes nesta entrega.
+- Publicação na LAN pendente: a LAN continua em `b7f7271` até a tarefa `OrganizaliDeploy` rodar com `ORGANIZALI_VERSION=d68d99e`.
 - A ordem das colunas no snapshot do EF foi ajustada à mão; o migrador não confere o modelo, mas o `Designer` deve ser conferido no próximo `dotnet ef migrations add`.
 - Faturas antigas erradas, estornos e transferências já ficam fora da margem pelas regras existentes; nenhum filtro novo foi criado.
 
