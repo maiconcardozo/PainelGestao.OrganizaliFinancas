@@ -33,7 +33,9 @@ Sem migration. `ExpenseSql.SelectObligation` troca `PaidOnCard` por `CardPaid`, 
 
 ## Execução
 
-(preenchido após a validação no servidor)
+Validação em 02/11/2026 (tarde) no servidor 192.168.1.7 (PowerShell Remoting, `git archive` do commit `b7f7271` expandido em `C:\apps\organizali-work\repo`, contêineres descartáveis): `dotnet test` em Release com MariaDB descartável (Testcontainers) resultou em 96 de 97 aprovados, só a falha conhecida de `SmtpRecoveryDeliveryTests.Delivery_SendsOneTimeLinkWithTokenInFragment` (não depende desta entrega); frontend `npm ci`, `tsc --noEmit`, `eslint` e `next build` com saída 0.
+
+Publicação: zip expandido sobre `C:\apps\OrganizaliFinancas`, `ORGANIZALI_VERSION=b7f7271` em `deploy\.env.production`, tarefa agendada `OrganizaliDeploy` (`UP_EXIT=0`, `FIM` às 13:17); contêineres `organizali-api:b7f7271` e `organizali-frontend:b7f7271` no ar (frontend healthy). Smoke do notebook: `GET /api/health` 200 `{"status":"Healthy"}`, `GET /api/backend/expenses` sem sessão 401, `/cards?from=2026-08` sem sessão 307 para o login, `/login` 200. A conferência na tela (selo "Paga · cartão Bradesco · fatura dez/26" com o total de novembro em R$ 19.890,29, Ver compras da fatura de agosto, Ver compras anteriores até julho, aviso de fatura antiga) e a exclusão das 3 compras de julho ficam com a família, com o login do piloto.
 
 ## Limitações e pendências
 
