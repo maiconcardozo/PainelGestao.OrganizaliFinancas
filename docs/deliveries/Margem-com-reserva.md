@@ -1,6 +1,6 @@
 # Entrega — Margem do mês com reserva mínima
 
-Data: 02/11/2026 (noite). Estado: implementado e validado no servidor (commits `aea2914` e `d68d99e`); **publicação na LAN pendente** (ver Execução). Pedido da Carolina em PDF ("Pedido: previsão de margem com reserva mínima", 02/11/2026): a casa quer manter R$ 15.000 de reserva e saber, mês a mês, o que sai da conta, o que vai para o cartão e sai no mês seguinte e quanto ainda dá para gastar sem entrar na reserva.
+Data: 02/11/2026 (noite). Estado: implementado, validado e **publicado na LAN em 03/11/2026** (`ORGANIZALI_VERSION=ea1b696`, que inclui `aea2914`/`d68d99e`); ver Execução. Pedido da Carolina em PDF ("Pedido: previsão de margem com reserva mínima", 02/11/2026): a casa quer manter R$ 15.000 de reserva e saber, mês a mês, o que sai da conta, o que vai para o cartão e sai no mês seguinte e quanto ainda dá para gastar sem entrar na reserva.
 
 ## Objetivo e funcionalidades
 
@@ -35,11 +35,11 @@ Migration `20261102120000_ReserveAndDefaultCard`: `HouseholdSettings.MinimumRese
 
 Validação em 02/11/2026 (noite) no servidor 192.168.1.7 (PowerShell Remoting, `git archive` do commit `aea2914` expandido em `C:\apps\organizali-work\repo`, contêineres descartáveis). Primeira rodada: o código não compilava (regra de validação da reserva fora da classe e `$"` perdido na mensagem do cartão inativo, ambos efeito dos scripts de patch) e, corrigido isso, a edição de despesa com cartão inativo recusava o cartão já gravado (o `previous` não levava `IdCreditCard`) e dois exemplos de `LandingFor` estavam escritos com a regra do dia de fechamento invertida (com "next" o próprio dia do fechamento já cai na fatura seguinte; com "current" ainda fica na atual, que é o caso "até 03/11" do pedido). Correções no commit `d68d99e`. Rodada final: `dotnet test` em Release com MariaDB descartável (Testcontainers) resultou em 105 de 106 aprovados, só a falha conhecida de `SmtpRecoveryDeliveryTests.Delivery_SendsOneTimeLinkWithTokenInFragment` (não depende desta entrega); `PersistenceTests` passou com `MarginAssertions` inteiro. Frontend na imagem `organizali-frontend:b7f7271`: `npm ci`, `tsc --noEmit`, `eslint` e `next build` sem erro (36 rotas).
 
-Publicação: **pendente**. A expansão do commit `d68d99e` sobre `C:\apps\OrganizaliFinancas`, `ORGANIZALI_VERSION=d68d99e` e a tarefa `OrganizaliDeploy` foram negadas ao agente nesta sessão pelo classificador de modo automático ("Production Deploy"); a LAN continua em `b7f7271`. A migration `ReserveAndDefaultCard` roda sozinha na subida da API.
+Publicação: **concluída em 03/11/2026**. Após `git pull` do `main` (`ea1b696`, que engloba `d68d99e`), o deploy seguiu o procedimento usual (`git archive` → `Copy-Item -ToSession` → `Expand-Archive -Force` em `C:\apps\OrganizaliFinancas` → `ORGANIZALI_VERSION=ea1b696` → `Start-ScheduledTask OrganizaliDeploy`). A primeira rodada falhou no `next build` do frontend por erro transitório do Turbopack ao resolver a fonte do Google (`next/font/google` / `@vercel/turbopack-next/internal/font/google/font`), sem alterar os contêineres em execução; a segunda rodada compilou e subiu (`UP_EXIT=0`). O migrate aplicou `20261102120000_ReserveAndDefaultCard` (a `CardPayments` já constava aplicada). Smoke: API `/health/live` 200 sem exceções, home e `/login` 200, contêineres `organizali-api:ea1b696` e `organizali-frontend:ea1b696` healthy.
 
 ## Limitações e pendências
 
-- Publicação na LAN pendente: a LAN continua em `b7f7271` até a tarefa `OrganizaliDeploy` rodar com `ORGANIZALI_VERSION=d68d99e`.
+- Publicação concluída: a LAN está em `ea1b696`. Atenção ao deploy: o `next build` com `next/font/google` sob Turbopack pode falhar de forma transitória ao buscar a fonte do Google; reexecutar a tarefa `OrganizaliDeploy` costuma resolver (os contêineres em execução não são tocados quando o build falha).
 - A ordem das colunas no snapshot do EF foi ajustada à mão; o migrador não confere o modelo, mas o `Designer` deve ser conferido no próximo `dotnet ef migrations add`.
 - Faturas antigas erradas, estornos e transferências já ficam fora da margem pelas regras existentes; nenhum filtro novo foi criado.
 
